@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arqueiro - Configurações</title>
+    <link rel="stylesheet" href="config-style.css">
+    <link rel="stylesheet" href="skill-tree.css">
+</head>
+<body>
+    <div class="config-container">
+        <header class="config-header">
+            <h1>⚙️ Configurações do Jogo</h1>
+            <p>Personalize sua experiência de jogo</p>
+        </header>
+
+        <div class="config-content">
+            <!-- Configurações Gerais -->
+            <section class="config-section">
+                <h2>🎮 Configurações Gerais</h2>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <label for="initialHealth">Vida Inicial:</label>
+                        <input type="number" id="initialHealth" value="20" min="1" max="100">
+                        <span class="description">Quantidade de vida inicial</span>
+                    </div>
+                    
+                    <div class="config-item">
+                        <label for="initialGold">Ouro Inicial:</label>
+                        <input type="number" id="initialGold" value="100" min="10" max="1000">
+                        <span class="description">Quantidade de ouro inicial</span>
+                    </div>
+                    
+                    <div class="config-item">
+                        <label for="gridSize">Tamanho do Grid:</label>
+                        <input type="number" id="gridSize" value="40" min="20" max="80">
+                        <span class="description">Tamanho de cada célula do grid</span>
+                    </div>
+                    
+                                         <div class="config-item">
+                         <label for="waveDelay">Delay entre Ondas (ms):</label>
+                         <input type="number" id="waveDelay" value="3000" min="1000" max="10000">
+                         <span class="description">Tempo de espera entre ondas</span>
+                     </div>
+                     
+                     <div class="config-item">
+                         <label for="upgradeBaseCost">Custo Base de Evolução:</label>
+                         <input type="number" id="upgradeBaseCost" value="50" min="10" max="200">
+                         <span class="description">Custo inicial para evoluir uma torre</span>
+                     </div>
+                     
+                     <div class="config-item">
+                         <label for="sellPercentage">Porcentagem de Venda:</label>
+                         <input type="number" id="sellPercentage" value="50" min="10" max="100">
+                         <span class="description">Porcentagem do valor total recebida ao vender</span>
+                     </div>
+                     
+                     <div class="config-item">
+                         <label for="pointsPerKill">Pontos por Inimigo:</label>
+                         <input type="number" id="pointsPerKill" value="10" min="1" max="50">
+                         <span class="description">Multiplicador de pontos por inimigo derrotado</span>
+                     </div>
+                     
+                     <div class="config-item">
+                         <label for="waveBonusMultiplier">Bônus por Onda:</label>
+                         <input type="number" id="waveBonusMultiplier" value="50" min="10" max="200">
+                         <span class="description">Multiplicador de pontos por onda completada</span>
+                     </div>
+                     
+                     <div class="config-item">
+                         <label for="upgradeBonusMultiplier">Bônus por Evolução:</label>
+                         <input type="number" id="upgradeBonusMultiplier" value="25" min="5" max="100">
+                         <span class="description">Multiplicador de pontos por evolução de torre</span>
+                     </div>
+                     
+                     <div class="config-item">
+                         <label for="waveDelaySeconds">Delay entre Ondas (segundos):</label>
+                         <input type="number" id="waveDelaySeconds" value="5" min="1" max="30">
+                         <span class="description">Tempo de espera entre ondas</span>
+                     </div>
+
+                     <div class="config-item">
+                         <label for="maxWaves">Limite Máximo de Ondas:</label>
+                         <input type="number" id="maxWaves" value="20" min="1" max="100">
+                         <span class="description">Número máximo de ondas para vitória</span>
+                     </div>
+
+                     <div class="config-item">
+                         <label for="goldMultiplier">Multiplicador de Ouro:</label>
+                         <input type="number" id="goldMultiplier" value="1" min="0.1" max="10" step="0.1">
+                         <span class="description">Multiplica o ouro ganho por inimigo</span>
+                     </div>
+                </div>
+            </section>
+            <hr>
+            <!-- Configurações Visuais -->
+            <section class="config-section">
+                <h2>🎨 Configurações Visuais</h2>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <label for="canvasWidth">Largura do Canvas:</label>
+                        <input type="number" id="canvasWidth" value="800" min="400" max="1200">
+                        <span class="description">Largura da área de jogo</span>
+                    </div>
+                    
+                    <div class="config-item">
+                        <label for="canvasHeight">Altura do Canvas:</label>
+                        <input type="number" id="canvasHeight" value="600" min="300" max="800">
+                        <span class="description">Altura da área de jogo</span>
+                    </div>
+                    
+                    <div class="config-item">
+                        <label for="projectileSpeed">Velocidade dos Projéteis:</label>
+                        <input type="number" id="projectileSpeed" value="3" min="1" max="10" step="0.5">
+                        <span class="description">Velocidade dos projéteis</span>
+                    </div>
+                    
+                                         <div class="config-item">
+                         <label for="projectileSize">Tamanho dos Projéteis:</label>
+                         <input type="number" id="projectileSize" value="4" min="2" max="10">
+                         <span class="description">Tamanho dos projéteis</span>
+                     </div>
+                     
+                     <div class="config-item">
+                         <label for="damageNumberLifetime">Duração dos Números de Dano:</label>
+                         <input type="number" id="damageNumberLifetime" value="60" min="30" max="120">
+                         <span class="description">Frames de duração dos números de dano</span>
+                     </div>
+                     
+                     <div class="config-item">
+                         <label for="damageNumberSpeed">Velocidade dos Números de Dano:</label>
+                         <input type="number" id="damageNumberSpeed" value="1" min="0.5" max="3" step="0.1">
+                         <span class="description">Velocidade de movimento dos números de dano</span>
+                     </div>
+                </div>
+            </section>
+            <hr>
+            <!-- Configurações das Torres -->
+            <section class="config-section">
+                <h2>🏹 Configurações das Torres</h2>
+                
+                <!-- Torre Arqueiro -->
+                <div class="tower-config">
+                    <h3>🏹 Arqueiro</h3>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label for="archerCost">Custo:</label>
+                            <input type="number" id="archerCost" value="50" min="10" max="200">
+                        </div>
+                        <div class="config-item">
+                            <label for="archerRange">Alcance:</label>
+                            <input type="number" id="archerRange" value="120" min="50" max="300">
+                        </div>
+                        <div class="config-item">
+                            <label for="archerDamage">Dano:</label>
+                            <input type="number" id="archerDamage" value="15" min="5" max="50">
+                        </div>
+                                                 <div class="config-item">
+                             <label for="archerFireRate">Taxa de Tiro (frames):</label>
+                             <input type="number" id="archerFireRate" value="60" min="15" max="180">
+                             <span class="description">Frames para atirar (60fps = 1 segundo)</span>
+                         </div>
+                        <div class="config-item">
+                            <label for="archerUpgradeDamage">Multiplicador de Dano por Upgrade (%):</label>
+                            <input type="number" id="archerUpgradeDamage" value="30" min="5" max="100" step="1">
+                            <span class="description">Aumenta o dano do Arqueiro em % a cada upgrade (padrão: 30%)</span>
+                        </div>
+                        <div class="config-item">
+                            <label for="archerUpgradeRange">Multiplicador de Alcance por Upgrade (%):</label>
+                            <input type="number" id="archerUpgradeRange" value="10" min="1" max="50" step="1">
+                            <span class="description">Aumenta o alcance do Arqueiro em % a cada upgrade (padrão: 10%)</span>
+                        </div>
+                        <div class="config-item">
+                            <label for="archerUpgradeSpeed">Multiplicador de Velocidade de Ataque por Upgrade (%):</label>
+                            <input type="number" id="archerUpgradeSpeed" value="-10" min="-50" max="-1" step="1">
+                            <span class="description">Reduz o tempo entre ataques do Arqueiro em % a cada upgrade (padrão: -10%)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Torre Canhão -->
+                <div class="tower-config">
+                    <h3>💣 Canhão</h3>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label for="cannonCost">Custo:</label>
+                            <input type="number" id="cannonCost" value="75" min="10" max="200">
+                        </div>
+                        <div class="config-item">
+                            <label for="cannonRange">Alcance:</label>
+                            <input type="number" id="cannonRange" value="100" min="50" max="300">
+                        </div>
+                        <div class="config-item">
+                            <label for="cannonDamage">Dano:</label>
+                            <input type="number" id="cannonDamage" value="25" min="5" max="50">
+                        </div>
+                                                 <div class="config-item">
+                             <label for="cannonFireRate">Taxa de Tiro (frames):</label>
+                             <input type="number" id="cannonFireRate" value="90" min="15" max="180">
+                             <span class="description">Frames para atirar (60fps = 1.5 segundos)</span>
+                         </div>
+                        <div class="config-item">
+                            <label for="cannonUpgradeDamage">Multiplicador de Dano por Upgrade (%):</label>
+                            <input type="number" id="cannonUpgradeDamage" value="30" min="5" max="100" step="1">
+                            <span class="description">Aumenta o dano do Canhão em % a cada upgrade (padrão: 30%)</span>
+                        </div>
+                        <div class="config-item">
+                            <label for="cannonUpgradeRange">Multiplicador de Alcance por Upgrade (%):</label>
+                            <input type="number" id="cannonUpgradeRange" value="10" min="1" max="50" step="1">
+                            <span class="description">Aumenta o alcance do Canhão em % a cada upgrade (padrão: 10%)</span>
+                        </div>
+                        <div class="config-item">
+                            <label for="cannonUpgradeSpeed">Multiplicador de Velocidade de Ataque por Upgrade (%):</label>
+                            <input type="number" id="cannonUpgradeSpeed" value="-10" min="-50" max="-1" step="1">
+                            <span class="description">Reduz o tempo entre ataques do Canhão em % a cada upgrade (padrão: -10%)</span>
+                        </div>
+                        <div class="config-item">
+                            <label for="cannonAreaRadius">Raio da Área de Explosão (px):</label>
+                            <input type="number" id="cannonAreaRadius" value="48" min="10" max="200" step="1">
+                            <span class="description">Define o raio da explosão do canhão (padrão: 1.2 × gridSize)</span>
+                        </div>
+                        <div class="config-item">
+                            <label for="cannonAreaDamageMultiplier">Multiplicador de Dano em Área (%):</label>
+                            <input type="number" id="cannonAreaDamageMultiplier" value="100" min="10" max="100" step="1">
+                            <span class="description">Dano em área como % do dano da torre (padrão: 100%)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Torre Mágica -->
+                <div class="tower-config">
+                    <h3>🔮 Mágica</h3>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label for="magicCost">Custo:</label>
+                            <input type="number" id="magicCost" value="100" min="10" max="200">
+                        </div>
+                        <div class="config-item">
+                            <label for="magicRange">Alcance:</label>
+                            <input type="number" id="magicRange" value="140" min="50" max="300">
+                        </div>
+                        <div class="config-item">
+                            <label for="magicDamage">Dano:</label>
+                            <input type="number" id="magicDamage" value="20" min="5" max="50">
+                        </div>
+                                                 <div class="config-item">
+                             <label for="magicFireRate">Taxa de Tiro (frames):</label>
+                             <input type="number" id="magicFireRate" value="48" min="15" max="180">
+                             <span class="description">Frames para atirar (60fps = 0.8 segundos)</span>
+                         </div>
+                        <div class="config-item">
+                            <label for="magicUpgradeDamage">Multiplicador de Dano por Upgrade (%):</label>
+                            <input type="number" id="magicUpgradeDamage" value="30" min="5" max="100" step="1">
+                            <span class="description">Aumenta o dano da Mágica em % a cada upgrade (padrão: 30%)</span>
+                        </div>
+                        <div class="config-item">
+                            <label for="magicUpgradeRange">Multiplicador de Alcance por Upgrade (%):</label>
+                            <input type="number" id="magicUpgradeRange" value="10" min="1" max="50" step="1">
+                            <span class="description">Aumenta o alcance da Mágica em % a cada upgrade (padrão: 10%)</span>
+                        </div>
+                        <div class="config-item">
+                            <label for="magicUpgradeSpeed">Multiplicador de Velocidade de Ataque por Upgrade (%):</label>
+                            <input type="number" id="magicUpgradeSpeed" value="-10" min="-50" max="-1" step="1">
+                            <span class="description">Reduz o tempo entre ataques da Mágica em % a cada upgrade (padrão: -10%)</span>
+                        </div>
+                        <div class="config-item">
+                            <label for="magicSlowEffect">Efeito de Lentidão (%):</label>
+                            <input type="number" id="magicSlowEffect" value="50" min="10" max="90" step="1">
+                            <span class="description">Reduz a velocidade do inimigo atingido pela Mágica (padrão: 50%)</span>
+                        </div>
+                        <div class="config-item">
+                            <label for="magicFreezeDuration">Duração do Congelamento (s):</label>
+                            <input type="number" id="magicFreezeDuration" value="1" min="0" max="10" step="0.1">
+                            <span class="description">Tempo de duração do efeito de congelamento/lentidão da Mágica (padrão: 1s)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Torre Tesla -->
+                <div class="tower-config">
+                    <h3>⚡ Tesla</h3>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label for="teslaCost">Custo:</label>
+                            <input type="number" id="teslaCost" value="120" min="10" max="300">
+                        </div>
+                        <div class="config-item">
+                            <label for="teslaRange">Alcance:</label>
+                            <input type="number" id="teslaRange" value="110" min="50" max="300">
+                        </div>
+                        <div class="config-item">
+                            <label for="teslaDamage">Dano:</label>
+                            <input type="number" id="teslaDamage" value="18" min="5" max="50">
+                        </div>
+                        <div class="config-item">
+                            <label for="teslaFireRate">Taxa de Tiro (ms):</label>
+                            <input type="number" id="teslaFireRate" value="1200" min="15" max="3000">
+                            <span class="description">Milissegundos para atirar</span>
+                        </div>
+                        <div class="config-item">
+                            <label for="teslaChainRadius">Alcance do Encadeamento Tesla:</label>
+                            <input type="number" id="teslaChainRadius" value="1.2" min="0.5" max="3" step="0.1">
+                            <span class="description">Multiplicador do alcance para encadear inimigos (padrão: 1.2)</span>
+                        </div>
+                        <div class="config-item">
+                            <label for="teslaUpgradeDamage">Multiplicador de Dano por Upgrade (%):</label>
+                            <input type="number" id="teslaUpgradeDamage" value="30" min="5" max="100" step="1">
+                            <span class="description">Aumenta o dano da Tesla em % a cada upgrade (padrão: 30%)</span>
+                        </div>
+                        <div class="config-item">
+                            <label for="teslaUpgradeRange">Multiplicador de Alcance por Upgrade (%):</label>
+                            <input type="number" id="teslaUpgradeRange" value="10" min="1" max="50" step="1">
+                            <span class="description">Aumenta o alcance da Tesla em % a cada upgrade (padrão: 10%)</span>
+                        </div>
+                        <div class="config-item">
+                            <label for="teslaUpgradeSpeed">Multiplicador de Velocidade de Ataque por Upgrade (%):</label>
+                            <input type="number" id="teslaUpgradeSpeed" value="-10" min="-50" max="-1" step="1">
+                            <span class="description">Reduz o tempo entre ataques da Tesla em % a cada upgrade (padrão: -10%)</span>
+                        </div>
+                        <div class="config-item">
+                            <label for="teslaChainMax">Máximo de Encadeamentos:</label>
+                            <input type="number" id="teslaChainMax" value="3" min="1" max="10" step="1">
+                            <span class="description">Limite máximo de inimigos encadeados pela Tesla (padrão: 3)</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <hr>
+            <!-- Habilidades Globais -->
+            <section class="config-section">
+                <h2>🌟 Habilidades Globais</h2>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <label for="globalSkillPointsInput">Pontos de Upgrade Disponíveis:</label>
+                        <input type="number" id="globalSkillPointsInput" min="0" max="999" value="0" style="font-weight:bold;font-size:1.2em;width:80px;">
+                        <span class="description">Pontos acumulados para distribuir na árvore de habilidades</span>
+                    </div>
+                    <div class="config-item">
+                        <button id="resetSkillTree" style="margin-top:8px;">Resetar Árvore e Pontos</button>
+                        <span class="description">Zera todos os upgrades globais e pontos disponíveis</span>
+                    </div>
+                    <div class="config-item">
+                        <label for="arrowRainCooldown">Cooldown Chuva de Flechas (s):</label>
+                        <input type="number" id="arrowRainCooldownConfig" value="15" min="5" max="60">
+                        <span class="description">Tempo de recarga da habilidade especial</span>
+                    </div>
+                    <div class="config-item">
+                        <label for="arrowRainDamage">Dano Chuva de Flechas:</label>
+                        <input type="number" id="arrowRainDamageConfig" value="60" min="10" max="500">
+                        <span class="description">Dano causado pela habilidade</span>
+                    </div>
+                    <div class="config-item">
+                        <label for="arrowRainRadius">Raio Chuva de Flechas (px):</label>
+                        <input type="number" id="arrowRainRadiusConfig" value="90" min="30" max="300">
+                        <span class="description">Área de efeito da habilidade</span>
+                    </div>
+                    <div class="config-item">
+                        <label for="iceStormCooldownConfig">Cooldown Tempestade de Gelo (s):</label>
+                        <input type="number" id="iceStormCooldownConfig" value="30" min="5" max="120">
+                        <span class="description">Tempo de recarga da habilidade especial Tempestade de Gelo</span>
+                    </div>
+                    <div class="config-item">
+                        <label for="iceStormDurationConfig">Duração Base do Congelamento (s):</label>
+                        <input type="number" id="iceStormDurationConfig" value="2" min="0.5" max="10" step="0.1">
+                        <span class="description">Tempo base de congelamento aplicado pela Tempestade de Gelo</span>
+                    </div>
+                    <div class="config-item">
+                        <label for="iceStormDamageConfig">Dano Extra Tempestade de Gelo:</label>
+                        <input type="number" id="iceStormDamageConfig" value="0" min="0" max="1000">
+                        <span class="description">Dano extra causado pela Tempestade de Gelo (0 = só congela)</span>
+                    </div>
+                </div>
+            </section>
+            <hr>
+            <!-- Configurações dos Inimigos -->
+            <section class="config-section">
+                <h2>👹 Configurações dos Inimigos</h2>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <label for="enemyBaseHealth">Vida Base:</label>
+                        <input type="number" id="enemyBaseHealth" value="50" min="10" max="200">
+                        <span class="description">Vida base dos inimigos</span>
+                    </div>
+                    
+                    <div class="config-item">
+                        <label for="enemyHealthIncrease">Aumento de Vida por Onda:</label>
+                        <input type="number" id="enemyHealthIncrease" value="10" min="0" max="50">
+                        <span class="description">Quanto a vida aumenta por onda</span>
+                    </div>
+                    
+                    <div class="config-item">
+                        <label for="enemySpeed">Velocidade:</label>
+                        <input type="number" id="enemySpeed" value="0.5" min="0.1" max="2" step="0.1">
+                        <span class="description">Velocidade de movimento</span>
+                    </div>
+                    
+                    <div class="config-item">
+                        <label for="enemyReward">Recompensa por Inimigo:</label>
+                        <input type="number" id="enemyReward" value="10" min="1" max="50">
+                        <span class="description">Ouro ganho por inimigo derrotado</span>
+                    </div>
+                    
+                    <div class="config-item">
+                        <label for="enemiesPerWave">Inimigos Base por Onda:</label>
+                        <input type="number" id="enemiesPerWave" value="5" min="1" max="20">
+                        <span class="description">Inimigos base por onda</span>
+                    </div>
+                    
+                    <div class="config-item">
+                        <label for="enemiesIncrease">Aumento de Inimigos por Onda:</label>
+                        <input type="number" id="enemiesIncrease" value="2" min="0" max="10">
+                        <span class="description">Quantos inimigos a mais por onda</span>
+                    </div>
+
+                    <div class="config-item">
+                        <label for="enemyHealthMultiplier">Multiplicador de Vida por Onda:</label>
+                        <input type="number" id="enemyHealthMultiplier" value="1.1" min="1" max="5" step="0.01">
+                        <span class="description">Multiplica a vida dos inimigos a cada onda</span>
+                    </div>
+                    
+                    <div class="config-item">
+                        <label for="enemySpeedMultiplier">Multiplicador de Velocidade por Onda:</label>
+                        <input type="number" id="enemySpeedMultiplier" value="1.05" min="1" max="3" step="0.01">
+                        <span class="description">Multiplica a velocidade dos inimigos a cada onda</span>
+                    </div>
+                    
+                    <div class="config-item">
+                        <label for="enemySpawnRate">Taxa de Spawn (ms):</label>
+                        <input type="number" id="enemySpawnRate" value="1000" min="100" max="5000">
+                        <span class="description">Intervalo entre spawns de inimigos</span>
+                    </div>
+                </div>
+                <div class="enemy-types-group">
+                    <h3 style="margin-top:32px;">Tipos de Inimigos Especiais</h3>
+                    <!-- Inimigo Normal -->
+                    <div class="enemy-type-config">
+                        <h3>🔴 Normal</h3>
+                        <div class="config-grid">
+                            <div class="config-item">
+                                <label for="normalHealthMultiplier">Multiplicador de Vida:</label>
+                                <input type="number" id="normalHealthMultiplier" value="1" min="0.1" max="10" step="0.1">
+                            </div>
+                            <div class="config-item">
+                                <label for="normalSpeedMultiplier">Multiplicador de Velocidade:</label>
+                                <input type="number" id="normalSpeedMultiplier" value="1" min="0.1" max="5" step="0.1">
+                            </div>
+                            <div class="config-item">
+                                <label for="normalRewardMultiplier">Multiplicador de Recompensa:</label>
+                                <input type="number" id="normalRewardMultiplier" value="1" min="0.1" max="10" step="0.1">
+                            </div>
+                            <div class="config-item">
+                                <label for="normalSpawnChance">Chance de Spawn (%):</label>
+                                <input type="number" id="normalSpawnChance" value="70" min="0" max="100">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inimigo Rápido -->
+                    <div class="enemy-type-config">
+                        <h3>🟡 Rápido</h3>
+                        <div class="config-grid">
+                            <div class="config-item">
+                                <label for="fastHealthMultiplier">Multiplicador de Vida:</label>
+                                <input type="number" id="fastHealthMultiplier" value="0.7" min="0.1" max="10" step="0.1">
+                            </div>
+                            <div class="config-item">
+                                <label for="fastSpeedMultiplier">Multiplicador de Velocidade:</label>
+                                <input type="number" id="fastSpeedMultiplier" value="1.8" min="0.1" max="5" step="0.1">
+                            </div>
+                            <div class="config-item">
+                                <label for="fastRewardMultiplier">Multiplicador de Recompensa:</label>
+                                <input type="number" id="fastRewardMultiplier" value="1.2" min="0.1" max="10" step="0.1">
+                            </div>
+                            <div class="config-item">
+                                <label for="fastSpawnChance">Chance de Spawn (%):</label>
+                                <input type="number" id="fastSpawnChance" value="20" min="0" max="100">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inimigo Tanque -->
+                    <div class="enemy-type-config">
+                        <h3>⚫ Tanque</h3>
+                        <div class="config-grid">
+                            <div class="config-item">
+                                <label for="tankHealthMultiplier">Multiplicador de Vida:</label>
+                                <input type="number" id="tankHealthMultiplier" value="2.5" min="0.1" max="10" step="0.1">
+                            </div>
+                            <div class="config-item">
+                                <label for="tankSpeedMultiplier">Multiplicador de Velocidade:</label>
+                                <input type="number" id="tankSpeedMultiplier" value="0.6" min="0.1" max="5" step="0.1">
+                            </div>
+                            <div class="config-item">
+                                <label for="tankRewardMultiplier">Multiplicador de Recompensa:</label>
+                                <input type="number" id="tankRewardMultiplier" value="1.8" min="0.1" max="10" step="0.1">
+                            </div>
+                            <div class="config-item">
+                                <label for="tankSpawnChance">Chance de Spawn (%):</label>
+                                <input type="number" id="tankSpawnChance" value="8" min="0" max="100">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inimigo Elite -->
+                    <div class="enemy-type-config">
+                        <h3>👑 Elite</h3>
+                        <div class="config-grid">
+                            <div class="config-item">
+                                <label for="eliteHealthMultiplier">Multiplicador de Vida:</label>
+                                <input type="number" id="eliteHealthMultiplier" value="5" min="0.1" max="20" step="0.1">
+                            </div>
+                            <div class="config-item">
+                                <label for="eliteSpeedMultiplier">Multiplicador de Velocidade:</label>
+                                <input type="number" id="eliteSpeedMultiplier" value="0.8" min="0.1" max="5" step="0.1">
+                            </div>
+                            <div class="config-item">
+                                <label for="eliteRewardMultiplier">Multiplicador de Recompensa:</label>
+                                <input type="number" id="eliteRewardMultiplier" value="3" min="0.1" max="20" step="0.1">
+                            </div>
+                            <div class="config-item">
+                                <label for="eliteSpawnChance">Chance de Spawn (%):</label>
+                                <input type="number" id="eliteSpawnChance" value="2" min="0" max="100">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <hr>
+            <!-- Configurações do Caminho -->
+            <section class="config-section">
+                <h2>🛤️ Configurações do Caminho</h2>
+                <div class="path-config">
+                    <p>Configure o caminho que os inimigos seguirão:</p>
+                    <div class="path-grid" id="pathGrid">
+                        <!-- Grid será gerado via JavaScript -->
+                    </div>
+                    <div class="path-controls">
+                        <button id="clearPath" class="btn btn-secondary">Limpar Caminho</button>
+                        <button id="defaultPath" class="btn btn-secondary">Caminho Padrão</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="config-actions">
+            <button id="saveConfig" class="btn btn-primary">�� Salvar Configurações</button>
+            <button id="resetConfig" class="btn btn-secondary">🔄 Restaurar Padrões</button>
+            <button id="exportConfig" class="btn btn-success">📤 Exportar Config</button>
+            <button id="importConfig" class="btn btn-info">📥 Importar Config</button>
+            <a href="index.html" class="btn btn-warning">🎮 Voltar ao Jogo</a>
+        </div>
+
+        <!-- Modal para importar configuração -->
+        <div id="importModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h3>Importar Configuração</h3>
+                <textarea id="importText" placeholder="Cole aqui o JSON da configuração..."></textarea>
+                <div class="modal-actions">
+                    <button id="confirmImport" class="btn btn-success">Importar</button>
+                    <button id="cancelImport" class="btn btn-secondary">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js" type="module"></script>
+</body>
+</html> 

@@ -1,0 +1,889 @@
+// Importar configurações dos módulos
+import { 
+    DEFAULT_GAME_CONFIG, 
+    loadGameConfig,
+    onConfigChanged
+} from './js/config/gameConfig.js';
+
+import { 
+    loadTowerConfig 
+} from './js/config/towerConfig.js';
+
+import { 
+    loadEnemyConfig, 
+    chooseEnemyType, 
+    calculateEnemyStats 
+} from './js/config/enemyConfig.js';
+
+// Importar classes
+import { Tower } from './js/classes/Tower.js';
+import { Enemy } from './js/classes/Enemy.js';
+import { Projectile } from './js/classes/Projectile.js';
+import { DamageNumber } from './js/classes/DamageNumber.js';
+
+// Importar sistemas
+import { RenderSystem } from './js/systems/RenderSystem.js';
+import { UISystem } from './js/systems/UISystem.js';
+import { GameSystem } from './js/systems/GameSystem.js';
+
+// Importar a função da árvore de habilidades
+import { initSkillTreePanel } from './js/systems/SkillTreeSystem.js';
+
+// --- Árvore de Habilidades ---
+const SKILL_TREE_KEY = 'arqueiroSkillTree';
+const SKILL_POINTS_KEY = 'arqueiroUpgradePoints';
+
+const SKILL_TREE = [
+    // Camada 1 (base)
+    { id: 'vida', name: 'Vida Inicial +', desc: '+1 de vida inicial por nível', max: 5, cost: 1, parent: null, branch: 'vida', children: ['cura', 'defesa'], row: 3, col: 1 },
+    { id: 'dano', name: 'Dano Global +', desc: '+5% de dano para todas as torres por nível', max: 5, cost: 1, parent: null, branch: 'dano', children: ['dano_arq', 'dano_can', 'dano_mag', 'dano_tes'], row: 3, col: 2 },
+    { id: 'esp', name: 'Especial', desc: 'Desbloqueia habilidades especiais', max: 1, cost: 1, parent: null, branch: 'esp', children: ['chuva', 'gelo', 'ouro', 'torre'], row: 3, col: 3 },
+    // Camada 2
+    { id: 'cura', name: 'Cura Passiva', desc: 'Regenera 1 de vida a cada 20s', max: 3, cost: 2, parent: 'vida', branch: 'vida', children: [], row: 2, col: 1 },
+    { id: 'defesa', name: 'Defesa', desc: 'Reduz dano recebido em 10% por nível', max: 3, cost: 2, parent: 'vida', branch: 'vida', children: [], row: 1, col: 1 },
+    { id: 'dano_arq', name: 'Dano Arqueiro +', desc: '+10% de dano para torres Arqueiro', max: 3, cost: 2, parent: 'dano', branch: 'dano', children: ['vel_arq'], row: 2, col: 2 },
+    { id: 'dano_can', name: 'Dano Canhão +', desc: '+10% de dano para torres Canhão', max: 3, cost: 2, parent: 'dano', branch: 'dano', children: ['alc_can'], row: 2, col: 2 },
+    { id: 'dano_mag', name: 'Dano Mago +', desc: '+10% de dano para torres Mago', max: 3, cost: 2, parent: 'dano', branch: 'dano', children: ['cong_mag'], row: 2, col: 2 },
+    { id: 'dano_tes', name: 'Dano Tesla +', desc: '+10% de dano para torres Tesla', max: 3, cost: 2, parent: 'dano', branch: 'dano', children: ['enc_tes'], row: 2, col: 2 },
+    { id: 'chuva', name: 'Chuva de Flechas +', desc: 'Aprimora a Chuva de Flechas', max: 3, cost: 2, parent: 'esp', branch: 'esp', children: [], row: 2, col: 3 },
+    { id: 'gelo', name: 'Tempestade de Gelo', desc: 'Nova habilidade: congela todos os inimigos', max: 1, cost: 3, parent: 'esp', branch: 'esp', children: [], row: 1, col: 3 },
+    { id: 'ouro', name: 'Ouro extra por onda', desc: '+10% de ouro ao vencer uma onda', max: 3, cost: 2, parent: 'esp', branch: 'esp', children: [], row: 2, col: 3 },
+    { id: 'torre', name: 'Desbloquear Torre Especial', desc: 'Nova torre exclusiva', max: 1, cost: 3, parent: 'esp', branch: 'esp', children: [], row: 2, col: 3 },
+    // Camada 3 (topo)
+    { id: 'vel_arq', name: 'Velocidade Arqueiro +', desc: '+10% de velocidade de ataque Arqueiro', max: 3, cost: 2, parent: 'dano_arq', branch: 'dano', children: [], row: 1, col: 2 },
+    { id: 'alc_can', name: 'Alcance Canhão +', desc: '+15% de alcance do dano em área', max: 2, cost: 2, parent: 'dano_can', branch: 'dano', children: [], row: 1, col: 2 },
+    { id: 'cong_mag', name: 'Congelamento Mago +', desc: '+1s de congelamento', max: 2, cost: 2, parent: 'dano_mag', branch: 'dano', children: [], row: 1, col: 2 },
+    { id: 'enc_tes', name: 'Encadeamento Tesla +', desc: '+1 inimigo encadeado', max: 2, cost: 2, parent: 'dano_tes', branch: 'dano', children: [], row: 1, col: 2 },
+];
+
+const SKILL_ICONS = {
+    vida: '❤️', cura: '💚', defesa: '🛡️',
+    dano: '⚔️', dano_arq: '🏹', vel_arq: '💨', dano_can: '💣', alc_can: '📏', dano_mag: '🔮', cong_mag: '❄️', dano_tes: '⚡', enc_tes: '🔗',
+    esp: '✨', chuva: '🏹', gelo: '❄️', ouro: '💰', torre: '🌟'
+};
+
+function loadSkillTree() {
+    const saved = localStorage.getItem(SKILL_TREE_KEY);
+    if (saved) return JSON.parse(saved);
+    const obj = {};
+    SKILL_TREE.forEach(n => obj[n.id] = 0);
+    return obj;
+}
+function saveSkillTree(tree) {
+    localStorage.setItem(SKILL_TREE_KEY, JSON.stringify(tree));
+}
+function loadSkillPoints() {
+    return parseInt(localStorage.getItem(SKILL_POINTS_KEY) || '0');
+}
+function saveSkillPoints(points) {
+    localStorage.setItem(SKILL_POINTS_KEY, points);
+}
+let skillTree = loadSkillTree();
+let skillPoints = loadSkillPoints();
+
+function canUnlockSkill(node) {
+    if (skillPoints < node.cost) return false;
+    if (node.parent === null) return true;
+    return skillTree[node.parent] > 0;
+}
+
+function renderSkillTreePanel(branch, containerId) {
+    const tree = SKILL_TREE.filter(node => node.branch === branch || node.id === branch);
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+
+    // Agrupar por camadas (row)
+    const layers = {};
+    tree.forEach(node => {
+        if (!layers[node.row]) layers[node.row] = [];
+        layers[node.row].push(node);
+    });
+    const maxRow = Math.max(...tree.map(n => n.row));
+
+    // Renderizar nós centralizados por camada
+    const nodeDivs = {};
+    for (let row = 1; row <= maxRow; row++) {
+        const layer = layers[row] || [];
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'skill-tree-row';
+        rowDiv.style.display = 'flex';
+        rowDiv.style.justifyContent = 'center';
+        rowDiv.style.gap = '32px';
+        rowDiv.style.position = 'relative';
+        rowDiv.style.height = '110px';
+        layer.forEach(node => {
+            const nodeDiv = document.createElement('div');
+            nodeDiv.className = 'skill-node';
+            nodeDiv.innerHTML = `<div class=\"skill-icon\">${SKILL_ICONS[node.id] || '❔'}</div>`;
+            nodeDiv.style.position = 'relative';
+            nodeDiv.style.zIndex = 2;
+            nodeDivs[node.id] = nodeDiv;
+            // Tooltip
+            const tooltip = document.createElement('div');
+            tooltip.className = 'skill-tooltip';
+            const level = skillTree[node.id] || 0;
+            const unlocked = level > 0;
+            const available = !unlocked && canUnlockSkill(node);
+            tooltip.innerHTML = `<b>${node.name}</b><br>${node.desc}<br><span style='color:#b26a00;font-size:0.95em;'>${unlocked ? 'Desbloqueada' : available ? 'Disponível' : 'Bloqueada'}</span><br>Custo: ${node.cost}<br>Nível: ${level}/${node.max}`;
+            nodeDiv.appendChild(tooltip);
+            nodeDiv.onmouseenter = () => { tooltip.style.display = 'block'; };
+            nodeDiv.onmouseleave = () => { tooltip.style.display = 'none'; };
+            rowDiv.appendChild(nodeDiv);
+        });
+        container.appendChild(rowDiv);
+    }
+    // Desenhar conexões SVG entre os nós (após renderizar)
+    setTimeout(() => {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.classList.add('skill-conn');
+        svg.setAttribute('width', container.offsetWidth);
+        svg.setAttribute('height', container.offsetHeight);
+        svg.style.position = 'absolute';
+        svg.style.left = '0';
+        svg.style.top = '0';
+        svg.style.pointerEvents = 'none';
+        svg.style.zIndex = 1;
+        // Para cada nó, se tiver parent, desenhar linha do centro do parent até o centro do filho
+        tree.forEach(node => {
+            if (!node.parent) return;
+            const from = nodeDivs[node.parent];
+            const to = nodeDivs[node.id];
+            if (!from || !to) return;
+            const fromRect = from.getBoundingClientRect();
+            const toRect = to.getBoundingClientRect();
+            const contRect = container.getBoundingClientRect();
+            const x1 = fromRect.left + fromRect.width/2 - contRect.left;
+            const y1 = fromRect.top + fromRect.height - contRect.top;
+            const x2 = toRect.left + toRect.width/2 - contRect.left;
+            const y2 = toRect.top - contRect.top;
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', x1);
+            line.setAttribute('y1', y1);
+            line.setAttribute('x2', x2);
+            line.setAttribute('y2', y2);
+            svg.appendChild(line);
+        });
+        // Remover SVG antigo se existir
+        const oldSvg = container.querySelector('.skill-conn');
+        if (oldSvg) oldSvg.remove();
+        container.appendChild(svg);
+    }, 10);
+}
+
+// Renderizar as três árvores
+renderSkillTreePanel('vida', 'skill-tree-vida');
+renderSkillTreePanel('dano', 'skill-tree-dano');
+renderSkillTreePanel('esp', 'skill-tree-especial');
+
+// Exibir painel de upgrades usando o sistema modularizado
+function showUpgradeModal() {
+    const modal = document.getElementById('upgradeModal');
+    let skillTree = loadSkillTree();
+    let skillPoints = loadSkillPoints();
+    document.getElementById('upgradePoints').textContent = skillPoints;
+    const list = document.getElementById('upgradeList');
+    list.innerHTML = '';
+    const panelDiv = document.createElement('div');
+    panelDiv.id = 'skill-tree-multi-panel';
+    list.appendChild(panelDiv);
+    initSkillTreePanel('skill-tree-multi-panel', skillTree, skillPoints);
+    modal.style.display = 'flex';
+}
+
+const btnUpgrades = document.getElementById('btnUpgrades');
+if (btnUpgrades) {
+    btnUpgrades.onclick = showUpgradeModal;
+}
+
+document.getElementById('closeUpgradeModal').addEventListener('click', () => {
+    document.getElementById('upgradeModal').style.display = 'none';
+});
+window.addEventListener('mousedown', (e) => {
+    const modal = document.getElementById('upgradeModal');
+    if (modal.style.display !== 'none' && !modal.querySelector('.upgrade-modal-content').contains(e.target)) {
+        modal.style.display = 'none';
+    }
+});
+
+// Variáveis globais para configurações (serão atualizadas dinamicamente)
+let GAME_CONFIG = loadGameConfig();
+let TOWER_TYPES = loadTowerConfig();
+
+// Função para aplicar os efeitos da árvore de habilidades ao GAME_CONFIG
+function applySkillTreeEffects(gameConfig, skillTree) {
+    // Vida/Suporte
+    gameConfig.initialHealth += (skillTree['vida'] || 0);
+    gameConfig.defenseBonus = (skillTree['defesa'] || 0) * 0.10; // 10% por nível
+    gameConfig.passiveHeal = (skillTree['cura'] || 0); // 1 por nível
+    // Ataque/Dano
+    gameConfig.globalDamageBonus = 1 + (skillTree['dano'] || 0) * 0.05;
+    gameConfig.archerDamageBonus = 1 + (skillTree['dano_arq'] || 0) * 0.10;
+    gameConfig.archerSpeedBonus = 1 + (skillTree['vel_arq'] || 0) * 0.10;
+    gameConfig.cannonDamageBonus = 1 + (skillTree['dano_can'] || 0) * 0.10;
+    gameConfig.cannonRangeBonus = 1 + (skillTree['alc_can'] || 0) * 0.15;
+    gameConfig.mageDamageBonus = 1 + (skillTree['dano_mag'] || 0) * 0.10;
+    gameConfig.mageFreezeBonus = (skillTree['cong_mag'] || 0) * 1.0; // +1s por nível
+    gameConfig.teslaDamageBonus = 1 + (skillTree['dano_tes'] || 0) * 0.10;
+    gameConfig.teslaChainBonus = (skillTree['enc_tes'] || 0); // +1 inimigo
+    // Especial
+    gameConfig.arrowRainBonus = (skillTree['chuva'] || 0);
+    gameConfig.iceStorm = (skillTree['gelo'] || 0) > 0;
+    gameConfig.goldPerWaveBonus = 1 + (skillTree['ouro'] || 0) * 0.10;
+    gameConfig.specialTowerUnlocked = (skillTree['torre'] || 0) > 0;
+}
+
+// Modificar getInitialGameState para aplicar a árvore de habilidades
+function getInitialGameState() {
+    let config = loadGameConfig();
+    applySkillTreeEffects(config, skillTree);
+    return {
+        health: config.initialHealth,
+        gold: config.initialGold,
+        wave: 0,
+        isPaused: false,
+        isGameOver: false,
+        selectedTower: null,
+        towers: [],
+        enemies: [],
+        projectiles: [],
+        waveInProgress: false,
+        allEnemiesSpawned: false,
+        waveTimer: 0,
+        nextWaveTimer: 0,
+        gameTime: 0,
+        score: 0,
+        damageNumbers: [],
+        monstersThisWave: 0,
+        monstersDefeated: 0
+    };
+}
+
+// Estado do jogo
+let gameState = getInitialGameState();
+
+// Canvas e contexto
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Inicializar canvas com configurações
+canvas.width = GAME_CONFIG.canvasWidth;
+canvas.height = GAME_CONFIG.canvasHeight;
+
+// Função para recarregar configurações
+function reloadConfigs() {
+    const oldCanvasWidth = GAME_CONFIG.canvasWidth;
+    const oldCanvasHeight = GAME_CONFIG.canvasHeight;
+    
+    GAME_CONFIG = loadGameConfig();
+    TOWER_TYPES = loadTowerConfig();
+    
+    // Atualizar tamanho do canvas se necessário
+    if (oldCanvasWidth !== GAME_CONFIG.canvasWidth || oldCanvasHeight !== GAME_CONFIG.canvasHeight) {
+        canvas.width = GAME_CONFIG.canvasWidth;
+        canvas.height = GAME_CONFIG.canvasHeight;
+        console.log('Canvas redimensionado:', GAME_CONFIG.canvasWidth, 'x', GAME_CONFIG.canvasHeight);
+    }
+    
+    // Atualizar RenderSystem com novas configurações
+    renderSystem.GAME_CONFIG = GAME_CONFIG;
+    
+    // Atualizar configurações das torres existentes
+    gameState.towers.forEach(tower => {
+        tower.gameConfig = GAME_CONFIG;
+        tower.towerTypes = TOWER_TYPES;
+        tower.applyBonuses && tower.applyBonuses();
+    });
+    
+    console.log('Configurações recarregadas:', GAME_CONFIG);
+    renderTowerOptions();
+
+    // Ao aplicar as configurações do painel, garantir que o valor de freezeDuration da torre mágica seja usado em mageFreezeBonus
+    if (TOWER_TYPES.magic && typeof TOWER_TYPES.magic.freezeDuration !== 'undefined') {
+        GAME_CONFIG.mageFreezeBonus = TOWER_TYPES.magic.freezeDuration;
+    }
+
+    // Ao recarregar as configurações, aplicar os valores da Tempestade de Gelo do painel
+    if (typeof GAME_CONFIG.iceStormCooldown !== 'undefined') {
+        window.ICE_STORM_COOLDOWN = GAME_CONFIG.iceStormCooldown;
+    }
+    if (typeof GAME_CONFIG.iceStormDuration !== 'undefined') {
+        window.ICE_STORM_BASE_DURATION = GAME_CONFIG.iceStormDuration;
+    }
+    if (typeof GAME_CONFIG.iceStormDamage !== 'undefined') {
+        window.ICE_STORM_EXTRA_DAMAGE = GAME_CONFIG.iceStormDamage;
+    }
+}
+
+// Escutar mudanças de configuração
+onConfigChanged((newConfig) => {
+    console.log('Configuração alterada, recarregando...');
+    reloadConfigs();
+    uiSystem.showNotification('Configurações aplicadas ao jogo!', 'info');
+});
+
+// Carregar caminho dos inimigos
+function loadEnemyPath() {
+    const savedConfig = localStorage.getItem('arqueiroConfig');
+    if (savedConfig) {
+        try {
+            const config = JSON.parse(savedConfig);
+            if (config.enemyPath && config.enemyPath.length > 0) {
+                return config.enemyPath;
+            }
+        } catch (e) {
+            console.error('Erro ao carregar caminho dos inimigos:', e);
+        }
+    }
+    return GAME_CONFIG.enemyPath;
+}
+
+const enemyPath = loadEnemyPath();
+
+// Inicializar sistema de renderização
+const renderSystem = new RenderSystem(ctx, GAME_CONFIG, enemyPath);
+
+// Inicializar sistema de interface do usuário
+const uiSystem = new UISystem(gameState);
+
+// Inicializar sistema principal do jogo
+const gameSystem = new GameSystem(gameState, GAME_CONFIG, enemyPath, Enemy, chooseEnemyType, calculateEnemyStats, DamageNumber, uiSystem, renderSystem);
+
+// Mostrar informações da torre
+function showTowerInfo(tower) {
+    if (tower.applyBonuses) tower.applyBonuses();
+    gameState.towers.forEach(t => t.isSelected = false);
+    tower.isSelected = true;
+    document.getElementById('towerInfoTitle').textContent = `${tower.name} - Nível ${tower.level}`;
+    document.getElementById('towerLevel').textContent = tower.level;
+    document.getElementById('towerDamage').textContent = tower.damage;
+    document.getElementById('towerRange').textContent = tower.range;
+    const fireRateMs = Math.round(tower.fireRate * (1000 / 60));
+    document.getElementById('towerFireRate').textContent = `${fireRateMs}ms`;
+    const upgradeCost = tower.getUpgradeCost();
+    const sellValue = Math.floor(tower.totalCost * ((localStorage.getItem('arqueiroConfig') ? JSON.parse(localStorage.getItem('arqueiroConfig')).sellPercentage : 50) / 100));
+    document.getElementById('upgradeCost').textContent = upgradeCost;
+    document.getElementById('sellValue').textContent = sellValue;
+    const upgradeBtn = document.getElementById('upgradeTower');
+    const sellBtn = document.getElementById('sellTower');
+    upgradeBtn.disabled = gameState.gold < upgradeCost;
+    sellBtn.disabled = false;
+    gameState.selectedTowerForInfo = tower;
+    document.getElementById('towerInfoPanel').style.display = 'flex';
+}
+
+// Fechar painel de informações da torre
+function closeTowerInfo() {
+    document.getElementById('towerInfoPanel').style.display = 'none';
+    
+    // Desselecionar todas as torres
+    gameState.towers.forEach(t => t.isSelected = false);
+    gameState.selectedTowerForInfo = null;
+}
+
+function updateUI() {
+    document.getElementById('health').textContent = gameState.health;
+    document.getElementById('gold').textContent = gameState.gold;
+    document.getElementById('wave').textContent = gameState.wave;
+    document.getElementById('score').textContent = gameState.score;
+    // Exibir monstros total/eliminados
+    document.getElementById('monsters').textContent = `${gameState.monstersThisWave}/${gameState.monstersDefeated}`;
+    const minutes = Math.floor(gameState.gameTime / 60);
+    const seconds = Math.floor(gameState.gameTime % 60);
+    document.getElementById('gameTime').textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    if (gameState.waveInProgress) {
+        document.getElementById('nextWaveTimer').textContent = 'Em andamento';
+    } else if (gameState.nextWaveTimer > 0) {
+        const seconds = Math.ceil(gameState.nextWaveTimer);
+        document.getElementById('nextWaveTimer').textContent = `${seconds}s`;
+    } else if (gameState.wave > 0) {
+        document.getElementById('nextWaveTimer').textContent = 'Pronta';
+    } else {
+        document.getElementById('nextWaveTimer').textContent = '--';
+    }
+    const startBtn = document.getElementById('start-wave');
+    if (gameState.waveInProgress || gameState.nextWaveTimer <= 0 || gameState.enemies.length > 0) {
+        startBtn.disabled = true;
+    } else {
+        startBtn.disabled = false;
+    }
+    document.querySelectorAll('.tower-btn').forEach(btn => {
+        const cost = parseInt(btn.dataset.cost);
+        if (gameState.gold < cost) {
+            btn.classList.add('disabled');
+        } else {
+            btn.classList.remove('disabled');
+        }
+    });
+}
+
+// Gerar dinamicamente as opções de torres no painel lateral
+function renderTowerOptions() {
+    const towerOptionsDiv = document.getElementById('footerTowerBar');
+    if (!towerOptionsDiv) {
+        console.error('Container #footerTowerBar não encontrado!');
+        return;
+    }
+    if (!TOWER_TYPES || Object.keys(TOWER_TYPES).length === 0) {
+        console.error('TOWER_TYPES não carregado ou vazio!', TOWER_TYPES);
+        return;
+    }
+    towerOptionsDiv.innerHTML = '';
+    Object.entries(TOWER_TYPES).forEach(([key, tower]) => {
+        if (key === 'special' && !GAME_CONFIG.specialTowerUnlocked) return;
+        const btn = document.createElement('button');
+        btn.className = 'tower-btn';
+        btn.dataset.tower = key;
+        btn.dataset.cost = tower.cost;
+        btn.innerHTML = `
+            <div class=\"tower-icon\">${tower.icon || ''}</div>
+            <div class=\"tower-info\">
+                <div class=\"tower-name\">${tower.name}</div>
+                <div class=\"tower-cost\">${tower.cost} ouro</div>
+            </div>
+        `;
+        btn.addEventListener('click', () => {
+            if (btn.classList.contains('disabled')) return;
+            gameState.selectedTower = key;
+            document.querySelectorAll('.footer-tower-bar .tower-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+        });
+        towerOptionsDiv.appendChild(btn);
+    });
+}
+
+// Chamar após carregar as configs e sempre que recarregar
+function onReady() {
+    renderTowerOptions();
+    // ... outros inits se necessário
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', onReady);
+} else {
+    onReady();
+}
+
+// Event listeners
+canvas.addEventListener('click', (e) => {
+    if (gameState.isGameOver) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mouseX = (e.clientX - rect.left) * scaleX;
+    const mouseY = (e.clientY - rect.top) * scaleY;
+    const gridPos = renderSystem.getGridPosition(mouseX, mouseY);
+
+    // Verificar se clicou em uma torre existente
+    const clickedTower = renderSystem.getTowerAtPosition(gridPos.x, gridPos.y, gameState);
+    if (clickedTower) {
+        showTowerInfo(clickedTower);
+        return;
+    }
+
+    // Colocar nova torre
+    if (gameState.selectedTower && renderSystem.canPlaceTower(gridPos.x, gridPos.y, gameState)) {
+        updateSkillTreeAndConfig();
+        const towerType = gameState.selectedTower;
+        const cost = TOWER_TYPES[towerType].cost;
+
+        if (gameState.gold >= cost) {
+            gameState.towers.push(new Tower(gridPos.x, gridPos.y, towerType, TOWER_TYPES, GAME_CONFIG, gameState, ctx, Projectile, uiSystem.updateUI, uiSystem.showNotification));
+            gameState.gold -= cost;
+            gameState.selectedTower = null;
+            uiSystem.updateUI();
+        }
+    }
+});
+
+document.getElementById('start-wave').addEventListener('click', () => {
+    gameSystem.startWave();
+});
+
+document.getElementById('pause').addEventListener('click', () => {
+    gameSystem.togglePause();
+});
+
+document.getElementById('restart').addEventListener('click', () => {
+    gameSystem.restart(getInitialGameState, () => gameSystem.initializeFirstWave());
+    uiSystem.setGameState(gameSystem.gameState);
+});
+
+// Event listeners do painel de informações da torre
+document.getElementById('upgradeTower').addEventListener('click', () => {
+    if (gameState.selectedTowerForInfo) {
+        const success = gameState.selectedTowerForInfo.upgrade();
+        if (success) {
+            showTowerInfo(gameState.selectedTowerForInfo); // Atualizar painel
+        }
+    }
+});
+
+document.getElementById('sellTower').addEventListener('click', () => {
+    if (gameState.selectedTowerForInfo) {
+        const refund = gameState.selectedTowerForInfo.sell();
+        closeTowerInfo();
+        // Mostrar notificação do valor recebido
+        uiSystem.showNotification(`Torre vendida! Recebeu ${refund} ouro!`, 'success');
+    }
+});
+
+document.getElementById('closeTowerInfo').addEventListener('click', closeTowerInfo);
+
+// --- Habilidade Especial: Chuva de Flechas ---
+const ARROW_RAIN_COOLDOWN = 15; // segundos
+const ARROW_RAIN_BASE_DAMAGE = 60;
+const ARROW_RAIN_RADIUS = 90; // px
+let arrowRainReady = true;
+let arrowRainCooldown = 0;
+let arrowRainSelecting = false;
+let arrowRainPreview = null; // {x, y} ou null
+
+function isSpecialSkillUnlocked() {
+    // Nó 'esp' da árvore de habilidades
+    const skillTree = loadSkillTree();
+    return (skillTree['esp'] || 0) > 0;
+}
+
+function updateArrowRainButton() {
+    const btn = document.getElementById('btnArrowRain');
+    if (!btn) return;
+    btn.style.display = 'block';
+    let locked = !isSpecialSkillUnlocked();
+    let cooldownText = '';
+    if (!locked && !arrowRainReady) cooldownText = `${arrowRainCooldown}s`;
+    btn.disabled = locked || !arrowRainReady;
+    btn.classList.toggle('locked', locked);
+    btn.innerHTML = `
+        <span class="skill-icon">🏹</span>
+        <span class="skill-label">Chuva de Flechas</span>
+        <span class="skill-cooldown">${cooldownText}</span>
+        ${locked ? '<span class="skill-lock">🔒</span>' : ''}
+    `;
+    btn.title = locked ? 'Desbloqueie a habilidade especial na árvore para usar' : 'Chuva de Flechas (Recarga)';
+}
+
+function startArrowRainCooldown() {
+    arrowRainReady = false;
+    arrowRainCooldown = ARROW_RAIN_COOLDOWN;
+    updateArrowRainButton();
+    const interval = setInterval(() => {
+        arrowRainCooldown--;
+        updateArrowRainButton();
+        if (arrowRainCooldown <= 0) {
+            clearInterval(interval);
+            arrowRainReady = true;
+            updateArrowRainButton();
+        }
+    }, 1000);
+}
+
+function activateArrowRainMode() {
+    if (!arrowRainReady) return;
+    setArrowRainSelecting(true);
+    const btn = document.getElementById('btnArrowRain');
+    btn.classList.add('selected');
+    // Dica visual: pode mostrar um cursor especial futuramente
+}
+
+function handleArrowRainClick(x, y) {
+    // Dano em área
+    let hits = 0;
+    // Aplicar bônus da árvore de habilidades
+    const bonus = (GAME_CONFIG.arrowRainBonus || 0);
+    const totalDamage = ARROW_RAIN_BASE_DAMAGE * (1 + 0.25 * bonus); // +25% por nível
+    [...gameState.enemies].forEach(enemy => {
+        const dx = enemy.x - x;
+        const dy = enemy.y - y;
+        if (Math.sqrt(dx*dx + dy*dy) <= ARROW_RAIN_RADIUS + (enemy.size || 0)) {
+            enemy.takeDamage(totalDamage);
+            hits++;
+        }
+    });
+    // Efeito visual simples (pode ser melhorado depois)
+    showArrowRainEffect(x, y);
+    startArrowRainCooldown();
+    setArrowRainSelecting(false);
+    setArrowRainPreview(null);
+}
+
+function showArrowRainEffect(x, y) {
+    // Desenhar círculos ou flechas caindo (placeholder)
+    const ctx = gameState.ctx;
+    if (!ctx) return;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, ARROW_RAIN_RADIUS, 0, 2 * Math.PI);
+    ctx.strokeStyle = '#ff9800';
+    ctx.lineWidth = 4;
+    ctx.globalAlpha = 0.5;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.restore();
+    // Pode adicionar animação depois
+}
+
+// --- Eventos ---
+document.addEventListener('DOMContentLoaded', () => {
+    const btnArrow = document.getElementById('btnArrowRain');
+    if (btnArrow) {
+        btnArrow.addEventListener('click', () => {
+            if (arrowRainReady && isSpecialSkillUnlocked()) activateArrowRainMode();
+        });
+    }
+    const btnIce = document.getElementById('btnIceStorm');
+    if (btnIce) {
+        btnIce.addEventListener('click', () => {
+            if (iceStormReady && isSpecialSkillUnlocked()) activateIceStorm();
+        });
+    }
+    updateArrowRainButton();
+    updateIceStormButton();
+});
+
+// Interceptar clique no canvas para lançar a habilidade
+const gameCanvas = document.getElementById('gameCanvas');
+if (gameCanvas) {
+    gameCanvas.addEventListener('click', (e) => {
+        if (arrowRainSelecting && arrowRainPreview) {
+            handleArrowRainClick(arrowRainPreview.x, arrowRainPreview.y);
+        }
+    });
+    gameCanvas.addEventListener('mousemove', (e) => {
+        if (!arrowRainSelecting) {
+            setArrowRainPreview(null);
+            return;
+        }
+        const rect = gameCanvas.getBoundingClientRect();
+        const scaleX = gameCanvas.width / rect.width;
+        const scaleY = gameCanvas.height / rect.height;
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
+        setArrowRainPreview({x, y});
+    });
+    gameCanvas.addEventListener('mouseleave', () => {
+        setArrowRainPreview(null);
+    });
+}
+
+// Atualizar botão no início
+document.addEventListener('DOMContentLoaded', updateArrowRainButton);
+
+// Integrar preview no loop de renderização do jogo
+const originalRender = window.renderGame || null;
+window.renderGame = function() {
+    if (typeof originalRender === 'function') originalRender();
+    // Desenhar preview da área de efeito se necessário
+    if (arrowRainSelecting && arrowRainPreview && gameState.ctx) {
+        const ctx = gameState.ctx;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(arrowRainPreview.x, arrowRainPreview.y, ARROW_RAIN_RADIUS, 0, 2 * Math.PI);
+        ctx.fillStyle = 'rgba(255, 152, 0, 0.18)';
+        ctx.strokeStyle = '#ff9800';
+        ctx.lineWidth = 2;
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+    }
+};
+
+// Inicializar jogo
+gameSystem.initializeFirstWave();
+uiSystem.updateUI();
+gameSystem.startGameLoop();
+
+window.arrowRainSelecting = arrowRainSelecting;
+window.arrowRainPreview = arrowRainPreview;
+window.ARROW_RAIN_RADIUS = ARROW_RAIN_RADIUS;
+
+// Remover o antigo window.renderGame, pois a renderização do preview agora está no GameSystem
+// (Se existir, pode remover ou deixar vazio)
+window.renderGame = undefined;
+
+// Sempre que alterar arrowRainSelecting ou arrowRainPreview, sincronizar com window
+function setArrowRainSelecting(val) {
+    arrowRainSelecting = val;
+    window.arrowRainSelecting = val;
+}
+function setArrowRainPreview(val) {
+    arrowRainPreview = val;
+    window.arrowRainPreview = val;
+}
+
+// Função utilitária para mostrar/esconder tooltip
+function showInfoTooltip(html, x, y) {
+    const tooltip = document.getElementById('infoTooltip');
+    tooltip.innerHTML = html;
+    tooltip.style.display = 'block';
+    // Ajustar posição para não sair da tela
+    const pad = 12;
+    let left = x + pad;
+    let top = y + pad;
+    if (left + tooltip.offsetWidth > window.innerWidth) left = x - tooltip.offsetWidth - pad;
+    if (top + tooltip.offsetHeight > window.innerHeight) top = y - tooltip.offsetHeight - pad;
+    tooltip.style.left = left + 'px';
+    tooltip.style.top = top + 'px';
+}
+function hideInfoTooltip() {
+    const tooltip = document.getElementById('infoTooltip');
+    tooltip.style.display = 'none';
+}
+
+// Detectar mouse sobre torres/inimigos
+canvas.addEventListener('mousemove', (e) => {
+    if (arrowRainSelecting) return; // Não mostrar tooltip durante seleção de magia
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mouseX = (e.clientX - rect.left) * scaleX;
+    const mouseY = (e.clientY - rect.top) * scaleY;
+    // Procurar torre sob o mouse
+    const tower = renderSystem.getTowerAtPosition(mouseX, mouseY, gameState);
+    if (tower) {
+        showInfoTooltip(
+            `<b>${tower.name} (Nível ${tower.level})</b><br>` +
+            `Dano: ${tower.damage}<br>` +
+            `Alcance: ${tower.range}<br>` +
+            `Vel. Ataque: ${(tower.fireRate/60).toFixed(2)}s<br>` +
+            `Upgrade: ${tower.getUpgradeCost()} ouro<br>` +
+            `Venda: ${Math.floor(tower.totalCost * ((localStorage.getItem('arqueiroConfig') ? JSON.parse(localStorage.getItem('arqueiroConfig')).sellPercentage : 50) / 100))} ouro`
+        , e.clientX, e.clientY);
+        return;
+    }
+    // Procurar inimigo sob o mouse
+    let foundEnemy = null;
+    for (const enemy of gameState.enemies) {
+        const dx = enemy.x - mouseX;
+        const dy = enemy.y - mouseY;
+        if (Math.sqrt(dx*dx + dy*dy) <= enemy.size) {
+            foundEnemy = enemy;
+            break;
+        }
+    }
+    if (foundEnemy) {
+        showInfoTooltip(
+            `<b>${foundEnemy.type.charAt(0).toUpperCase() + foundEnemy.type.slice(1)}</b><br>` +
+            `Vida: ${Math.max(0, Math.round(foundEnemy.health))} / ${foundEnemy.maxHealth}<br>` +
+            `Velocidade: ${foundEnemy.speed}<br>` +
+            `Recompensa: ${foundEnemy.reward} ouro`
+        , e.clientX, e.clientY);
+        return;
+    }
+    hideInfoTooltip();
+});
+canvas.addEventListener('mouseleave', hideInfoTooltip);
+
+// --- Tempestade de Gelo ---
+const ICE_STORM_COOLDOWN = 30; // segundos
+const ICE_STORM_BASE_DURATION = 3; // segundos
+function getIceStormDuration() {
+    // Duração base + bônus da árvore (cong_mag)
+    return ICE_STORM_BASE_DURATION + (GAME_CONFIG.mageFreezeBonus || 0);
+}
+let iceStormReady = true;
+let iceStormCooldown = 0;
+
+function updateIceStormButton() {
+    const btn = document.getElementById('btnIceStorm');
+    if (!btn) return;
+    btn.style.display = 'block';
+    let locked = !isSpecialSkillUnlocked();
+    let cooldownText = '';
+    if (!locked && !iceStormReady) cooldownText = `${iceStormCooldown}s`;
+    btn.disabled = locked || !iceStormReady;
+    btn.classList.toggle('locked', locked);
+    btn.innerHTML = `
+        <span class="skill-icon">❄️</span>
+        <span class="skill-label">Tempestade de Gelo</span>
+        <span class="skill-cooldown">${cooldownText}</span>
+        ${locked ? '<span class="skill-lock">🔒</span>' : ''}
+    `;
+    btn.title = locked ? 'Desbloqueie a habilidade especial na árvore para usar' : 'Tempestade de Gelo (Recarga)';
+}
+
+function startIceStormCooldown() {
+    iceStormReady = false;
+    iceStormCooldown = ICE_STORM_COOLDOWN;
+    updateIceStormButton();
+    const interval = setInterval(() => {
+        iceStormCooldown--;
+        updateIceStormButton();
+        if (iceStormCooldown <= 0) {
+            clearInterval(interval);
+            iceStormReady = true;
+            updateIceStormButton();
+        }
+    }, 1000);
+}
+
+function activateIceStorm() {
+    if (!iceStormReady) return;
+    // Congelar todos os inimigos
+    const duration = getIceStormDuration();
+    gameState.enemies.forEach(enemy => {
+        enemy.slowUntil = Date.now() + duration * 1000;
+        enemy.originalSpeed = enemy.originalSpeed || enemy.speed;
+        enemy.speed = 0.01; // praticamente parado
+        enemy.isFrozen = true;
+    });
+    startIceStormCooldown();
+    // Feedback visual: todos os inimigos ficam azulados
+    setTimeout(() => {
+        gameState.enemies.forEach(enemy => {
+            if (enemy.isFrozen) {
+                enemy.speed = enemy.originalSpeed || enemy.speed;
+                enemy.isFrozen = false;
+            }
+        });
+    }, duration * 1000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const btnIce = document.getElementById('btnIceStorm');
+    if (btnIce) {
+        btnIce.addEventListener('click', () => {
+            if (iceStormReady && isSpecialSkillUnlocked()) activateIceStorm();
+        });
+    }
+    updateIceStormButton();
+});
+// Atualizar botão ao iniciar partida
+updateIceStormButton();
+
+// --- Ouro extra por onda ---
+// No fim da onda, ao premiar o jogador:
+// Dentro do gameSystem.gameLoop, após completar a onda:
+const waveBonusMultiplier = 10; // Exemplo: 10 de pontos base por onda
+const waveBonus = (this.gameState.wave + 1) * waveBonusMultiplier;
+this.gameState.score += waveBonus;
+// Aplicar bônus de ouro extra por onda
+const goldBonus = Math.floor((GAME_CONFIG.goldPerWaveBonus || 1) * 10); // Exemplo: 10 de ouro base por onda
+this.gameState.gold += goldBonus;
+this.uiSystem.showNotification(`Onda ${this.gameState.wave + 1} completada! +${waveBonus} pontos! +${goldBonus} ouro extra!`, 'success');
+
+// Sempre que skillTree for alterada, reaplicar efeitos e atualizar torres
+function updateSkillTreeAndConfig() {
+    skillTree = loadSkillTree();
+    applySkillTreeEffects(GAME_CONFIG, skillTree);
+    if (gameState && gameState.towers) {
+        gameState.towers.forEach(tower => {
+            tower.gameConfig = GAME_CONFIG;
+            tower.applyBonuses && tower.applyBonuses();
+        });
+    }
+}
+
+// Função para atualizar árvore e efeitos após upgrade
+function onSkillTreeUpgrade() {
+    skillTree = loadSkillTree();
+    updateSkillTreeAndConfig();
+    updateArrowRainButton();
+    updateIceStormButton();
+}
+
+document.addEventListener('skillTreeChanged', () => {
+    updateArrowRainButton();
+    updateIceStormButton();
+}); 

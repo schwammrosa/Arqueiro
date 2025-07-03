@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arqueiro - Tower Defense</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="top-panel">
+            <div class="stats">
+                <div class="stat">
+                    <span class="label">Vida:</span>
+                    <span id="health" class="value">20</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Ouro:</span>
+                    <span id="gold" class="value">100</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Onda:</span>
+                    <span id="wave" class="value">1</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Monstros:</span>
+                    <span id="monsters" class="value">0/0</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Tempo:</span>
+                    <span id="gameTime" class="value">00:00</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Próxima Onda:</span>
+                    <span id="nextWaveTimer" class="value">--</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Pontos:</span>
+                    <span id="score" class="value">0</span>
+                </div>
+            </div>
+        </div>
+        <div class="ui-panel">
+            <div class="controls">
+                <button id="start-wave" class="painel-lateral-btn onda">PRÓXIMA ONDA</button>
+                <button id="pause" class="painel-lateral-btn pausar">Pausar</button>
+                <a href="config.html" class="painel-lateral-btn config" style="text-decoration:underline;">⚙️ Configurações</a>
+                <button id="btnUpgrades" class="painel-lateral-btn upgrades">Upgrades</button>
+            </div>
+        </div>
+        
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <div class="game-over" id="gameOver" style="display: none;">
+            <div class="game-over-content">
+                <h2>Fim de Jogo!</h2>
+                <p>Você sobreviveu a <span id="final-wave">0</span> ondas!</p>
+                <button id="restart" class="btn">Jogar Novamente</button>
+            </div>
+        </div>
+
+        <!-- Painel de informações da torre -->
+        <div class="tower-info-panel" id="towerInfoPanel" style="display: none;">
+            <div class="tower-info-content">
+                <h3 id="towerInfoTitle">Informações da Torre</h3>
+                <div class="tower-stats">
+                    <div class="stat">
+                        <span class="label">Nível:</span>
+                        <span id="towerLevel">1</span>
+                    </div>
+                    <div class="stat">
+                        <span class="label">Dano:</span>
+                        <span id="towerDamage">15</span>
+                    </div>
+                    <div class="stat">
+                        <span class="label">Alcance:</span>
+                        <span id="towerRange">120</span>
+                    </div>
+                    <div class="stat">
+                        <span class="label">Taxa de Tiro:</span>
+                        <span id="towerFireRate">1000ms</span>
+                    </div>
+                </div>
+                <div class="tower-actions">
+                    <button id="upgradeTower" class="btn btn-success">⬆️ Evoluir (<span id="upgradeCost">50</span>)</button>
+                    <button id="sellTower" class="btn btn-danger">💰 Vender (<span id="sellValue">25</span>)</button>
+                    <button id="closeTowerInfo" class="btn btn-secondary">❌ Fechar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-tower-bar" id="footerTowerBar">
+            <!-- As opções de torres serão geradas dinamicamente pelo JS -->
+        </div>
+    </div>
+    
+    <script src="game.js" type="module"></script>
+
+    <div id="specialSkillsFixedBar">
+        <button id="btnArrowRain" class="special-skill-btn" title="Chuva de Flechas (Recarga)">
+            🏹<br><span class="skill-label">Chuva de Flechas</span>
+            <span class="skill-cooldown" id="arrowRainCooldown"></span>
+        </button>
+        <button id="btnIceStorm" class="special-skill-btn" title="Tempestade de Gelo (Recarga)" style="display:none;">
+            ❄️<br><span class="skill-label">Tempestade de Gelo</span>
+            <span class="skill-cooldown" id="iceStormCooldown"></span>
+        </button>
+    </div>
+
+    <div id="infoTooltip" class="info-tooltip" style="display:none;"></div>
+
+    <!-- Painel/modal de upgrades -->
+    <div id="upgradeModal" class="upgrade-modal" style="display:none;">
+        <div class="upgrade-modal-content">
+            <span id="closeUpgradeModal" class="close-modal">&times;</span>
+            <h2>Upgrades Globais</h2>
+            <div id="upgradePointsInfo">Pontos disponíveis: <span id="upgradePoints">0</span></div>
+            <div id="upgradeList"></div>
+        </div>
+    </div>
+</body>
+</html> 
