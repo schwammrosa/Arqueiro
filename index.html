@@ -41,6 +41,10 @@
                     <span class="label">Pontos:</span>
                     <span id="score" class="value">0</span>
                 </div>
+                <div class="stat">
+                    <span class="label">Velocidade:</span>
+                    <span id="gameSpeed" class="value">1x</span>
+                </div>
             </div>
         </div>
         <div class="ui-panel">
@@ -113,8 +117,11 @@
 
     <div id="infoTooltip" class="info-tooltip" style="display:none;"></div>
     
-    <!-- Botão de Debug -->
-    <div style="position: fixed; top: 10px; right: 10px; z-index: 1000;">
+    <!-- Controles de Velocidade e Debug -->
+    <div style="position: fixed; top: 10px; right: 10px; z-index: 1000; display: flex; gap: 5px;">
+        <button id="speedButton" style="background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-weight: bold;">
+            1x
+        </button>
         <button id="debugButton" style="background: #333; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
             Debug: OFF
         </button>

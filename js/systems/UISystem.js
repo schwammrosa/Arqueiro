@@ -87,4 +87,11 @@ export class UISystem {
     setGameState(newState) {
         this.gameState = newState;
     }
+    
+    updateSpeedDisplay(speed) {
+        const speedElement = document.getElementById('gameSpeed');
+        if (speedElement) {
+            speedElement.textContent = `${speed}x`;
+        }
+    }
 } 

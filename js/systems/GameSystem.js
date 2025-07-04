@@ -13,6 +13,29 @@ export class GameSystem {
         this.lastTime = 0;
         this.isRunning = false;
         this.lastPassiveHeal = 0;
+        this.wasAutoPaused = false; // Para rastrear se foi pausado automaticamente
+        
+        // Sistema de velocidade global
+        this.gameSpeed = 1; // 1x, 2x, 4x, 8x
+        this.availableSpeeds = [1, 2, 4, 8];
+        this.currentSpeedIndex = 0;
+        
+        // Cooldowns das habilidades especiais baseados em gameTime
+        this.specialSkills = {
+            arrowRain: {
+                ready: true,
+                cooldownTime: 25, // segundos
+                lastUsed: 0
+            },
+            iceStorm: {
+                ready: true,
+                cooldownTime: 30, // segundos
+                lastUsed: 0
+            }
+        };
+        
+        // Configurar detecção de visibilidade da página
+        this.setupVisibilityDetection();
     }
 
     // Inicializar primeira onda
@@ -60,59 +83,121 @@ export class GameSystem {
         const enemyCount = waveConfig.baseEnemies + (this.gameState.wave - 1) * waveConfig.enemiesIncrease;
         this.gameState.monstersThisWave = enemyCount;
         this.gameState.monstersDefeated = 0;
-        let spawned = 0;
         
-        // Usar spawn rate configurável
-        const spawnInterval = setInterval(() => {
-            if (spawned >= enemyCount) {
-                clearInterval(spawnInterval);
-                // Marcar que todos os inimigos foram spawnados (mas ainda não derrotados)
-                this.gameState.allEnemiesSpawned = true;
-                this.uiSystem.updateUI();
-                return;
-            }
-            this.gameState.enemies.push(new this.Enemy(null, this.gameState, this.GAME_CONFIG, this.enemyPath, this.chooseEnemyType, this.calculateEnemyStats, this.DamageNumber, this.uiSystem.showNotification.bind(this.uiSystem)));
-            spawned++;
-        }, this.GAME_CONFIG.enemySpawnRate);
+        // Configurar sistema de spawn baseado em tempo (que respeita pausa)
+        this.gameState.enemiesSpawned = 0;
+        this.gameState.lastSpawnTime = this.gameState.gameTime;
+        this.gameState.spawnInterval = this.GAME_CONFIG.enemySpawnRate / 1000; // Converter para segundos
+        
+        console.log(`[SPAWN] Iniciando onda ${this.gameState.wave} - ${enemyCount} inimigos`);
         this.uiSystem.updateUI();
     }
 
     // Game over - apenas por derrota (jogo infinito)
     gameOver() {
+        if (this.gameState.isGameOver) return; // Prevenir múltiplas execuções
+        
         this.gameState.isGameOver = true;
         // Calcular ondas sobrevividas
         const wavesSurvived = this.gameState.wave - 1;
-        document.getElementById('final-wave').textContent = wavesSurvived;
         
         // Adicionar tempo final e pontuação
         const minutes = Math.floor(this.gameState.gameTime / 60);
         const seconds = Math.floor(this.gameState.gameTime % 60);
         const finalTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         
-        // Atualizar o conteúdo do game over
-        const gameOverContent = document.querySelector('.game-over-content p');
-        gameOverContent.innerHTML = `
+        // Limpar conteúdo anterior e atualizar o game over
+        const gameOverContent = document.querySelector('.game-over-content');
+        
+        // Remover apenas as mensagens dinâmicas (manter título e botão restart)
+        const dynamicElements = gameOverContent.querySelectorAll('div:not(.game-over-header), p:not(.game-over-stats)');
+        dynamicElements.forEach(el => el.remove());
+        
+        // Atualizar informações básicas
+        let statsElement = gameOverContent.querySelector('.game-over-stats');
+        if (!statsElement) {
+            statsElement = document.createElement('p');
+            statsElement.className = 'game-over-stats';
+            gameOverContent.insertBefore(statsElement, gameOverContent.querySelector('button'));
+        }
+        
+        statsElement.innerHTML = `
             Você sobreviveu a <span id="final-wave">${wavesSurvived}</span> ondas!<br>
             Tempo: ${finalTime}<br>
             Pontuação: ${this.gameState.score}
         `;
+        
         document.getElementById('gameOver').style.display = 'flex';
         
-        // Recompensa por sobrevivência (sempre dar pontos)
+        // Recompensa por sobrevivência (baseada em marcos de ondas)
         const UPGRADE_POINTS_KEY = 'arqueiroUpgradePoints';
-        let points = Math.max(1, Math.floor(wavesSurvived / 10)); // 1 ponto a cada 10 ondas
-        let current = parseInt(localStorage.getItem(UPGRADE_POINTS_KEY) || '0');
-        localStorage.setItem(UPGRADE_POINTS_KEY, current + points);
+        const LAST_REWARDED_WAVE_KEY = 'arqueiroLastRewardedWave';
         
-        // Exibir mensagem de recompensa
-        setTimeout(() => {
-            if (document.getElementById('gameOver')) {
-                const msg = document.createElement('div');
-                msg.style = 'margin-top:18px;font-size:1.2em;color:#ff9800;font-weight:bold;';
-                msg.innerHTML = `Você ganhou <b>+${points} ponto${points>1?'s':''} de upgrade</b> pela sobrevivência!`;
-                document.querySelector('.game-over-content').appendChild(msg);
-            }
-        }, 300);
+        // Verificar qual foi a maior onda em que já ganhou pontos
+        const lastRewardedWave = parseInt(localStorage.getItem(LAST_REWARDED_WAVE_KEY) || '0');
+        const newProgress = Math.max(0, wavesSurvived - lastRewardedWave);
+        
+        console.log(`[PONTOS] Ondas sobrevividas: ${wavesSurvived}, Última recompensada: ${lastRewardedWave}, Novo progresso: ${newProgress}`);
+        
+        let points = 0;
+        
+        // Sistema de recompensas mais equilibrado - baseado apenas no NOVO progresso
+        if (newProgress >= 10) {
+            points = Math.floor(newProgress / 10); // 1 ponto a cada 10 ondas novas
+        } else if (newProgress >= 5) {
+            points = 1; // 1 ponto por progredir 5 ondas
+        }
+        // Progresso < 5: 0 pontos (incentiva a melhorar)
+        
+        // Bônus por marcos especiais - só se atingir pela primeira vez
+        if (wavesSurvived >= 25 && lastRewardedWave < 25) points += 1;
+        if (wavesSurvived >= 50 && lastRewardedWave < 50) points += 2;
+        if (wavesSurvived >= 100 && lastRewardedWave < 100) points += 3;
+        
+        if (points > 0) {
+            let current = parseInt(localStorage.getItem(UPGRADE_POINTS_KEY) || '0');
+            localStorage.setItem(UPGRADE_POINTS_KEY, current + points);
+            
+            // Atualizar maior onda recompensada
+            localStorage.setItem(LAST_REWARDED_WAVE_KEY, wavesSurvived);
+            
+            // Exibir mensagem de recompensa detalhada
+            setTimeout(() => {
+                if (document.getElementById('gameOver')) {
+                    const msg = document.createElement('div');
+                    msg.className = 'reward-message';
+                    msg.style = 'margin-top:18px;font-size:1.2em;color:#ff9800;font-weight:bold;';
+                    
+                    let progressText = '';
+                    if (lastRewardedWave > 0) {
+                        progressText = `<br><span style="font-size:0.9em;color:#ccc;">Progresso: ${lastRewardedWave} → ${wavesSurvived} ondas (+${newProgress})</span>`;
+                    }
+                    
+                    msg.innerHTML = `Você ganhou <b>+${points} ponto${points>1?'s':''} de upgrade</b> pela sobrevivência!${progressText}`;
+                    gameOverContent.appendChild(msg);
+                }
+            }, 300);
+        } else {
+            // Mensagem motivacional quando não ganha pontos
+            setTimeout(() => {
+                if (document.getElementById('gameOver')) {
+                    const msg = document.createElement('div');
+                    msg.className = 'motivational-message';
+                    msg.style = 'margin-top:18px;font-size:1.0em;color:#888;';
+                    
+                    let motivationalText = '';
+                    if (lastRewardedWave > 0) {
+                        const needed = Math.max(5, 10 - (wavesSurvived - lastRewardedWave));
+                        motivationalText = `Progrida mais ${needed} ondas para ganhar pontos! (Atual: ${wavesSurvived}, Última recompensa: ${lastRewardedWave})`;
+                    } else {
+                        motivationalText = `Sobreviva até a onda 5+ para ganhar pontos de upgrade!`;
+                    }
+                    
+                    msg.innerHTML = motivationalText;
+                    gameOverContent.appendChild(msg);
+                }
+            }, 300);
+        }
     }
 
     // Restart do jogo
@@ -258,19 +343,54 @@ export class GameSystem {
 
     // Game loop principal
     gameLoop(currentTime) {
-        const deltaTime = currentTime - this.lastTime;
+        let deltaTime = currentTime - this.lastTime;
         this.lastTime = currentTime;
         
+        // Limitar deltaTime para evitar saltos quando a página é minimizada/reativada
+        // Máximo de 100ms (equivalente a ~10fps mínimo)
+        if (deltaTime > 100) {
+            console.log(`[DELTA] DeltaTime muito grande (${deltaTime.toFixed(2)}ms), limitando para 100ms`);
+            deltaTime = 100;
+        }
+        
+        // Aplicar velocidade do jogo apenas aos sistemas de jogo (não à UI)
+        const speedAdjustedDeltaTime = deltaTime * this.gameSpeed;
+        
         if (!this.gameState.isPaused && !this.gameState.isGameOver) {
-            this.gameState.gameTime += deltaTime / 1000;
+            this.gameState.gameTime += speedAdjustedDeltaTime / 1000;
+            
+            // Atualizar cooldowns das habilidades especiais
+            this.updateSpecialSkillCooldowns(speedAdjustedDeltaTime);
+            
             if (this.gameState.nextWaveTimer > 0) {
-                this.gameState.nextWaveTimer -= deltaTime / 1000;
+                this.gameState.nextWaveTimer -= speedAdjustedDeltaTime / 1000;
                 // SÓ iniciar onda automaticamente se não há inimigos vivos E timer acabou
                 if (this.gameState.nextWaveTimer <= 0 && !this.gameState.waveInProgress && this.gameState.enemies.length === 0) {
                     this.gameState.nextWaveTimer = 0;
                     this.gameState.waveInProgress = true;
                     this.spawnWave();
                     this.uiSystem.showNotification(`Onda ${this.gameState.wave} iniciada!`, 'info');
+                }
+            }
+
+            // Sistema de spawn baseado em tempo (respeita pausa e velocidade)
+            if (this.gameState.waveInProgress && !this.gameState.allEnemiesSpawned) {
+                const timeSinceLastSpawn = this.gameState.gameTime - this.gameState.lastSpawnTime;
+                
+                if (timeSinceLastSpawn >= this.gameState.spawnInterval) {
+                    // Spawnar próximo inimigo
+                    if (this.gameState.enemiesSpawned < this.gameState.monstersThisWave) {
+                        this.gameState.enemies.push(new this.Enemy(null, this.gameState, this.GAME_CONFIG, this.enemyPath, this.chooseEnemyType, this.calculateEnemyStats, this.DamageNumber, this.uiSystem.showNotification.bind(this.uiSystem)));
+                        this.gameState.enemiesSpawned++;
+                        this.gameState.lastSpawnTime = this.gameState.gameTime;
+                        
+                        console.log(`[SPAWN] Inimigo ${this.gameState.enemiesSpawned}/${this.gameState.monstersThisWave} spawnado`);
+                    } else {
+                        // Todos os inimigos foram spawnados
+                        this.gameState.allEnemiesSpawned = true;
+                        console.log(`[SPAWN] Todos os ${this.gameState.monstersThisWave} inimigos foram spawnados`);
+                        this.uiSystem.updateUI();
+                    }
                 }
             }
 
@@ -287,26 +407,29 @@ export class GameSystem {
             }
         }
 
-        // Renderização
+        // Renderização (sempre usa deltaTime normal, não acelerado)
         this.renderSystem.ctx.clearRect(0, 0, this.GAME_CONFIG.canvasWidth, this.GAME_CONFIG.canvasHeight);
         this.renderSystem.drawGrid();
         this.renderSystem.drawPath();
         
-        // Atualizar e desenhar entidades
+        // Atualizar e desenhar entidades (com velocidade acelerada)
         this.gameState.towers.forEach(tower => {
-            tower.update(deltaTime);
+            tower.update(speedAdjustedDeltaTime);
             tower.draw();
         });
+        
         this.gameState.enemies.forEach(enemy => {
-            enemy.update(deltaTime);
+            enemy.update(speedAdjustedDeltaTime);
             enemy.draw(this.renderSystem.ctx);
         });
+        
         this.gameState.projectiles.forEach(projectile => {
-            projectile.update(deltaTime);
+            projectile.update(speedAdjustedDeltaTime);
             projectile.draw(this.renderSystem.ctx);
         });
+        
         this.gameState.damageNumbers = this.gameState.damageNumbers.filter(damageNumber => {
-            damageNumber.update(deltaTime, this.gameState);
+            damageNumber.update(speedAdjustedDeltaTime, this.gameState);
             damageNumber.draw(this.renderSystem.ctx);
             return !damageNumber.isDead();
         });
@@ -402,12 +525,19 @@ export class GameSystem {
     // Pausar/continuar jogo
     togglePause() {
         this.gameState.isPaused = !this.gameState.isPaused;
-        document.getElementById('pause').textContent = this.gameState.isPaused ? 'Continuar' : 'Pausar';
         
-        // Se está continuando o jogo, reinicializar as torres
-        if (!this.gameState.isPaused) {
+        // Se foi pausado manualmente, cancelar auto-pausa
+        if (this.gameState.isPaused) {
+            this.wasAutoPaused = false;
+        } else {
+            // Se está despausando, resetar lastTime e reinicializar torres
+            this.lastTime = performance.now();
             this.reinitializeTowers();
+            this.wasAutoPaused = false;
         }
+        
+        document.getElementById('pause').textContent = this.gameState.isPaused ? 'Continuar' : 'Pausar';
+        this.uiSystem.updateUI();
     }
     
     // Reinicializar torres após pausa
@@ -429,5 +559,176 @@ export class GameSystem {
         
         // Atualizar UI
         this.uiSystem.updateUI();
+    }
+    
+    // Configurar detecção de visibilidade da página
+    setupVisibilityDetection() {
+        // Detectar quando a página é minimizada ou perde foco
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // Página foi minimizada ou perdeu foco
+                if (!this.gameState.isPaused && !this.gameState.isGameOver) {
+                    console.log('[VISIBILITY] Página minimizada - pausando automaticamente');
+                    this.gameState.isPaused = true;
+                    this.wasAutoPaused = true;
+                    this.uiSystem.updateUI();
+                    
+                    // Mostrar notificação quando a página voltar
+                    this.uiSystem.showNotification('Jogo pausado automaticamente (página minimizada)', 'info');
+                }
+            } else {
+                // Página voltou ao foco
+                if (this.wasAutoPaused && this.gameState.isPaused) {
+                    console.log('[VISIBILITY] Página reativada - despausando automaticamente');
+                    this.gameState.isPaused = false;
+                    this.wasAutoPaused = false;
+                    
+                    // Resetar lastTime para evitar deltaTime muito grande
+                    this.lastTime = performance.now();
+                    
+                    // Reinicializar torres para garantir estado consistente
+                    this.reinitializeTowers();
+                    
+                    this.uiSystem.updateUI();
+                    this.uiSystem.showNotification('Jogo despausado automaticamente', 'success');
+                }
+            }
+        });
+        
+        // Detectar quando a janela perde/ganha foco (backup)
+        window.addEventListener('blur', () => {
+            if (!this.gameState.isPaused && !this.gameState.isGameOver) {
+                console.log('[FOCUS] Janela perdeu foco - pausando automaticamente');
+                this.gameState.isPaused = true;
+                this.wasAutoPaused = true;
+                this.uiSystem.updateUI();
+            }
+        });
+        
+        window.addEventListener('focus', () => {
+            if (this.wasAutoPaused && this.gameState.isPaused) {
+                console.log('[FOCUS] Janela ganhou foco - despausando automaticamente');
+                this.gameState.isPaused = false;
+                this.wasAutoPaused = false;
+                
+                // Resetar lastTime para evitar deltaTime muito grande
+                this.lastTime = performance.now();
+                
+                // Reinicializar torres para garantir estado consistente
+                this.reinitializeTowers();
+                
+                this.uiSystem.updateUI();
+            }
+        });
+    }
+
+    // Sistema de velocidade
+    toggleGameSpeed() {
+        this.currentSpeedIndex = (this.currentSpeedIndex + 1) % this.availableSpeeds.length;
+        this.gameSpeed = this.availableSpeeds[this.currentSpeedIndex];
+        this.updateSpeedUI();
+    }
+    
+    setGameSpeed(speed) {
+        const index = this.availableSpeeds.indexOf(speed);
+        if (index !== -1) {
+            this.currentSpeedIndex = index;
+            this.gameSpeed = speed;
+            this.updateSpeedUI();
+        }
+    }
+    
+    updateSpeedUI() {
+        const speedBtn = document.getElementById('speedButton');
+        if (speedBtn) {
+            speedBtn.textContent = `${this.gameSpeed}x`;
+            speedBtn.title = `Velocidade: ${this.gameSpeed}x (clique para alterar)`;
+        }
+        
+        // Atualizar display na UI
+        if (this.uiSystem && this.uiSystem.updateSpeedDisplay) {
+            this.uiSystem.updateSpeedDisplay(this.gameSpeed);
+        }
+    }
+    
+    // Gerenciar cooldowns das habilidades especiais
+    updateSpecialSkillCooldowns(deltaTime) {
+        if (this.gameState.isPaused) return;
+        
+        const speedAdjustedDeltaTime = deltaTime * this.gameSpeed;
+        
+        // Atualizar cooldowns
+        for (const [skillName, skill] of Object.entries(this.specialSkills)) {
+            if (!skill.ready) {
+                const timeSinceLastUse = this.gameState.gameTime - skill.lastUsed;
+                if (timeSinceLastUse >= skill.cooldownTime) {
+                    skill.ready = true;
+                    this.updateSpecialSkillUI(skillName);
+                } else {
+                    this.updateSpecialSkillUI(skillName, skill.cooldownTime - timeSinceLastUse);
+                }
+            }
+        }
+    }
+    
+    updateSpecialSkillUI(skillName, remainingTime = 0) {
+        if (skillName === 'arrowRain') {
+            const btn = document.getElementById('btnArrowRain');
+            if (btn) {
+                const skill = this.specialSkills.arrowRain;
+                const locked = !this.isSpecialSkillUnlocked();
+                const cooldownText = !locked && !skill.ready ? 
+                    `<span style='color:#d84315;font-weight:bold;'>${Math.ceil(remainingTime)}s</span>` : '';
+                
+                btn.disabled = locked || !skill.ready;
+                btn.classList.toggle('locked', locked);
+                btn.innerHTML = `
+                    <span class="skill-icon">🏹</span>
+                    <span class="skill-label">Chuva de Flechas</span>
+                    <span class="skill-cooldown">${cooldownText}</span>
+                    ${locked ? '<span class="skill-lock" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.5em;z-index:10;pointer-events:none;">🔒</span>' : ''}
+                `;
+            }
+        } else if (skillName === 'iceStorm') {
+            const btn = document.getElementById('btnIceStorm');
+            if (btn) {
+                const skill = this.specialSkills.iceStorm;
+                const locked = !this.isSpecialSkillUnlocked();
+                const cooldownText = !locked && !skill.ready ? 
+                    `<span style='color:#d84315;font-weight:bold;'>${Math.ceil(remainingTime)}s</span>` : '';
+                
+                btn.disabled = locked || !skill.ready;
+                btn.classList.toggle('locked', locked);
+                btn.innerHTML = `
+                    <span class="skill-icon">❄️</span>
+                    <span class="skill-label">Tempestade de Gelo</span>
+                    <span class="skill-cooldown">${cooldownText}</span>
+                    ${locked ? '<span class="skill-lock" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.5em;z-index:10;pointer-events:none;">🔒</span>' : ''}
+                `;
+            }
+        }
+    }
+    
+    isSpecialSkillUnlocked() {
+        // Verificar se o nó 'esp' da árvore de habilidades está desbloqueado
+        if (typeof loadSkillTree === 'function') {
+            const skillTree = loadSkillTree();
+            return (skillTree['esp'] || 0) > 0;
+        }
+        return false;
+    }
+    
+    // Usar habilidade especial
+    useSpecialSkill(skillName) {
+        const skill = this.specialSkills[skillName];
+        if (!skill || !skill.ready || !this.isSpecialSkillUnlocked()) {
+            return false;
+        }
+        
+        skill.ready = false;
+        skill.lastUsed = this.gameState.gameTime;
+        this.updateSpecialSkillUI(skillName);
+        
+        return true;
     }
 } 

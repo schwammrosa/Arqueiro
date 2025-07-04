@@ -262,7 +262,11 @@ function getInitialGameState() {
         score: 0,
         damageNumbers: [],
         monstersThisWave: 0,
-        monstersDefeated: 0
+        monstersDefeated: 0,
+        // Variáveis do novo sistema de spawn
+        enemiesSpawned: 0,
+        lastSpawnTime: 0,
+        spawnInterval: 1.0 // segundos
     };
 }
 
@@ -406,6 +410,11 @@ const uiSystem = new UISystem(gameState);
 
 // Inicializar sistema principal do jogo
 const gameSystem = new GameSystem(gameState, GAME_CONFIG, enemyPath, Enemy, chooseEnemyType, calculateEnemyStats, DamageNumber, uiSystem, renderSystem);
+
+// Inicializar botões das habilidades especiais
+gameSystem.updateSpecialSkillUI('arrowRain');
+gameSystem.updateSpecialSkillUI('iceStorm');
+gameSystem.updateSpeedUI();
 // Tornar gameSystem acessível globalmente para o menu
 window.gameSystem = gameSystem;
 
@@ -624,64 +633,18 @@ document.getElementById('sellTower').addEventListener('click', () => {
 document.getElementById('closeTowerInfo').addEventListener('click', closeTowerInfo);
 
 // --- Habilidade Especial: Chuva de Flechas ---
-const ARROW_RAIN_COOLDOWN = 25; // Aumentado de 15 para 25 segundos
 const ARROW_RAIN_BASE_DAMAGE = 40; // Reduzido de 60 para 40
 const ARROW_RAIN_RADIUS = 90; // px
-let arrowRainReady = true;
-let arrowRainCooldown = 0;
 let arrowRainSelecting = false;
 let arrowRainPreview = null; // {x, y} ou null
 
-function isSpecialSkillUnlocked() {
-    // Nó 'esp' da árvore de habilidades
-    const skillTree = loadSkillTree();
-    return (skillTree['esp'] || 0) > 0;
-}
-
-function updateArrowRainButton() {
-    const btn = document.getElementById('btnArrowRain');
-    if (!btn) return;
-    btn.style.display = 'block';
-    let locked = !isSpecialSkillUnlocked();
-    let cooldownText = '';
-    if (!locked && !arrowRainReady) cooldownText = `<span style='color:#d84315;font-weight:bold;'>${arrowRainCooldown}s</span>`;
-    btn.disabled = locked || !arrowRainReady;
-    btn.classList.toggle('locked', locked);
-    btn.innerHTML = `
-        <span class="skill-icon">🏹</span>
-        <span class="skill-label">Chuva de Flechas</span>
-        <span class="skill-cooldown">${cooldownText}</span>
-        ${locked ? '<span class="skill-lock" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.5em;z-index:10;pointer-events:none;">🔒</span>' : ''}
-    `;
-    btn.title = locked ? 'Desbloqueie a habilidade especial na árvore para usar' : 'Chuva de Flechas (Recarga)';
-    if (locked) {
-        btn.style.border = '2px solid #0066cc';
-    } else {
-        btn.style.border = '';
-    }
-}
-
-function startArrowRainCooldown() {
-    arrowRainReady = false;
-    arrowRainCooldown = ARROW_RAIN_COOLDOWN;
-    updateArrowRainButton();
-    const interval = setInterval(() => {
-        arrowRainCooldown--;
-        updateArrowRainButton();
-        if (arrowRainCooldown <= 0) {
-            clearInterval(interval);
-            arrowRainReady = true;
-            updateArrowRainButton();
-        }
-    }, 1000);
-}
-
 function activateArrowRainMode() {
-    if (!arrowRainReady) return;
+    if (!gameSystem.useSpecialSkill('arrowRain')) return;
     setArrowRainSelecting(true);
     const btn = document.getElementById('btnArrowRain');
     btn.classList.add('selected');
-    // Dica visual: pode mostrar um cursor especial futuramente
+    document.body.style.cursor = 'crosshair';
+    uiSystem.showNotification('Clique no mapa para usar a Chuva de Flechas!', 'info');
 }
 
 function handleArrowRainClick(x, y) {
@@ -700,9 +663,10 @@ function handleArrowRainClick(x, y) {
     });
     // Efeito visual simples (pode ser melhorado depois)
     showArrowRainEffect(x, y);
-    startArrowRainCooldown();
     setArrowRainSelecting(false);
     setArrowRainPreview(null);
+    document.body.style.cursor = 'default';
+    uiSystem.showNotification(`Chuva de Flechas: ${hits} inimigos atingidos!`, 'success');
 }
 
 function showArrowRainEffect(x, y) {
@@ -726,24 +690,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnArrow = document.getElementById('btnArrowRain');
     if (btnArrow) {
         btnArrow.addEventListener('click', () => {
-            if (arrowRainReady && isSpecialSkillUnlocked()) activateArrowRainMode();
+            activateArrowRainMode();
         });
     }
     const btnIce = document.getElementById('btnIceStorm');
     if (btnIce) {
         btnIce.addEventListener('click', () => {
-            if (iceStormReady && isSpecialSkillUnlocked()) activateIceStorm();
+            activateIceStorm();
         });
     }
-    // Atualizar botões imediatamente
-    updateArrowRainButton();
-    updateIceStormButton();
     
-    // Atualizar novamente após um pequeno delay para garantir que tudo carregou
-    setTimeout(() => {
-        updateArrowRainButton();
-        updateIceStormButton();
-    }, 100);
+    // Configurar botão de velocidade
+    const speedBtn = document.getElementById('speedButton');
+    if (speedBtn) {
+        speedBtn.addEventListener('click', () => {
+            if (gameSystem) {
+                gameSystem.toggleGameSpeed();
+            }
+        });
+    }
 });
 
 // Interceptar clique no canvas para lançar a habilidade
@@ -771,8 +736,7 @@ if (gameCanvas) {
     });
 }
 
-// Atualizar botão no início
-document.addEventListener('DOMContentLoaded', updateArrowRainButton);
+// Botões são inicializados no GameSystem após sua criação
 
 // Integrar preview no loop de renderização do jogo
 const originalRender = window.renderGame || null;
@@ -881,64 +845,26 @@ canvas.addEventListener('mousemove', (e) => {
 canvas.addEventListener('mouseleave', hideInfoTooltip);
 
 // --- Tempestade de Gelo ---
-const ICE_STORM_COOLDOWN = 30; // segundos
 const ICE_STORM_BASE_DURATION = 3; // segundos
 function getIceStormDuration() {
     // Duração base + bônus da árvore (cong_mag)
     return ICE_STORM_BASE_DURATION + (GAME_CONFIG.mageFreezeBonus || 0);
 }
-let iceStormReady = true;
-let iceStormCooldown = 0;
-
-function updateIceStormButton() {
-    const btn = document.getElementById('btnIceStorm');
-    if (!btn) return;
-    btn.style.display = 'block';
-    let locked = !isSpecialSkillUnlocked();
-    let cooldownText = '';
-    if (!locked && !iceStormReady) cooldownText = `<span style='color:#d84315;font-weight:bold;'>${iceStormCooldown}s</span>`;
-    btn.disabled = locked || !iceStormReady;
-    btn.classList.toggle('locked', locked);
-    btn.innerHTML = `
-        <span class="skill-icon">❄️</span>
-        <span class="skill-label">Tempestade de Gelo</span>
-        <span class="skill-cooldown">${cooldownText}</span>
-        ${locked ? '<span class="skill-lock" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.5em;z-index:10;pointer-events:none;">🔒</span>' : ''}
-    `;
-    btn.title = locked ? 'Desbloqueie a habilidade especial na árvore para usar' : 'Tempestade de Gelo (Recarga)';
-    if (locked) {
-        btn.style.border = '2px solid #0066cc';
-    } else {
-        btn.style.border = '';
-    }
-}
-
-function startIceStormCooldown() {
-    iceStormReady = false;
-    iceStormCooldown = ICE_STORM_COOLDOWN;
-    updateIceStormButton();
-    const interval = setInterval(() => {
-        iceStormCooldown--;
-        updateIceStormButton();
-        if (iceStormCooldown <= 0) {
-            clearInterval(interval);
-            iceStormReady = true;
-            updateIceStormButton();
-        }
-    }, 1000);
-}
 
 function activateIceStorm() {
-    if (!iceStormReady) return;
+    if (!gameSystem.useSpecialSkill('iceStorm')) return;
     // Congelar todos os inimigos
     const duration = getIceStormDuration();
+    const enemiesAffected = gameState.enemies.length;
     gameState.enemies.forEach(enemy => {
         enemy.slowUntil = Date.now() + duration * 1000;
         enemy.originalSpeed = enemy.originalSpeed || enemy.speed;
         enemy.speed = 0.01; // praticamente parado
         enemy.isFrozen = true;
     });
-    startIceStormCooldown();
+    
+    uiSystem.showNotification(`Tempestade de Gelo: ${enemiesAffected} inimigos congelados por ${duration.toFixed(1)}s!`, 'success');
+    
     // Feedback visual: todos os inimigos ficam azulados
     setTimeout(() => {
         gameState.enemies.forEach(enemy => {
@@ -950,18 +876,7 @@ function activateIceStorm() {
     }, duration * 1000);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const btnIce = document.getElementById('btnIceStorm');
-    if (btnIce) {
-        btnIce.addEventListener('click', () => {
-            if (iceStormReady && isSpecialSkillUnlocked()) activateIceStorm();
-        });
-    }
-    updateIceStormButton();
-});
-// Atualizar botões ao iniciar partida
-updateArrowRainButton();
-updateIceStormButton();
+// Event listeners serão configurados quando o gameSystem for inicializado
 
 // --- Ouro extra por onda ---
 // No fim da onda, ao premiar o jogador:
@@ -991,8 +906,13 @@ function onSkillTreeUpgrade() {
     skillTree = loadSkillTree();
     console.log('[DEBUG] skillTree após upgrade:', skillTree);
     updateSkillTreeAndConfig();
-    updateArrowRainButton();
-    updateIceStormButton();
+    
+    // Atualizar botões das habilidades especiais
+    if (gameSystem) {
+        gameSystem.updateSpecialSkillUI('arrowRain');
+        gameSystem.updateSpecialSkillUI('iceStorm');
+    }
+    
     // Recarregar GAME_CONFIG e skillTree do localStorage antes de atualizar o menu de torres
     const updatedSkillTree = loadSkillTree();
     applySkillTreeEffects(GAME_CONFIG, updatedSkillTree);
@@ -1002,8 +922,10 @@ function onSkillTreeUpgrade() {
 }
 
 document.addEventListener('skillTreeChanged', () => {
-    updateArrowRainButton();
-    updateIceStormButton();
+    if (gameSystem) {
+        gameSystem.updateSpecialSkillUI('arrowRain');
+        gameSystem.updateSpecialSkillUI('iceStorm');
+    }
 });
 
 // Função para verificar elementos
@@ -1113,7 +1035,11 @@ function iniciarModoContinuar() {
             score: 0,
             damageNumbers: [],
             monstersThisWave: 0,
-            monstersDefeated: 0
+            monstersDefeated: 0,
+            // Variáveis do novo sistema de spawn
+            enemiesSpawned: 0,
+            lastSpawnTime: 0,
+            spawnInterval: 1.0 // segundos
         };
         
         console.log('[DEBUG] Novo gameState criado:', newGameState);
@@ -1163,14 +1089,282 @@ function iniciarModoContinuar() {
 window.iniciarModoContinuar = iniciarModoContinuar;
 window.adicionarBotaoContinuarMenu = adicionarBotaoContinuarMenu;
 
+// Função de debug para modal de game over
+window.debugGameOver = function() {
+    console.log('=== Debug Modal Game Over ===');
+    
+    if (window.gameSystem) {
+        const gs = window.gameSystem.gameState;
+        console.log(`Estado atual:`);
+        console.log(`- Onda: ${gs.wave}`);
+        console.log(`- Pontuação: ${gs.score}`);
+        console.log(`- Tempo de jogo: ${gs.gameTime.toFixed(2)}s`);
+        console.log(`- Game over: ${gs.isGameOver}`);
+        console.log(`- Inimigos ativos: ${gs.enemies.length}`);
+        console.log(`- Torres: ${gs.towers.length}`);
+        
+        return {
+            forceGameOver: () => {
+                console.log('Forçando game over para teste...');
+                gameSystem.gameOver();
+            },
+            addTestScore: (points) => {
+                gs.score += points;
+                console.log(`Adicionados ${points} pontos. Nova pontuação: ${gs.score}`);
+            },
+            simulateWaveComplete: () => {
+                console.log('Simulando completar onda...');
+                gs.score += 100;
+                gs.wave++;
+                console.log(`Nova onda: ${gs.wave}, pontuação: ${gs.score}`);
+            },
+            clearModal: () => {
+                const gameOverContent = document.querySelector('.game-over-content');
+                if (gameOverContent) {
+                    const dynamicElements = gameOverContent.querySelectorAll('div.reward-message, div.motivational-message');
+                    dynamicElements.forEach(el => el.remove());
+                    console.log(`Removidos ${dynamicElements.length} elementos dinâmicos`);
+                }
+            },
+            testMultiple: () => {
+                console.log('Testando múltiplas execuções...');
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => {
+                        console.log(`Execução ${i + 1}`);
+                        gameSystem.gameOver();
+                    }, i * 100);
+                }
+            }
+        };
+    } else {
+        console.error('gameSystem não encontrado');
+        return null;
+    }
+};
+
+// Função de debug para sistema de velocidade
+window.debugSpeedSystem = function() {
+    console.log('=== Sistema de Velocidade - Debug ===');
+    
+    if (window.gameSystem) {
+        const gs = window.gameSystem;
+        console.log(`Velocidade atual: ${gs.gameSpeed}x`);
+        console.log(`Velocidades disponíveis: ${gs.availableSpeeds.join(', ')}`);
+        console.log(`Índice atual: ${gs.currentSpeedIndex}`);
+        
+        // Informações das habilidades especiais
+        console.log(`--- Habilidades Especiais ---`);
+        Object.entries(gs.specialSkills).forEach(([name, skill]) => {
+            const remainingTime = skill.ready ? 0 : skill.cooldownTime - (gs.gameState.gameTime - skill.lastUsed);
+            console.log(`${name}: ${skill.ready ? 'Pronto' : `${remainingTime.toFixed(1)}s restantes`}`);
+        });
+        
+        return {
+            speed: gs.gameSpeed,
+            setSpeed: function(speed) {
+                console.log(`Alterando velocidade para ${speed}x`);
+                gs.setGameSpeed(speed);
+            },
+            testSkill: function(skillName) {
+                console.log(`Testando habilidade: ${skillName}`);
+                const success = gs.useSpecialSkill(skillName);
+                console.log(`Resultado: ${success ? 'Sucesso' : 'Falhou (cooldown ou não desbloqueado)'}`);
+                return success;
+            },
+            testSpeedCooldown: function() {
+                console.log('🔍 Teste de cooldown com velocidade:');
+                console.log('1. Use uma habilidade especial');
+                console.log('2. Altere a velocidade para 8x');
+                console.log('3. Observe o cooldown diminuir mais rápido');
+                console.log('4. Volte para 1x e compare');
+            }
+        };
+    } else {
+        console.error('gameSystem não encontrado');
+        return null;
+    }
+};
+
+// Função de debug para monitorar deltaTime e movimento
+window.debugMovementSystem = function() {
+    console.log('=== Sistema de Movimento e Spawn - Debug ===');
+    
+    if (window.gameSystem) {
+        const gs = window.gameSystem.gameState;
+        console.log(`Inimigos ativos: ${gs.enemies.length}`);
+        
+        // Informações de spawn
+        console.log(`--- Sistema de Spawn ---`);
+        console.log(`Onda em progresso: ${gs.waveInProgress}`);
+        console.log(`Inimigos spawnados: ${gs.enemiesSpawned}/${gs.monstersThisWave}`);
+        console.log(`Todos spawnados: ${gs.allEnemiesSpawned}`);
+        console.log(`Intervalo de spawn: ${gs.spawnInterval}s`);
+        console.log(`Último spawn: ${gs.lastSpawnTime.toFixed(2)}s`);
+        console.log(`Tempo atual: ${gs.gameTime.toFixed(2)}s`);
+        console.log(`Próximo spawn em: ${Math.max(0, gs.spawnInterval - (gs.gameTime - gs.lastSpawnTime)).toFixed(2)}s`);
+        
+        if (gs.enemies.length > 0) {
+            const enemy = gs.enemies[0];
+            console.log(`--- Movimento ---`);
+            console.log(`Exemplo - Posição: (${enemy.x.toFixed(2)}, ${enemy.y.toFixed(2)})`);
+            console.log(`PathIndex: ${enemy.pathIndex}/${enemy.enemyPath.length - 1}`);
+            console.log(`Velocidade: ${enemy.speed}`);
+            console.log(`Estado de slow: ${enemy.slowUntil ? 'Ativo até ' + new Date(enemy.slowUntil) : 'Inativo'}`);
+        }
+        
+        console.log(`--- Estado do Jogo ---`);
+        console.log(`Jogo pausado: ${gs.isPaused}`);
+        console.log(`Auto-pausado: ${window.gameSystem.wasAutoPaused}`);
+        console.log(`Página visível: ${!document.hidden}`);
+    }
+    
+    return {
+        monitor: () => {
+            // Monitorar deltaTime por 10 segundos
+            let samples = [];
+            let count = 0;
+            const maxSamples = 600; // ~10 segundos a 60fps
+            
+            const originalGameLoop = window.gameSystem.gameLoop.bind(window.gameSystem);
+            window.gameSystem.gameLoop = function(currentTime) {
+                const deltaTime = currentTime - this.lastTime;
+                
+                if (count < maxSamples) {
+                    samples.push(deltaTime);
+                    count++;
+                    
+                    if (deltaTime > 50) {
+                        console.warn(`[DELTA] DeltaTime alto: ${deltaTime.toFixed(2)}ms`);
+                    }
+                    
+                    if (count === maxSamples) {
+                        const avg = samples.reduce((a, b) => a + b) / samples.length;
+                        const max = Math.max(...samples);
+                        const min = Math.min(...samples);
+                        console.log(`\n=== Relatório DeltaTime ===`);
+                        console.log(`Média: ${avg.toFixed(2)}ms`);
+                        console.log(`Máximo: ${max.toFixed(2)}ms`);
+                        console.log(`Mínimo: ${min.toFixed(2)}ms`);
+                        console.log(`Amostras > 50ms: ${samples.filter(s => s > 50).length}`);
+                        console.log(`Amostras > 100ms: ${samples.filter(s => s > 100).length}`);
+                        
+                        // Restaurar gameLoop original
+                        window.gameSystem.gameLoop = originalGameLoop;
+                    }
+                }
+                
+                return originalGameLoop(currentTime);
+            };
+            
+            console.log('Monitoramento iniciado por 10 segundos...');
+        },
+        
+        testMinimize: () => {
+            console.log('Simulando minimização/reativação...');
+            document.dispatchEvent(new Event('visibilitychange'));
+        },
+        
+        testSpawnPause: () => {
+            console.log('\n=== Teste de Spawn com Pausa ===');
+            
+            if (!window.gameSystem || !window.gameSystem.gameState.waveInProgress) {
+                console.log('❌ Nenhuma onda em progresso. Inicie uma onda primeiro.');
+                return;
+            }
+            
+            const gs = window.gameSystem.gameState;
+            console.log(`Estado inicial:`);
+            console.log(`- Pausado: ${gs.isPaused}`);
+            console.log(`- Inimigos: ${gs.enemiesSpawned}/${gs.monstersThisWave}`);
+            console.log(`- Tempo: ${gs.gameTime.toFixed(2)}s`);
+            
+            console.log('\n1. Pausando jogo por 3 segundos...');
+            window.gameSystem.togglePause();
+            
+            setTimeout(() => {
+                console.log(`Estado após pausa:`);
+                console.log(`- Pausado: ${gs.isPaused}`);
+                console.log(`- Inimigos: ${gs.enemiesSpawned}/${gs.monstersThisWave} (deve ser igual)`);
+                console.log(`- Tempo: ${gs.gameTime.toFixed(2)}s (deve ser igual)`);
+                
+                console.log('\n2. Despausando jogo...');
+                window.gameSystem.togglePause();
+                
+                setTimeout(() => {
+                    console.log(`Estado após despausar:`);
+                    console.log(`- Pausado: ${gs.isPaused}`);
+                    console.log(`- Inimigos: ${gs.enemiesSpawned}/${gs.monstersThisWave} (pode ter aumentado)`);
+                    console.log(`- Tempo: ${gs.gameTime.toFixed(2)}s (deve ter aumentado)`);
+                    console.log('\n✅ Teste concluído! Verifique se o spawn pausou/despausou corretamente.');
+                }, 2000);
+            }, 3000);
+        }
+    };
+};
+
+// Função de debug para testar sistema de recompensas
+window.debugRewardSystem = function() {
+    const points = parseInt(localStorage.getItem('arqueiroUpgradePoints') || '0');
+    const lastWave = parseInt(localStorage.getItem('arqueiroLastRewardedWave') || '0');
+    
+    console.log('=== Sistema de Recompensas - Status ===');
+    console.log('Pontos atuais:', points);
+    console.log('Última onda recompensada:', lastWave);
+    console.log('');
+    console.log('Para testar:');
+    console.log('- debugRewardSystem.simulate(55) // Simular morte na onda 55');
+    console.log('- debugRewardSystem.reset() // Resetar sistema');
+    console.log('- debugRewardSystem.setLastWave(30) // Definir última onda');
+    
+    return {
+        simulate: (wave) => {
+            console.log(`\n--- Simulando morte na onda ${wave} ---`);
+            const lastRewardedWave = parseInt(localStorage.getItem('arqueiroLastRewardedWave') || '0');
+            const newProgress = Math.max(0, wave - lastRewardedWave);
+            let points = 0;
+            
+            if (newProgress >= 10) {
+                points = Math.floor(newProgress / 10);
+            } else if (newProgress >= 5) {
+                points = 1;
+            }
+            
+            // Marcos especiais
+            if (wave >= 25 && lastRewardedWave < 25) points += 1;
+            if (wave >= 50 && lastRewardedWave < 50) points += 2;
+            if (wave >= 100 && lastRewardedWave < 100) points += 3;
+            
+            console.log(`Progresso: ${lastRewardedWave} → ${wave} (${newProgress} novas)`);
+            console.log(`Pontos que ganharia: ${points}`);
+            console.log(`Marcos: 25=${wave >= 25 && lastRewardedWave < 25}, 50=${wave >= 50 && lastRewardedWave < 50}, 100=${wave >= 100 && lastRewardedWave < 100}`);
+        },
+        reset: () => {
+            localStorage.setItem('arqueiroUpgradePoints', '0');
+            localStorage.setItem('arqueiroLastRewardedWave', '0');
+            console.log('Sistema resetado!');
+        },
+        setLastWave: (wave) => {
+            localStorage.setItem('arqueiroLastRewardedWave', wave);
+            console.log(`Última onda definida para: ${wave}`);
+        }
+    };
+};
+
 // Integrar ao fluxo de game over
 // (Chame adicionarBotaoContinuarGameOver() ao exibir a tela de derrota)
 const originalGameOver = gameSystem.gameOver.bind(gameSystem);
 gameSystem.gameOver = function(victory = false) {
+    // Evitar múltiplas execuções
+    if (this.gameState.isGameOver) return;
+    
     originalGameOver(victory);
-    if (!victory) {
-        salvarMaiorOnda(this.gameState.wave);
-        adicionarBotaoContinuarGameOver();
-    }
-    adicionarBotaoContinuarMenu();
+    
+    // Só executar uma vez após game over
+    setTimeout(() => {
+        if (!victory) {
+            salvarMaiorOnda(this.gameState.wave);
+            adicionarBotaoContinuarGameOver();
+        }
+        adicionarBotaoContinuarMenu();
+    }, 500);
 }; 

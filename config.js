@@ -233,8 +233,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (confirm('Tem certeza que deseja resetar todos os upgrades globais e pontos?')) {
                 localStorage.setItem(SKILL_POINTS_KEY, '0');
                 localStorage.setItem(SKILL_TREE_KEY, '{}');
+                localStorage.setItem('arqueiroLastRewardedWave', '0'); // Resetar progresso de recompensas
                 updateGlobalSkillPointsConfig();
-                alert('Árvore de habilidades e pontos resetados!');
+                alert('Árvore de habilidades, pontos e progresso de recompensas resetados!');
             }
         };
     }

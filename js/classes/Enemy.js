@@ -52,9 +52,28 @@ export class Enemy {
                 this.pathIndex++;
             } else {
                 // Ajustar velocidade para funcionar melhor com deltaTime
-                const moveSpeed = this.speed * (deltaTime / 16.67); // Normalizar para 60fps
-                this.x += (dx / distance) * moveSpeed;
-                this.y += (dy / distance) * moveSpeed;
+                // Limitar deltaTime localmente também para maior segurança
+                const safeDeltaTime = Math.min(deltaTime, 100);
+                const moveSpeed = this.speed * (safeDeltaTime / 16.67); // Normalizar para 60fps
+                
+                // Calcular movimento
+                const moveX = (dx / distance) * moveSpeed;
+                const moveY = (dy / distance) * moveSpeed;
+                
+                // Verificar se o movimento não vai passar do alvo (evitar overshoot)
+                const remainingDistance = Math.sqrt(dx * dx + dy * dy);
+                const movementDistance = Math.sqrt(moveX * moveX + moveY * moveY);
+                
+                if (movementDistance >= remainingDistance) {
+                    // Se o movimento vai passar do alvo, ir direto para o alvo
+                    this.x = targetX;
+                    this.y = targetY;
+                    this.pathIndex++; // Avançar para o próximo ponto
+                } else {
+                    // Movimento normal
+                    this.x += moveX;
+                    this.y += moveY;
+                }
             }
         } else {
             // Inimigo chegou ao final

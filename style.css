@@ -243,6 +243,49 @@ body {
     box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
 }
 
+/* Estilos melhorados para mensagens do game over */
+.game-over-stats {
+    font-size: 1.2em;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    color: #ecf0f1;
+}
+
+.reward-message {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    border-radius: 10px;
+    padding: 15px;
+    margin: 15px 0;
+    border-left: 5px solid #ff9800;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    animation: slideInUp 0.3s ease;
+}
+
+.motivational-message {
+    background: linear-gradient(135deg, #7f8c8d, #95a5a6);
+    border-radius: 10px;
+    padding: 15px;
+    margin: 15px 0;
+    border-left: 5px solid #bdc3c7;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    animation: slideInUp 0.3s ease;
+}
+
+.game-over-content .btn-continue {
+    background: linear-gradient(135deg, #3498db, #2980b9) !important;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Painel de informações da torre */
 .tower-info-panel {
     position: fixed;
