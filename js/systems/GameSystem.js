@@ -114,12 +114,18 @@ export class GameSystem {
     restart(getInitialGameState, initializeFirstWave) {
         this.gameState = getInitialGameState();
         
+        // ATUALIZAR VARIÁVEL GLOBAL gameState
         if (typeof gameState !== 'undefined') {
             gameState = this.gameState;
         }
         
         if (this.uiSystem && typeof this.uiSystem.setGameState === 'function') {
             this.uiSystem.setGameState(this.gameState);
+        }
+        
+        // Atualizar referência no renderSystem
+        if (this.renderSystem) {
+            this.renderSystem.gameState = this.gameState;
         }
         
         document.getElementById('gameOver').style.display = 'none';
@@ -134,6 +140,10 @@ export class GameSystem {
         if (window.setArrowRainSelecting) window.setArrowRainSelecting(false);
         if (window.setArrowRainPreview) window.setArrowRainPreview(null);
         if (typeof hideInfoTooltip === 'function') hideInfoTooltip();
+        
+        // Garantir que as torres estejam funcionando
+        this.reinitializeTowers();
+        
         // Resetar outros cooldowns/habilidades especiais aqui se necessário
         this.uiSystem.updateUI();
     }
@@ -282,5 +292,31 @@ export class GameSystem {
     togglePause() {
         this.gameState.isPaused = !this.gameState.isPaused;
         document.getElementById('pause').textContent = this.gameState.isPaused ? 'Continuar' : 'Pausar';
+        
+        // Se está continuando o jogo, reinicializar as torres
+        if (!this.gameState.isPaused) {
+            this.reinitializeTowers();
+        }
+    }
+    
+    // Reinicializar torres após pausa
+    reinitializeTowers() {
+        this.gameState.towers.forEach(tower => {
+            // Limpar alvos e projéteis ativos
+            tower.target = null;
+            tower.activeProjectiles = [];
+            tower.lastShot = 0;
+            
+            // Reaplicar bônus e configurações
+            if (tower.applyBonuses) {
+                tower.applyBonuses();
+            }
+        });
+        
+        // Limpar projéteis órfãos
+        this.gameState.projectiles = [];
+        
+        // Atualizar UI
+        this.uiSystem.updateUI();
     }
 } 

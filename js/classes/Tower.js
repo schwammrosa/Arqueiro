@@ -96,14 +96,22 @@ export class Tower {
     update(deltaTime) {
         if (this.gameState.isPaused) return;
         
+        // Verificar se a torre ainda existe no gameState
+        if (this.gameState.towers.indexOf(this) === -1) {
+            return;
+        }
+        
         // Limpar projéteis que não existem mais
         this.activeProjectiles = this.activeProjectiles.filter(projectile => 
             this.gameState.projectiles.indexOf(projectile) !== -1 && !projectile.isRemoved
         );
         
+        // Limpar alvo se não existe mais
         if (this.target && this.gameState.enemies.indexOf(this.target) === -1) {
             this.target = null;
         }
+        
+        // Procurar novo alvo se necessário
         if (!this.target || !this.isTargetInRange(this.target)) {
             this.target = this.findTarget();
         }
@@ -288,12 +296,36 @@ export class Tower {
         const savedConfig = localStorage.getItem('arqueiroConfig');
         const sellPercentage = savedConfig ? JSON.parse(savedConfig).sellPercentage || 50 : 50;
         const refund = Math.floor(this.totalCost * (sellPercentage / 100));
+        
+        // Adicionar ouro
         this.gameState.gold += refund;
+        
+        // Remover a torre do array
         const index = this.gameState.towers.indexOf(this);
         if (index > -1) {
             this.gameState.towers.splice(index, 1);
         }
+        
+        // Limpar referências da torre
+        this.target = null;
+        this.activeProjectiles = [];
+        this.isSelected = false;
+        
+        // Remover projéteis ativos desta torre
+        if (this.gameState.projectiles) {
+            this.gameState.projectiles = this.gameState.projectiles.filter(projectile => {
+                // Se o projétil foi criado por esta torre, removê-lo
+                if (projectile.towerId === this.teslaId || 
+                    (projectile.x === this.x && projectile.y === this.y && projectile.towerType === this.type)) {
+                    return false;
+                }
+                return true;
+            });
+        }
+        
+        // Atualizar UI
         this.updateUI();
+        
         return refund;
     }
     

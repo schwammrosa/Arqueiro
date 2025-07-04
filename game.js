@@ -502,10 +502,38 @@ canvas.addEventListener('click', (e) => {
         const cost = TOWER_TYPES[towerType].cost;
 
         if (gameState.gold >= cost) {
-            gameState.towers.push(new Tower(gridPos.x, gridPos.y, towerType, TOWER_TYPES, GAME_CONFIG, gameState, ctx, Projectile, uiSystem.updateUI, uiSystem.showNotification, TeslaChainProjectile, CannonProjectile));
+            // Criar nova torre
+            const newTower = new Tower(
+                gridPos.x, 
+                gridPos.y, 
+                towerType, 
+                TOWER_TYPES, 
+                GAME_CONFIG, 
+                gameState, 
+                ctx, 
+                Projectile, 
+                uiSystem.updateUI, 
+                uiSystem.showNotification, 
+                TeslaChainProjectile, 
+                CannonProjectile
+            );
+            
+            // Adicionar ao gameState (gameSystem.gameState é a mesma referência)
+            gameState.towers.push(newTower);
+            
+            // Deduzir ouro
             gameState.gold -= cost;
+            
+            // Limpar seleção
             gameState.selectedTower = null;
+            
+            // Atualizar UI
             uiSystem.updateUI();
+            
+            // Notificar criação da torre
+            uiSystem.showNotification(`Torre ${TOWER_TYPES[towerType].name} construída!`, 'success');
+        } else {
+            uiSystem.showNotification('Ouro insuficiente!', 'error');
         }
     }
 });
@@ -927,26 +955,6 @@ document.addEventListener('skillTreeChanged', () => {
     updateIceStormButton();
 });
 
-// Funções de debug já estão definidas no HTML
-
-// Função de teste para cooldowns
-window.testCooldowns = function() {
-    console.log('Testando cooldowns...');
-    
-    // Forçar cooldown ativo
-    arrowRainCooldown = 10;
-    iceStormCooldown = 15;
-    arrowRainReady = false;
-    iceStormReady = false;
-    
-    updateArrowRainButton();
-    updateIceStormButton();
-    
-    console.log('Cooldowns forçados - verifique se aparecem na tela');
-};
-
-
-
 // Função para verificar elementos
 window.checkElements = function() {
     console.log('Verificando elementos...');
@@ -1025,18 +1033,22 @@ function iniciarModoContinuar() {
     
     if (maiorOnda <= 1) return;
     
+    console.log('[DEBUG] Iniciando modo continuar do nível:', maiorOnda);
+    
     // Calcular ouro acumulado
     const enemiesPerWave = GAME_CONFIG.enemiesPerWave || 5;
     const enemyReward = GAME_CONFIG.enemyReward || 10;
     const enemiesIncrease = GAME_CONFIG.enemiesIncrease || 2;
     const ouro = calcularOuroAteOnda(maiorOnda, enemiesPerWave, enemyReward);
     
+    console.log('[DEBUG] Ouro calculado:', ouro);
+    
     // Função customizada para o modo continuar
     function getInitialGameStateContinuar() {
         let config = loadGameConfig();
         applySkillTreeEffects(config, loadSkillTree());
         
-        return {
+        const newGameState = {
             health: config.initialHealth,
             gold: ouro,
             wave: maiorOnda - 1, // O jogo já incrementa ao iniciar a próxima onda
@@ -1056,6 +1068,9 @@ function iniciarModoContinuar() {
             monstersThisWave: 0,
             monstersDefeated: 0
         };
+        
+        console.log('[DEBUG] Novo gameState criado:', newGameState);
+        return newGameState;
     }
     
     gameSystem.restart(getInitialGameStateContinuar, () => {
@@ -1065,11 +1080,36 @@ function iniciarModoContinuar() {
         gameSystem.gameState.nextWaveTimer = waveDelaySeconds;
         gameSystem.gameState.waveInProgress = false;
         gameSystem.gameState.allEnemiesSpawned = false;
+        
+        // ATUALIZAR A VARIÁVEL GLOBAL gameState
+        gameState = gameSystem.gameState;
+        
+        // Atualizar referências nos sistemas
+        uiSystem.setGameState(gameState);
+        renderSystem.gameState = gameState;
+        
+        // Garantir que o sistema de torres esteja funcionando
+        if (gameSystem.reinitializeTowers) {
+            gameSystem.reinitializeTowers();
+        }
+        
+        // Recarregar configurações e torres
+        reloadConfigs();
+        renderTowerOptions();
+        
+        // Atualizar UI
+        uiSystem.updateUI();
+        
+        console.log('[DEBUG] Modo continuar inicializado. gameState:', gameState);
+        console.log('[DEBUG] Torres disponíveis:', TOWER_TYPES);
     });
     
     // Esconder menu se estiver visível
     const menu = document.getElementById('mainMenu');
     if (menu) menu.style.display = 'none';
+    
+    // Notificar o jogador
+    uiSystem.showNotification(`Continuando do nível ${maiorOnda} com ${ouro} ouro!`, 'info');
 }
 
 // Integrar ao fluxo de game over

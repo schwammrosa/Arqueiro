@@ -271,126 +271,127 @@ function loadConfig() {
 // Aplicar configurações aos campos do formulário
 function applyConfigToFields() {
     // Configurações gerais
-    document.getElementById('initialHealth').value = currentConfig.initialHealth;
-    document.getElementById('initialGold').value = currentConfig.initialGold;
-    document.getElementById('gridSize').value = currentConfig.gridSize;
-    document.getElementById('waveDelay').value = currentConfig.waveDelay;
-    document.getElementById('upgradeBaseCost').value = currentConfig.upgradeBaseCost || 50;
-    document.getElementById('sellPercentage').value = currentConfig.sellPercentage || 50;
-    document.getElementById('pointsPerKill').value = currentConfig.pointsPerKill || 10;
-    document.getElementById('waveBonusMultiplier').value = currentConfig.waveBonusMultiplier || 50;
-    document.getElementById('upgradeBonusMultiplier').value = currentConfig.upgradeBonusMultiplier || 25;
-    document.getElementById('waveDelaySeconds').value = currentConfig.waveDelaySeconds || 5;
-    document.getElementById('maxWaves').value = currentConfig.maxWaves;
-    document.getElementById('goldMultiplier').value = currentConfig.goldMultiplier;
-    document.getElementById('enemyHealthMultiplier').value = currentConfig.enemyHealthMultiplier;
-    document.getElementById('enemySpeedMultiplier').value = currentConfig.enemySpeedMultiplier;
-    document.getElementById('enemySpawnRate').value = currentConfig.enemySpawnRate;
+    let el;
+    el = document.getElementById('initialHealth'); if (el) el.value = currentConfig.initialHealth;
+    el = document.getElementById('initialGold'); if (el) el.value = currentConfig.initialGold;
+    el = document.getElementById('gridSize'); if (el) el.value = currentConfig.gridSize;
+    el = document.getElementById('waveDelay'); if (el) el.value = currentConfig.waveDelay;
+    el = document.getElementById('upgradeBaseCost'); if (el) el.value = currentConfig.upgradeBaseCost || 50;
+    el = document.getElementById('sellPercentage'); if (el) el.value = currentConfig.sellPercentage || 50;
+    el = document.getElementById('pointsPerKill'); if (el) el.value = currentConfig.pointsPerKill || 10;
+    el = document.getElementById('waveBonusMultiplier'); if (el) el.value = currentConfig.waveBonusMultiplier || 50;
+    el = document.getElementById('upgradeBonusMultiplier'); if (el) el.value = currentConfig.upgradeBonusMultiplier || 25;
+    el = document.getElementById('waveDelaySeconds'); if (el) el.value = currentConfig.waveDelaySeconds || 5;
+    el = document.getElementById('maxWaves'); if (el) el.value = currentConfig.maxWaves;
+    el = document.getElementById('goldMultiplier'); if (el) el.value = currentConfig.goldMultiplier;
+    el = document.getElementById('enemyHealthMultiplier'); if (el) el.value = currentConfig.enemyHealthMultiplier;
+    el = document.getElementById('enemySpeedMultiplier'); if (el) el.value = currentConfig.enemySpeedMultiplier;
+    el = document.getElementById('enemySpawnRate'); if (el) el.value = currentConfig.enemySpawnRate;
     
     // Configurações das torres
     const towerConfig = loadTowerConfig();
-    document.getElementById('archerCost').value = towerConfig.archer.cost;
-    document.getElementById('archerRange').value = towerConfig.archer.range;
-    document.getElementById('archerDamage').value = towerConfig.archer.damage;
-    document.getElementById('archerFireRate').value = towerConfig.archer.fireRate;
-    document.getElementById('archerUpgradeDamage').value = towerConfig.archer.upgradeDamage || 30;
-    document.getElementById('archerUpgradeRange').value = towerConfig.archer.upgradeRange || 10;
-    document.getElementById('archerUpgradeSpeed').value = towerConfig.archer.upgradeSpeed || -10;
+    el = document.getElementById('archerCost'); if (el) el.value = towerConfig.archer.cost;
+    el = document.getElementById('archerRange'); if (el) el.value = towerConfig.archer.range;
+    el = document.getElementById('archerDamage'); if (el) el.value = towerConfig.archer.damage;
+    el = document.getElementById('archerFireRate'); if (el) el.value = towerConfig.archer.fireRate;
+    el = document.getElementById('archerUpgradeDamage'); if (el) el.value = towerConfig.archer.upgradeDamage || 30;
+    el = document.getElementById('archerUpgradeRange'); if (el) el.value = towerConfig.archer.upgradeRange || 10;
+    el = document.getElementById('archerUpgradeSpeed'); if (el) el.value = towerConfig.archer.upgradeSpeed || -10;
     
-    document.getElementById('cannonCost').value = towerConfig.cannon.cost;
-    document.getElementById('cannonRange').value = towerConfig.cannon.range;
-    document.getElementById('cannonDamage').value = towerConfig.cannon.damage;
-    document.getElementById('cannonFireRate').value = towerConfig.cannon.fireRate;
-    document.getElementById('cannonUpgradeDamage').value = towerConfig.cannon.upgradeDamage || 30;
-    document.getElementById('cannonUpgradeRange').value = towerConfig.cannon.upgradeRange || 10;
-    document.getElementById('cannonUpgradeSpeed').value = towerConfig.cannon.upgradeSpeed || -10;
+    el = document.getElementById('cannonCost'); if (el) el.value = towerConfig.cannon.cost;
+    el = document.getElementById('cannonRange'); if (el) el.value = towerConfig.cannon.range;
+    el = document.getElementById('cannonDamage'); if (el) el.value = towerConfig.cannon.damage;
+    el = document.getElementById('cannonFireRate'); if (el) el.value = towerConfig.cannon.fireRate;
+    el = document.getElementById('cannonUpgradeDamage'); if (el) el.value = towerConfig.cannon.upgradeDamage || 30;
+    el = document.getElementById('cannonUpgradeRange'); if (el) el.value = towerConfig.cannon.upgradeRange || 10;
+    el = document.getElementById('cannonUpgradeSpeed'); if (el) el.value = towerConfig.cannon.upgradeSpeed || -10;
     
-    document.getElementById('magicCost').value = towerConfig.magic.cost;
-    document.getElementById('magicRange').value = towerConfig.magic.range;
-    document.getElementById('magicDamage').value = towerConfig.magic.damage;
-    document.getElementById('magicFireRate').value = towerConfig.magic.fireRate;
-    document.getElementById('magicUpgradeDamage').value = towerConfig.magic.upgradeDamage || 30;
-    document.getElementById('magicUpgradeRange').value = towerConfig.magic.upgradeRange || 10;
-    document.getElementById('magicUpgradeSpeed').value = towerConfig.magic.upgradeSpeed || -10;
+    el = document.getElementById('magicCost'); if (el) el.value = towerConfig.magic.cost;
+    el = document.getElementById('magicRange'); if (el) el.value = towerConfig.magic.range;
+    el = document.getElementById('magicDamage'); if (el) el.value = towerConfig.magic.damage;
+    el = document.getElementById('magicFireRate'); if (el) el.value = towerConfig.magic.fireRate;
+    el = document.getElementById('magicUpgradeDamage'); if (el) el.value = towerConfig.magic.upgradeDamage || 30;
+    el = document.getElementById('magicUpgradeRange'); if (el) el.value = towerConfig.magic.upgradeRange || 10;
+    el = document.getElementById('magicUpgradeSpeed'); if (el) el.value = towerConfig.magic.upgradeSpeed || -10;
     
     // Tesla
     if (towerConfig.tesla) {
-        document.getElementById('teslaCost').value = towerConfig.tesla.cost;
-        document.getElementById('teslaRange').value = towerConfig.tesla.range;
-        document.getElementById('teslaDamage').value = towerConfig.tesla.damage;
-        document.getElementById('teslaFireRate').value = towerConfig.tesla.fireRate;
-        document.getElementById('teslaUpgradeDamage').value = towerConfig.tesla.upgradeDamage || 30;
-        document.getElementById('teslaUpgradeRange').value = towerConfig.tesla.upgradeRange || 10;
-        document.getElementById('teslaUpgradeSpeed').value = towerConfig.tesla.upgradeSpeed || -10;
+        el = document.getElementById('teslaCost'); if (el) el.value = towerConfig.tesla.cost;
+        el = document.getElementById('teslaRange'); if (el) el.value = towerConfig.tesla.range;
+        el = document.getElementById('teslaDamage'); if (el) el.value = towerConfig.tesla.damage;
+        el = document.getElementById('teslaFireRate'); if (el) el.value = towerConfig.tesla.fireRate;
+        el = document.getElementById('teslaUpgradeDamage'); if (el) el.value = towerConfig.tesla.upgradeDamage || 30;
+        el = document.getElementById('teslaUpgradeRange'); if (el) el.value = towerConfig.tesla.upgradeRange || 10;
+        el = document.getElementById('teslaUpgradeSpeed'); if (el) el.value = towerConfig.tesla.upgradeSpeed || -10;
     }
     
     // Configurações dos inimigos
     const enemyConfig = loadEnemyConfig();
-    document.getElementById('enemyBaseHealth').value = enemyConfig.enemyBaseHealth;
-    document.getElementById('enemyHealthIncrease').value = enemyConfig.enemyHealthIncrease;
-    document.getElementById('enemySpeed').value = enemyConfig.enemySpeed;
-    document.getElementById('enemyReward').value = enemyConfig.enemyReward;
-    document.getElementById('enemiesPerWave').value = enemyConfig.enemiesPerWave;
-    document.getElementById('enemiesIncrease').value = enemyConfig.enemiesIncrease;
+    el = document.getElementById('enemyBaseHealth'); if (el) el.value = enemyConfig.enemyBaseHealth;
+    el = document.getElementById('enemyHealthIncrease'); if (el) el.value = enemyConfig.enemyHealthIncrease;
+    el = document.getElementById('enemySpeed'); if (el) el.value = enemyConfig.enemySpeed;
+    el = document.getElementById('enemyReward'); if (el) el.value = enemyConfig.enemyReward;
+    el = document.getElementById('enemiesPerWave'); if (el) el.value = enemyConfig.enemiesPerWave;
+    el = document.getElementById('enemiesIncrease'); if (el) el.value = enemyConfig.enemiesIncrease;
     
     // Configurações visuais
-    document.getElementById('canvasWidth').value = currentConfig.canvasWidth;
-    document.getElementById('canvasHeight').value = currentConfig.canvasHeight;
-    document.getElementById('projectileSpeed').value = currentConfig.projectileSpeed;
-    document.getElementById('projectileSize').value = currentConfig.projectileSize;
-    document.getElementById('damageNumberLifetime').value = currentConfig.damageNumberLifetime || 60;
-    document.getElementById('damageNumberSpeed').value = currentConfig.damageNumberSpeed || 1;
+    el = document.getElementById('canvasWidth'); if (el) el.value = currentConfig.canvasWidth;
+    el = document.getElementById('canvasHeight'); if (el) el.value = currentConfig.canvasHeight;
+    el = document.getElementById('projectileSpeed'); if (el) el.value = currentConfig.projectileSpeed;
+    el = document.getElementById('projectileSize'); if (el) el.value = currentConfig.projectileSize;
+    el = document.getElementById('damageNumberLifetime'); if (el) el.value = currentConfig.damageNumberLifetime || 60;
+    el = document.getElementById('damageNumberSpeed'); if (el) el.value = currentConfig.damageNumberSpeed || 1;
     
     // Configurações de tipos especiais de inimigos
     const enemyTypes = currentConfig.enemyTypes || DEFAULT_CONFIG.enemyTypes;
     
     // Normal
-    document.getElementById('normalHealthMultiplier').value = enemyTypes.normal.healthMultiplier;
-    document.getElementById('normalSpeedMultiplier').value = enemyTypes.normal.speedMultiplier;
-    document.getElementById('normalRewardMultiplier').value = enemyTypes.normal.rewardMultiplier;
-    document.getElementById('normalSpawnChance').value = enemyTypes.normal.spawnChance;
+    el = document.getElementById('normalHealthMultiplier'); if (el) el.value = enemyTypes.normal.healthMultiplier;
+    el = document.getElementById('normalSpeedMultiplier'); if (el) el.value = enemyTypes.normal.speedMultiplier;
+    el = document.getElementById('normalRewardMultiplier'); if (el) el.value = enemyTypes.normal.rewardMultiplier;
+    el = document.getElementById('normalSpawnChance'); if (el) el.value = enemyTypes.normal.spawnChance;
     
     // Rápido
-    document.getElementById('fastHealthMultiplier').value = enemyTypes.fast.healthMultiplier;
-    document.getElementById('fastSpeedMultiplier').value = enemyTypes.fast.speedMultiplier;
-    document.getElementById('fastRewardMultiplier').value = enemyTypes.fast.rewardMultiplier;
-    document.getElementById('fastSpawnChance').value = enemyTypes.fast.spawnChance;
+    el = document.getElementById('fastHealthMultiplier'); if (el) el.value = enemyTypes.fast.healthMultiplier;
+    el = document.getElementById('fastSpeedMultiplier'); if (el) el.value = enemyTypes.fast.speedMultiplier;
+    el = document.getElementById('fastRewardMultiplier'); if (el) el.value = enemyTypes.fast.rewardMultiplier;
+    el = document.getElementById('fastSpawnChance'); if (el) el.value = enemyTypes.fast.spawnChance;
     
     // Tanque
-    document.getElementById('tankHealthMultiplier').value = enemyTypes.tank.healthMultiplier;
-    document.getElementById('tankSpeedMultiplier').value = enemyTypes.tank.speedMultiplier;
-    document.getElementById('tankRewardMultiplier').value = enemyTypes.tank.rewardMultiplier;
-    document.getElementById('tankSpawnChance').value = enemyTypes.tank.spawnChance;
+    el = document.getElementById('tankHealthMultiplier'); if (el) el.value = enemyTypes.tank.healthMultiplier;
+    el = document.getElementById('tankSpeedMultiplier'); if (el) el.value = enemyTypes.tank.speedMultiplier;
+    el = document.getElementById('tankRewardMultiplier'); if (el) el.value = enemyTypes.tank.rewardMultiplier;
+    el = document.getElementById('tankSpawnChance'); if (el) el.value = enemyTypes.tank.spawnChance;
     
     // Elite
-    document.getElementById('eliteHealthMultiplier').value = enemyTypes.elite.healthMultiplier;
-    document.getElementById('eliteSpeedMultiplier').value = enemyTypes.elite.speedMultiplier;
-    document.getElementById('eliteRewardMultiplier').value = enemyTypes.elite.rewardMultiplier;
-    document.getElementById('eliteSpawnChance').value = enemyTypes.elite.spawnChance;
+    el = document.getElementById('eliteHealthMultiplier'); if (el) el.value = enemyTypes.elite.healthMultiplier;
+    el = document.getElementById('eliteSpeedMultiplier'); if (el) el.value = enemyTypes.elite.speedMultiplier;
+    el = document.getElementById('eliteRewardMultiplier'); if (el) el.value = enemyTypes.elite.rewardMultiplier;
+    el = document.getElementById('eliteSpawnChance'); if (el) el.value = enemyTypes.elite.spawnChance;
 
     // Canhão - parâmetros especiais
     if (towerConfig.cannon) {
-        document.getElementById('cannonAreaRadius').value = towerConfig.cannon.areaRadius || 48;
-        document.getElementById('cannonAreaDamageMultiplier').value = towerConfig.cannon.areaDamageMultiplier || 100;
+        el = document.getElementById('cannonAreaRadius'); if (el) el.value = towerConfig.cannon.areaRadius || 48;
+        el = document.getElementById('cannonAreaDamageMultiplier'); if (el) el.value = towerConfig.cannon.areaDamageMultiplier || 100;
     }
     // Mágica - parâmetro especial
     if (towerConfig.magic) {
-        document.getElementById('magicSlowEffect').value = towerConfig.magic.slowEffect || 50;
-        document.getElementById('magicFreezeDuration').value = towerConfig.magic.freezeDuration || 1;
+        el = document.getElementById('magicSlowEffect'); if (el) el.value = towerConfig.magic.slowEffect || 50;
+        el = document.getElementById('magicFreezeDuration'); if (el) el.value = towerConfig.magic.freezeDuration || 1;
     }
     // Tesla - parâmetro especial
     if (towerConfig.tesla) {
-        document.getElementById('teslaChainMax').value = towerConfig.tesla.chainMax || 5;
+        el = document.getElementById('teslaChainMax'); if (el) el.value = towerConfig.tesla.chainMax || 5;
     }
 
     // Torre Especial
     if (towerConfig.special) {
-        document.getElementById('specialCost').value = towerConfig.special.cost;
-        document.getElementById('specialRange').value = towerConfig.special.range;
-        document.getElementById('specialDamage').value = towerConfig.special.damage;
-        document.getElementById('specialFireRate').value = towerConfig.special.fireRate;
-        document.getElementById('specialColor').value = towerConfig.special.color || '#8e44ad';
-        document.getElementById('specialEffect').value = towerConfig.special.effect || '';
+        el = document.getElementById('specialCost'); if (el) el.value = towerConfig.special.cost;
+        el = document.getElementById('specialRange'); if (el) el.value = towerConfig.special.range;
+        el = document.getElementById('specialDamage'); if (el) el.value = towerConfig.special.damage;
+        el = document.getElementById('specialFireRate'); if (el) el.value = towerConfig.special.fireRate;
+        el = document.getElementById('specialColor'); if (el) el.value = towerConfig.special.color || '#8e44ad';
+        el = document.getElementById('specialEffect'); if (el) el.value = towerConfig.special.effect || '';
     }
 }
 
@@ -524,6 +525,7 @@ function collectConfigFromFields() {
 // Criar grid do caminho
 function createPathGrid() {
     const pathGridElement = document.getElementById('pathGrid');
+    if (!pathGridElement) return;
     pathGridElement.innerHTML = '';
     
     for (let y = 0; y < GRID_HEIGHT; y++) {
@@ -549,6 +551,7 @@ function createPathGrid() {
 // Criar seção de templates de caminho
 function createPathTemplates() {
     const pathSection = document.querySelector('.path-config');
+    if (!pathSection) return;
     const templatesDiv = document.createElement('div');
     templatesDiv.className = 'path-templates';
     templatesDiv.innerHTML = `
@@ -589,6 +592,7 @@ function createPathTemplates() {
 // Configurar editor de caminho
 function setupPathEditor() {
     const pathSection = document.querySelector('.path-config');
+    if (!pathSection) return;
     
     // Adicionar controles do editor
     const editorControls = document.createElement('div');
@@ -680,6 +684,11 @@ function togglePathCell(x, y) {
 
 // Atualizar exibição do caminho
 function updatePathDisplay() {
+    // Verificar se pathGrid existe e foi inicializado
+    if (!pathGrid || !Array.isArray(pathGrid) || pathGrid.length === 0) {
+        return;
+    }
+    
     const cells = document.querySelectorAll('.path-cell');
     
     cells.forEach(cell => {
@@ -688,7 +697,7 @@ function updatePathDisplay() {
         
         cell.classList.remove('path', 'start', 'end', 'invalid');
         
-        if (pathGrid[y][x]) {
+        if (pathGrid[y] && pathGrid[y][x]) {
             cell.classList.add('path');
         }
     });
@@ -720,6 +729,11 @@ function updatePathStats() {
 
 // Validar caminho
 function validatePath() {
+    // Verificar se pathGrid existe e foi inicializado
+    if (!pathGrid || !Array.isArray(pathGrid) || pathGrid.length === 0) {
+        return false;
+    }
+    
     const path = getPathFromGrid();
     const validationElement = document.getElementById('pathValidation');
     if (!validationElement) {
@@ -742,7 +756,7 @@ function validatePath() {
         ];
         return dirs.map(([dx, dy]) => [x + dx, y + dy])
             .filter(([nx, ny]) =>
-                nx >= 0 && nx < GRID_WIDTH && ny >= 0 && ny < GRID_HEIGHT && pathGrid[ny][nx]
+                nx >= 0 && nx < GRID_WIDTH && ny >= 0 && ny < GRID_HEIGHT && pathGrid[ny] && pathGrid[ny][nx]
             );
     }
     // BFS para percorrer o caminho
@@ -773,11 +787,16 @@ function validatePath() {
 
 // Obter caminho do grid na ordem real do percurso
 function getPathFromGrid() {
+    // Verificar se pathGrid existe e foi inicializado
+    if (!pathGrid || !Array.isArray(pathGrid) || pathGrid.length === 0) {
+        return [];
+    }
+    
     // Encontrar ponto inicial: célula marcada na borda OU primeira célula marcada
     let start = null;
     for (let y = 0; y < GRID_HEIGHT; y++) {
         for (let x = 0; x < GRID_WIDTH; x++) {
-            if (pathGrid[y][x]) {
+            if (pathGrid[y] && pathGrid[y][x]) {
                 // Se está na borda, prioriza como início
                 if (x === 0 || y === 0 || x === GRID_WIDTH - 1 || y === GRID_HEIGHT - 1) {
                     start = { x, y };
@@ -798,7 +817,7 @@ function getPathFromGrid() {
         ];
         return dirs.map(([dx, dy]) => [x + dx, y + dy])
             .filter(([nx, ny]) =>
-                nx >= 0 && nx < GRID_WIDTH && ny >= 0 && ny < GRID_HEIGHT && pathGrid[ny][nx] && !visited[ny][nx]
+                nx >= 0 && nx < GRID_WIDTH && ny >= 0 && ny < GRID_HEIGHT && pathGrid[ny] && pathGrid[ny][nx] && !visited[ny][nx]
             );
     }
     let current = start;
@@ -835,25 +854,37 @@ function applyPathToGrid(path) {
 // Configurar event listeners
 function setupEventListeners() {
     // Salvar configurações
-    document.getElementById('saveConfig').addEventListener('click', saveConfig);
+    const saveConfigBtn = document.getElementById('saveConfig');
+    if (saveConfigBtn) saveConfigBtn.addEventListener('click', saveConfig);
     
     // Restaurar padrões
-    document.getElementById('resetConfig').addEventListener('click', resetConfig);
+    const resetConfigBtn = document.getElementById('resetConfig');
+    if (resetConfigBtn) resetConfigBtn.addEventListener('click', resetConfig);
     
     // Exportar configurações
-    document.getElementById('exportConfig').addEventListener('click', exportConfig);
+    const exportConfigBtn = document.getElementById('exportConfig');
+    if (exportConfigBtn) exportConfigBtn.addEventListener('click', exportConfig);
     
     // Importar configurações
-    document.getElementById('importConfig').addEventListener('click', showImportModal);
-    document.getElementById('confirmImport').addEventListener('click', importConfig);
-    document.getElementById('cancelImport').addEventListener('click', hideImportModal);
+    const importConfigBtn = document.getElementById('importConfig');
+    if (importConfigBtn) importConfigBtn.addEventListener('click', showImportModal);
+    
+    const confirmImportBtn = document.getElementById('confirmImport');
+    if (confirmImportBtn) confirmImportBtn.addEventListener('click', importConfig);
+    
+    const cancelImportBtn = document.getElementById('cancelImport');
+    if (cancelImportBtn) cancelImportBtn.addEventListener('click', hideImportModal);
     
     // Controles do caminho
-    document.getElementById('clearPath').addEventListener('click', clearPath);
-    document.getElementById('defaultPath').addEventListener('click', setDefaultPath);
+    const clearPathBtn = document.getElementById('clearPath');
+    if (clearPathBtn) clearPathBtn.addEventListener('click', clearPath);
+    
+    const defaultPathBtn = document.getElementById('defaultPath');
+    if (defaultPathBtn) defaultPathBtn.addEventListener('click', setDefaultPath);
     
     // Prevenir arrastar do grid
-    document.getElementById('pathGrid').addEventListener('dragstart', (e) => e.preventDefault());
+    const pathGridElement = document.getElementById('pathGrid');
+    if (pathGridElement) pathGridElement.addEventListener('dragstart', (e) => e.preventDefault());
 
     // Salvar configurações das torres
     const teslaChainRadiusInput = document.getElementById('teslaChainRadius');
