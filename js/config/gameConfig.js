@@ -7,9 +7,9 @@ export const DEFAULT_GAME_CONFIG = {
     waveDelay: 3000,
     upgradeBaseCost: 75,
     sellPercentage: 50,
-    pointsPerKill: 10,
-    waveBonusMultiplier: 50,
-    upgradeBonusMultiplier: 25,
+    pointsPerKill: 8,           // Reduzido de 10 para 8 (compensar multiplicadores)
+    waveBonusMultiplier: 40,    // Reduzido de 50 para 40 (temos bônus exponencial)
+    upgradeBonusMultiplier: 20, // Reduzido de 25 para 20 (mais equilibrado)
     waveDelaySeconds: 5,
     
     // Configurações de ondas

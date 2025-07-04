@@ -35,6 +35,10 @@ export class GameSystem {
     spawnWave() {
         this.gameState.wave++;
         this.gameState.allEnemiesSpawned = false; // Reset no início de cada onda
+        
+        // Rastrear início da onda para bônus de performance
+        this.gameState.waveStartTime = this.gameState.gameTime;
+        this.gameState.waveStartHealth = this.gameState.health;
 
         // Carregar configurações das ondas
         const savedConfig = localStorage.getItem('arqueiroConfig');
@@ -167,6 +171,91 @@ export class GameSystem {
         });
     }
 
+    // Calcular bônus por performance
+    calculatePerformanceBonus(baseBonus) {
+        if (!this.gameState.waveStartTime || !this.gameState.waveStartHealth) {
+            return 0;
+        }
+        
+        const waveTime = this.gameState.gameTime - this.gameState.waveStartTime;
+        const healthLost = this.gameState.waveStartHealth - this.gameState.health;
+        const maxHealth = this.GAME_CONFIG.initialHealth;
+        
+        // Bônus por velocidade (tempo ideal: 30 segundos)
+        const idealTime = 30; // segundos
+        const speedMultiplier = Math.max(0, (idealTime - waveTime) / idealTime);
+        const speedBonus = Math.floor(baseBonus * 0.3 * speedMultiplier);
+        
+        // Bônus por preservação de vida (0 dano = 50% bônus extra)
+        const healthRatio = Math.max(0, 1 - (healthLost / maxHealth));
+        const healthBonus = Math.floor(baseBonus * 0.5 * healthRatio);
+        
+        // Bônus por perfeição (sem dano E rápido)
+        const perfectionBonus = (healthLost === 0 && waveTime < idealTime) ? 
+            Math.floor(baseBonus * 0.2) : 0;
+        
+        return speedBonus + healthBonus + perfectionBonus;
+    }
+
+    // Verificar multiplicadores por conquistas
+    checkAchievementMultipliers() {
+        let multiplier = 1.0;
+        
+        // Inicializar rastreamento de conquistas se não existir
+        if (!this.gameState.achievements) {
+            this.gameState.achievements = {
+                firstEliteKilled: false,
+                perfectWaves: 0,
+                consecutivePerfectWaves: 0,
+                towersBuilt: 0,
+                elitesKilled: 0
+            };
+        }
+        
+        // Conquista: Sobrevivência a ondas específicas
+        if (this.gameState.wave >= 25) {
+            multiplier += 0.5; // +50% para onda 25+
+        }
+        if (this.gameState.wave >= 50) {
+            multiplier += 0.5; // +50% adicional para onda 50+
+        }
+        if (this.gameState.wave >= 100) {
+            multiplier += 1.0; // +100% adicional para onda 100+
+        }
+        
+        // Conquista: Ondas consecutivas sem dano
+        if (this.gameState.waveStartHealth === this.gameState.health) {
+            this.gameState.achievements.consecutivePerfectWaves++;
+            if (this.gameState.achievements.consecutivePerfectWaves >= 3) {
+                multiplier += 0.3; // +30% para 3+ ondas consecutivas sem dano
+            }
+            if (this.gameState.achievements.consecutivePerfectWaves >= 5) {
+                multiplier += 0.2; // +20% adicional para 5+ ondas consecutivas
+            }
+        } else {
+            this.gameState.achievements.consecutivePerfectWaves = 0;
+        }
+        
+        // Conquista: Eficiência de torres (poucas torres, alta pontuação)
+        const towersCount = this.gameState.towers.length;
+        if (towersCount <= 3 && this.gameState.wave >= 10) {
+            multiplier += 0.4; // +40% para minimalista (≤3 torres onda 10+)
+        }
+        if (towersCount <= 5 && this.gameState.wave >= 20) {
+            multiplier += 0.2; // +20% para eficiência moderada
+        }
+        
+        // Conquista: Especialista em Elites
+        if (this.gameState.achievements.elitesKilled >= 5) {
+            multiplier += 0.25; // +25% para 5+ elites mortos
+        }
+        if (this.gameState.achievements.elitesKilled >= 10) {
+            multiplier += 0.25; // +25% adicional para 10+ elites mortos
+        }
+        
+        return multiplier;
+    }
+
     // Game loop principal
     gameLoop(currentTime) {
         const deltaTime = currentTime - this.lastTime;
@@ -227,9 +316,35 @@ export class GameSystem {
             // JOGO INFINITO - Removida verificação de vitória por limite de ondas
             const savedConfig = localStorage.getItem('arqueiroConfig');
             const waveBonusMultiplier = savedConfig ? JSON.parse(savedConfig).waveBonusMultiplier || 50 : 50;
-            const waveBonus = (this.gameState.wave + 1) * waveBonusMultiplier;
+            
+            // Bônus exponencial: Base * (1 + 0.1)^onda - progride mais rápido
+            const exponentialBonus = Math.floor(waveBonusMultiplier * Math.pow(1.1, this.gameState.wave));
+            
+            // Bônus adicional para ondas de marco (10, 20, 30, etc.)
+            const milestoneBonus = (this.gameState.wave + 1) % 10 === 0 ? 
+                Math.floor(exponentialBonus * 0.5) : 0;
+            
+            // Bônus por performance
+            const performanceBonus = this.calculatePerformanceBonus(exponentialBonus);
+            
+            // Multiplicador por conquistas
+            const achievementMultiplier = this.checkAchievementMultipliers();
+            
+            const waveBonus = Math.floor((exponentialBonus + milestoneBonus + performanceBonus) * achievementMultiplier);
             this.gameState.score += waveBonus;
-            this.uiSystem.showNotification(`Onda ${this.gameState.wave + 1} completada! +${waveBonus} pontos!`, 'success');
+            
+            let message = `Onda ${this.gameState.wave + 1} completada! +${waveBonus} pontos!`;
+            if (milestoneBonus > 0) {
+                message += ` (Marco: +${milestoneBonus})`;
+            }
+            if (performanceBonus > 0) {
+                message += ` (Performance: +${performanceBonus})`;
+            }
+            if (achievementMultiplier > 1) {
+                message += ` (Conquista: x${achievementMultiplier.toFixed(1)})`;
+            }
+            
+            this.uiSystem.showNotification(message, 'success');
             this.gameState.waveInProgress = false;
             this.gameState.allEnemiesSpawned = false; // Reset para próxima onda
             const waveDelaySeconds = savedConfig ? JSON.parse(savedConfig).waveDelaySeconds || 5 : 5;

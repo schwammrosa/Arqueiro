@@ -16,6 +16,7 @@ export class Enemy {
         this.reward = stats.reward;
         this.size = stats.size;
         this.color = stats.color;
+        this.scoreMultiplier = stats.scoreMultiplier || 1;
         this.isRemoved = false; // Flag para evitar remoção duplicada
         
         // Dependências injetadas
@@ -83,11 +84,35 @@ export class Enemy {
             // Carregar configuração de pontos por inimigo
             const savedConfig = localStorage.getItem('arqueiroConfig');
             const pointsPerKill = savedConfig ? JSON.parse(savedConfig).pointsPerKill || 10 : 10;
-            this.gameState.score += this.reward * pointsPerKill;
             
-            // Notificação especial para chefes
+            // Calcular pontos usando o multiplicador do tipo de inimigo
+            const baseScore = this.reward * pointsPerKill;
+            const finalScore = Math.floor(baseScore * this.scoreMultiplier);
+            this.gameState.score += finalScore;
+            
+            // Rastrear conquistas
+            if (!this.gameState.achievements) {
+                this.gameState.achievements = {
+                    firstEliteKilled: false,
+                    perfectWaves: 0,
+                    consecutivePerfectWaves: 0,
+                    towersBuilt: 0,
+                    elitesKilled: 0
+                };
+            }
+            
+            // Notificação especial para diferentes tipos
             if (this.type === 'elite') {
-                this.showNotification(`Elite derrotado! +${this.reward * this.GAME_CONFIG.goldMultiplier} ouro!`, 'success');
+                this.gameState.achievements.elitesKilled++;
+                if (!this.gameState.achievements.firstEliteKilled) {
+                    this.gameState.achievements.firstEliteKilled = true;
+                    this.showNotification(`Primeiro Elite derrotado! Conquista desbloqueada!`, 'success');
+                }
+                this.showNotification(`Elite derrotado! +${this.reward * this.GAME_CONFIG.goldMultiplier} ouro! +${finalScore} pontos!`, 'success');
+            } else if (this.type === 'tank') {
+                this.showNotification(`Tanque derrotado! +${finalScore} pontos!`, 'info');
+            } else if (finalScore > baseScore) {
+                this.showNotification(`+${finalScore} pontos!`, 'info');
             }
             
             this.remove();

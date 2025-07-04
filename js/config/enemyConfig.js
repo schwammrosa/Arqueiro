@@ -15,6 +15,7 @@ export const DEFAULT_ENEMY_CONFIG = {
             healthMultiplier: 1,
             speedMultiplier: 1,
             rewardMultiplier: 1,
+            scoreMultiplier: 1,      // Pontuação base
             spawnChance: 70, // 70% de chance
             color: '#dc3545'
         },
@@ -23,6 +24,7 @@ export const DEFAULT_ENEMY_CONFIG = {
             healthMultiplier: 0.7,
             speedMultiplier: 1.8,
             rewardMultiplier: 1.2,
+            scoreMultiplier: 0.8,    // Menos pontos (mais fácil de matar)
             spawnChance: 20, // 20% de chance
             color: '#ffc107'
         },
@@ -31,6 +33,7 @@ export const DEFAULT_ENEMY_CONFIG = {
             healthMultiplier: 2.5,
             speedMultiplier: 0.6,
             rewardMultiplier: 1.8,
+            scoreMultiplier: 2.5,    // Mais pontos (mais difícil de matar)
             spawnChance: 8, // 8% de chance
             color: '#6c757d'
         },
@@ -39,6 +42,7 @@ export const DEFAULT_ENEMY_CONFIG = {
             healthMultiplier: 5,
             speedMultiplier: 0.8,
             rewardMultiplier: 3,
+            scoreMultiplier: 5,      // Muito mais pontos (chefe)
             spawnChance: 2, // 2% de chance
             color: '#dc3545'
         }
@@ -122,7 +126,8 @@ export function calculateEnemyStats(type, wave, gameConfig) {
         reward,
         size,
         color: typeConfig.color,
-        type
+        type,
+        scoreMultiplier: typeConfig.scoreMultiplier || 1
     };
 }
 

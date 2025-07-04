@@ -30,9 +30,9 @@ const DEFAULT_CONFIG = {
     waveDelay: 3000,
     upgradeBaseCost: 50,
     sellPercentage: 50,
-    pointsPerKill: 10,
-    waveBonusMultiplier: 50,
-    upgradeBonusMultiplier: 25,
+    pointsPerKill: 8,           // Reduzido de 10 para 8 (compensar multiplicadores)
+    waveBonusMultiplier: 40,    // Reduzido de 50 para 40 (temos bônus exponencial)
+    upgradeBonusMultiplier: 20, // Reduzido de 25 para 20 (mais equilibrado)
     waveDelaySeconds: 5,
     goldMultiplier: 1,
     enemyHealthMultiplier: 1.1,
@@ -277,9 +277,9 @@ function applyConfigToFields() {
     el = document.getElementById('waveDelay'); if (el) el.value = currentConfig.waveDelay;
     el = document.getElementById('upgradeBaseCost'); if (el) el.value = currentConfig.upgradeBaseCost || 50;
     el = document.getElementById('sellPercentage'); if (el) el.value = currentConfig.sellPercentage || 50;
-    el = document.getElementById('pointsPerKill'); if (el) el.value = currentConfig.pointsPerKill || 10;
-    el = document.getElementById('waveBonusMultiplier'); if (el) el.value = currentConfig.waveBonusMultiplier || 50;
-    el = document.getElementById('upgradeBonusMultiplier'); if (el) el.value = currentConfig.upgradeBonusMultiplier || 25;
+    el = document.getElementById('pointsPerKill'); if (el) el.value = currentConfig.pointsPerKill || 8;
+    el = document.getElementById('waveBonusMultiplier'); if (el) el.value = currentConfig.waveBonusMultiplier || 40;
+    el = document.getElementById('upgradeBonusMultiplier'); if (el) el.value = currentConfig.upgradeBonusMultiplier || 20;
     el = document.getElementById('waveDelaySeconds'); if (el) el.value = currentConfig.waveDelaySeconds || 5;
 
     el = document.getElementById('goldMultiplier'); if (el) el.value = currentConfig.goldMultiplier;
