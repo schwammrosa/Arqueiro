@@ -2,11 +2,11 @@
 export const DEFAULT_ENEMY_CONFIG = {
     // Configurações básicas
     enemyBaseHealth: 50,
-    enemyHealthIncrease: 10,
+    enemyHealthIncrease: 15,
     enemySpeed: 0.5,
-    enemyReward: 10,
-    enemiesPerWave: 5,
-    enemiesIncrease: 2,
+    enemyReward: 8,
+    enemiesPerWave: 8,
+    enemiesIncrease: 3,
     
     // Configurações de tipos especiais de inimigos
     enemyTypes: {

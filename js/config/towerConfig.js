@@ -20,10 +20,10 @@ export const DEFAULT_TOWER_TYPES = {
     },
     magic: {
         name: 'Mágica',
-        cost: 85,
+        cost: 95,
         range: 140,
-        damage: 25,
-        fireRate: 800,
+        damage: 20,
+        fireRate: 1000,
         color: '#36b9cc',
         icon: '🔮',
         slowEffect: 40, // 40% da velocidade original (60% de redução)
@@ -44,11 +44,11 @@ export const DEFAULT_TOWER_TYPES = {
         name: 'Torre Especial',
         icon: '🌟',
         color: '#8e44ad',
-        damage: 80,
-        range: 9999,
-        fireRate: 120,
-        cost: 200,
-        effect: 'Atira em todos os inimigos a cada 2s'
+        damage: 40,
+        range: 200,
+        fireRate: 500,
+        cost: 300,
+        effect: 'Atira em todos os inimigos a cada 0.5s'
     }
 };
 

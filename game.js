@@ -573,8 +573,8 @@ document.getElementById('sellTower').addEventListener('click', () => {
 document.getElementById('closeTowerInfo').addEventListener('click', closeTowerInfo);
 
 // --- Habilidade Especial: Chuva de Flechas ---
-const ARROW_RAIN_COOLDOWN = 15; // segundos
-const ARROW_RAIN_BASE_DAMAGE = 60;
+const ARROW_RAIN_COOLDOWN = 25; // Aumentado de 15 para 25 segundos
+const ARROW_RAIN_BASE_DAMAGE = 40; // Reduzido de 60 para 40
 const ARROW_RAIN_RADIUS = 90; // px
 let arrowRainReady = true;
 let arrowRainCooldown = 0;

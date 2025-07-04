@@ -2,10 +2,10 @@
 export const DEFAULT_GAME_CONFIG = {
     // Configurações básicas
     initialHealth: 20,
-    initialGold: 100,
+    initialGold: 75,
     gridSize: 40,
     waveDelay: 3000,
-    upgradeBaseCost: 50,
+    upgradeBaseCost: 75,
     sellPercentage: 50,
     pointsPerKill: 10,
     waveBonusMultiplier: 50,
@@ -15,8 +15,8 @@ export const DEFAULT_GAME_CONFIG = {
     // Configurações de ondas
     maxWaves: 20,
     goldMultiplier: 1,
-    enemyHealthMultiplier: 1.1,
-    enemySpeedMultiplier: 1.05,
+    enemyHealthMultiplier: 1.25,
+    enemySpeedMultiplier: 1.15,
     enemySpawnRate: 1000,
     
     // Configurações visuais
