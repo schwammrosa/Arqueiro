@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste Slow - Torre Mágica</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-info { background: #f0f0f0; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .test-button { background: #36b9cc; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+        .test-button:hover { background: #2a8a9a; }
+    </style>
+</head>
+<body>
+    <h1>🔮 Teste da Torre Mágica - Efeito Slow</h1>
+    
+    <div class="test-info">
+        <h3>Como testar:</h3>
+        <ol>
+            <li>Abra o jogo principal em <a href="http://localhost:8000" target="_blank">http://localhost:8000</a></li>
+            <li>Construa uma torre mágica (custo: 85 ouro)</li>
+            <li>Observe os inimigos quando forem atingidos pelos projéteis azuis</li>
+            <li>Os inimigos devem ficar azulados e mais lentos por 1 segundo</li>
+        </ol>
+        
+        <h3>O que verificar:</h3>
+        <ul>
+            <li>✅ Projéteis azuis pulsantes</li>
+            <li>✅ Inimigos ficam azulados quando lentos</li>
+            <li>✅ Barra azul mostra duração do slow</li>
+            <li>✅ Inimigos se movem mais devagar</li>
+            <li>✅ Efeito visual quando slow é aplicado</li>
+        </ul>
+    </div>
+    
+    <button class="test-button" onclick="window.open('http://localhost:8000', '_blank')">
+        🎮 Abrir Jogo Principal
+    </button>
+    
+    <script>
+        // Verificar se o servidor está rodando
+        fetch('http://localhost:8000')
+            .then(response => {
+                if (response.ok) {
+                    console.log('✅ Servidor rodando em http://localhost:8000');
+                }
+            })
+            .catch(error => {
+                console.error('❌ Servidor não está rodando. Execute: python -m http.server 8000');
+                alert('❌ Servidor não está rodando!\n\nExecute no terminal:\npython -m http.server 8000');
+            });
+    </script>
+</body>
+</html> 

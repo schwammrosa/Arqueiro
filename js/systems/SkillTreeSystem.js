@@ -10,7 +10,7 @@ export const SKILL_TREE = [
 
     // DANO (coluna 2)
     { id: 'vel_arq', name: 'Velocidade Arqueiro +', desc: '+10% de velocidade de ataque Arqueiro', max: 3, cost: 2, parent: 'dano_arq', branch: 'dano', children: [], row: 1, col: 2 },
-    { id: 'alc_can', name: 'Alcance Canhão +', desc: '+15% de alcance do dano em área', max: 2, cost: 2, parent: 'dano_can', branch: 'dano', children: [], row: 1, col: 2 },
+    { id: 'alc_can', name: 'Área Explosão +', desc: '+15% de área de efeito da explosão', max: 2, cost: 2, parent: 'dano_can', branch: 'dano', children: [], row: 1, col: 2 },
     { id: 'cong_mag', name: 'Congelamento Mago +', desc: '+1s de congelamento', max: 2, cost: 2, parent: 'dano_mag', branch: 'dano', children: [], row: 1, col: 2 },
     { id: 'enc_tes', name: 'Encadeamento Tesla +', desc: '+1 inimigo encadeado', max: 2, cost: 2, parent: 'dano_tes', branch: 'dano', children: [], row: 1, col: 2 },
     { id: 'dano_arq', name: 'Dano Arqueiro +', desc: '+10% de dano para torres Arqueiro', max: 3, cost: 2, parent: 'dano', branch: 'dano', children: ['vel_arq'], row: 2, col: 2 },
@@ -29,7 +29,7 @@ export const SKILL_TREE = [
 
 export const SKILL_ICONS = {
     vida: '❤️', cura: '💚', defesa: '🛡️',
-    dano: '⚔️', dano_arq: '🏹', vel_arq: '💨', dano_can: '💣', alc_can: '📏', dano_mag: '🔮', cong_mag: '❄️', dano_tes: '⚡', enc_tes: '🔗',
+    dano: '⚔️', dano_arq: '🏹', vel_arq: '💨', dano_can: '💣', alc_can: '💥', dano_mag: '🔮', cong_mag: '❄️', dano_tes: '⚡', enc_tes: '🔗',
     esp: '✨', chuva: '🏹', gelo: '❄️', ouro: '��', torre: '🌟'
 };
 
@@ -120,6 +120,7 @@ function renderSkillTreeColumn(branch, containerId, skillTree, skillPoints) {
             const locked = !canUpgrade && level < node.max;
             const atMax = level >= node.max;
             let statusText = '';
+            let lockReason = '';
             if (atMax) {
                 statusText = 'Máximo';
             } else if (unlocked) {
@@ -128,13 +129,37 @@ function renderSkillTreeColumn(branch, containerId, skillTree, skillPoints) {
                 statusText = 'Disponível';
             } else {
                 statusText = 'Bloqueada';
+                // Motivo do bloqueio
+                if (level < node.max && skillPoints < node.cost) {
+                    lockReason = 'Pontos insuficientes';
+                } else if (!canUnlockSkill(node, skillTree)) {
+                    lockReason = 'Pré-requisito não atendido';
+                } else {
+                    lockReason = 'Bloqueada';
+                }
             }
             const tooltip = document.createElement('div');
             tooltip.className = 'skill-tooltip';
-            tooltip.innerHTML = `<b>${node.name}</b><br>${node.desc}<br><span style='color:#b26a00;font-size:0.95em;'>${statusText}</span><br>Custo: ${node.cost}<br>Nível: ${level}/${node.max}`;
+            tooltip.innerHTML = `<b>${node.name}</b><br>${node.desc}<br><span style='color:#b26a00;font-size:0.95em;'>${statusText}</span><br>Custo: ${node.cost}<br>Nível: ${level}/${node.max}` + (lockReason ? `<br><span style='color:#888;font-size:0.9em;'>${lockReason}</span>` : '');
             nodeDiv.appendChild(tooltip);
             nodeDiv.onmouseenter = () => { tooltip.style.display = 'block'; };
             nodeDiv.onmouseleave = () => { tooltip.style.display = 'none'; };
+            // Ícone de cadeado se bloqueado
+            if (locked && !unlocked) {
+                const lockIcon = document.createElement('div');
+                lockIcon.className = 'skill-lock-icon';
+                lockIcon.innerHTML = '🔒';
+                lockIcon.style.position = 'absolute';
+                lockIcon.style.top = '50%';
+                lockIcon.style.left = '50%';
+                lockIcon.style.transform = 'translate(-50%, -50%)';
+                lockIcon.style.fontSize = '1.5em';
+                lockIcon.style.pointerEvents = 'none';
+                lockIcon.style.zIndex = '10';
+                nodeDiv.appendChild(lockIcon);
+                // Borda azul para nós bloqueados
+                nodeDiv.style.border = '2px solid #0066cc';
+            }
             // Evento de clique para evoluir
             if (canUpgrade) {
                 nodeDiv.style.cursor = 'pointer';

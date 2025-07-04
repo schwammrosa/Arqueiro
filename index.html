@@ -108,6 +108,13 @@
     </div>
 
     <div id="infoTooltip" class="info-tooltip" style="display:none;"></div>
+    
+    <!-- Botão de Debug -->
+    <div style="position: fixed; top: 10px; right: 10px; z-index: 1000;">
+        <button id="debugButton" style="background: #333; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
+            Debug: OFF
+        </button>
+    </div>
 
     <!-- Painel/modal de upgrades -->
     <div id="upgradeModal" class="upgrade-modal" style="display:none;">
@@ -118,5 +125,203 @@
             <div id="upgradeList"></div>
         </div>
     </div>
+
+    <div id="mainMenu" class="main-menu-overlay">
+        <div class="main-menu-content">
+            <h1 class="main-menu-title">Arqueiro - Tower Defense</h1>
+                    <button id="btnPlay" class="main-menu-btn">Jogar</button>
+        <button id="btnMenuConfig" class="main-menu-btn">Configurações</button>
+        <button id="btnMenuCredits" class="main-menu-btn">Créditos</button>
+        <!-- Botão Limpar Configuração -->
+        <button id="btnClearConfig" style="margin-top: 16px; background: #dc3545; color: white; font-weight: bold;">Limpar Configuração</button>
+        </div>
+    </div>
+
+    <div id="creditsModal" class="main-menu-modal" style="display:none;">
+        <div class="main-menu-modal-content">
+            <span id="closeCreditsModal" class="main-menu-close">&times;</span>
+            <h2>Créditos</h2>
+            <p>Desenvolvido por [Seu Nome ou Equipe].<br>Inspirado em clássicos do gênero Tower Defense.<br><br>Projeto open-source para fins de estudo e diversão.</p>
+        </div>
+    </div>
+
+    <style>
+    .main-menu-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(135deg, #181c24 80%, #4fdfff 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+    .main-menu-content {
+        background: #222b3a;
+        border-radius: 18px;
+        box-shadow: 0 8px 40px #000a;
+        padding: 48px 36px 36px 36px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 320px;
+    }
+    .main-menu-title {
+        color: #4fdfff;
+        font-size: 2.2em;
+        font-weight: bold;
+        margin-bottom: 32px;
+        text-shadow: 0 2px 12px #000a;
+        letter-spacing: 1px;
+    }
+    .main-menu-btn {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 16px 40px;
+        margin: 10px 0;
+        font-size: 1.2em;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 2px 12px #0004;
+        transition: background 0.2s, transform 0.2s;
+    }
+    .main-menu-btn:hover {
+        background: linear-gradient(135deg, #4fdfff, #007bff);
+        transform: translateY(-2px) scale(1.04);
+    }
+    .main-menu-modal {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+    }
+    .main-menu-modal-content {
+        background: #fff;
+        color: #222b3a;
+        border-radius: 12px;
+        padding: 32px 28px;
+        min-width: 300px;
+        max-width: 90vw;
+        box-shadow: 0 8px 32px #000a;
+        position: relative;
+        text-align: center;
+    }
+    .main-menu-close {
+        position: absolute;
+        top: 12px;
+        right: 18px;
+        font-size: 2em;
+        color: #4fdfff;
+        cursor: pointer;
+    }
+    </style>
+
+    <script>
+    // Funções de debug globais
+    window.debugMode = false;
+    window.toggleDebug = function() {
+        window.debugMode = !window.debugMode;
+        console.log(`Modo debug ${window.debugMode ? 'ativado' : 'desativado'}`);
+        
+        // Atualizar texto do botão
+        const debugButton = document.getElementById('debugButton');
+        if (debugButton) {
+            debugButton.textContent = `Debug: ${window.debugMode ? 'ON' : 'OFF'}`;
+            debugButton.style.background = window.debugMode ? '#ff6600' : '#333';
+        }
+        
+        if (window.debugMode) {
+            console.log('Para testar a explosão do canhão, coloque uma torre canhão e observe os logs no console');
+            console.log('Use testExplosion(x, y, radius) para testar explosões manualmente');
+        }
+    };
+
+    // Função para testar explosão manualmente
+    window.testExplosion = function(x, y, radius) {
+        if (!window.gameSystem || !window.gameSystem.gameState) {
+            console.log('Sistema de jogo não inicializado');
+            return;
+        }
+        
+        console.log(`Testando explosão em (${x}, ${y}) com raio ${radius}`);
+        
+        // Simular uma explosão
+        let hitCount = 0;
+        const enemies = [...window.gameSystem.gameState.enemies];
+        
+        for (let enemy of enemies) {
+            if (!enemy || !enemy.health || enemy.health <= 0 || enemy.isRemoved) continue;
+            
+            const dx = enemy.x - x;
+            const dy = enemy.y - y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance <= radius) {
+                hitCount++;
+                console.log(`✅ Teste: inimigo atingido a ${distance.toFixed(1)}px`);
+            } else {
+                console.log(`❌ Teste: inimigo fora da área (${distance.toFixed(1)}px > ${radius}px)`);
+            }
+        }
+        
+        console.log(`🎯 Teste: ${hitCount} inimigos seriam atingidos`);
+    };
+
+    // Menu inicial
+    document.addEventListener('DOMContentLoaded', function() {
+        const menu = document.getElementById('mainMenu');
+        const btnPlay = document.getElementById('btnPlay');
+        const btnConfig = document.getElementById('btnMenuConfig');
+        const btnCredits = document.getElementById('btnMenuCredits');
+        const creditsModal = document.getElementById('creditsModal');
+        const closeCreditsModal = document.getElementById('closeCreditsModal');
+        const debugButton = document.getElementById('debugButton');
+
+        // Botão de debug
+        if (debugButton) {
+            debugButton.addEventListener('click', function() {
+                window.toggleDebug();
+            });
+        }
+
+        // Ao clicar em Jogar, esconde o menu e inicia o jogo
+        btnPlay.onclick = function() {
+            menu.style.display = 'none';
+            // Iniciar o game loop se ainda não foi iniciado
+            if (typeof window.gameSystem !== 'undefined' && window.gameSystem && !window.gameSystem.isRunning) {
+                window.gameSystem.startGameLoop();
+            } else if (typeof gameSystem !== 'undefined' && gameSystem && !gameSystem.isRunning) {
+                gameSystem.startGameLoop();
+            }
+        };
+        // Configurações: vai para config.html
+        btnConfig.onclick = function() {
+            window.location.href = 'config.html';
+        };
+        // Créditos: mostra modal
+        btnCredits.onclick = function() {
+            creditsModal.style.display = 'flex';
+        };
+        closeCreditsModal.onclick = function() {
+            creditsModal.style.display = 'none';
+        };
+        // Fechar modal ao clicar fora
+        creditsModal.onclick = function(e) {
+            if (e.target === creditsModal) creditsModal.style.display = 'none';
+        };
+    });
+
+    // Adicionar evento para o botão de limpar configuração
+    const btnClearConfig = document.getElementById('btnClearConfig');
+    if (btnClearConfig) {
+        btnClearConfig.addEventListener('click', function() {
+            window.open('clear-config.html', '_blank');
+        });
+    }
+    </script>
 </body>
 </html> 

@@ -222,6 +222,9 @@ export class GameSystem {
         this.cleanupOrphanedReferences();
         this.uiSystem.updateUI();
         
+        // Desenhar efeitos visuais
+        this.renderSystem.drawVisualEffects(this.gameState);
+        
         // Desenhar preview da Chuva de Flechas, se necessário
         if (window.arrowRainSelecting && window.arrowRainPreview) {
             this.renderSystem.drawArrowRainPreview(

@@ -106,4 +106,112 @@ export class RenderSystem {
         this.ctx.stroke();
         this.ctx.restore();
     }
+    
+    // Desenhar efeitos visuais
+    drawVisualEffects(gameState) {
+        if (!gameState.visualEffects) return;
+        
+        const currentTime = Date.now();
+        
+        for (let i = gameState.visualEffects.length - 1; i >= 0; i--) {
+            const effect = gameState.visualEffects[i];
+            const elapsed = currentTime - effect.startTime;
+            const progress = elapsed / effect.duration;
+            
+            if (progress >= 1) {
+                // Remover efeito expirado
+                gameState.visualEffects.splice(i, 1);
+                continue;
+            }
+            
+            // Efeito de explosão do canhão
+            if (effect.radius) {
+                this.ctx.save();
+                
+                // Calcular alpha baseado no progresso
+                const alpha = effect.alpha * (1 - progress);
+                
+                // Área de explosão com fade out
+                this.ctx.fillStyle = `rgba(255, 100, 0, ${alpha * 0.3})`;
+                this.ctx.beginPath();
+                this.ctx.arc(effect.x, effect.y, effect.radius, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // Borda da explosão
+                this.ctx.strokeStyle = `rgba(255, 100, 0, ${alpha})`;
+                this.ctx.lineWidth = 3 * (1 - progress * 0.5);
+                this.ctx.beginPath();
+                this.ctx.arc(effect.x, effect.y, effect.radius, 0, Math.PI * 2);
+                this.ctx.stroke();
+                
+                this.ctx.restore();
+            }
+            
+            // Efeito de slow da torre mágica
+            if (effect.duration && !effect.radius) {
+                this.ctx.save();
+                
+                // Calcular alpha baseado no progresso
+                const alpha = effect.alpha * (1 - progress);
+                
+                // Círculo de slow com fade out
+                this.ctx.strokeStyle = `rgba(54, 185, 204, ${alpha})`;
+                this.ctx.lineWidth = 2 * (1 - progress * 0.5);
+                this.ctx.setLineDash([5, 5]);
+                this.ctx.beginPath();
+                this.ctx.arc(effect.x, effect.y, 20 + progress * 10, 0, Math.PI * 2);
+                this.ctx.stroke();
+                this.ctx.setLineDash([]);
+                
+                // Partículas de gelo
+                for (let i = 0; i < 8; i++) {
+                    const angle = (i / 8) * Math.PI * 2;
+                    const radius = 15 + progress * 5;
+                    const particleX = effect.x + Math.cos(angle) * radius;
+                    const particleY = effect.y + Math.sin(angle) * radius;
+                    
+                    this.ctx.fillStyle = `rgba(54, 185, 204, ${alpha * 0.6})`;
+                    this.ctx.beginPath();
+                    this.ctx.arc(particleX, particleY, 2 * (1 - progress), 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+                
+                this.ctx.restore();
+            }
+            
+            // Efeito de choque elétrico da Tesla
+            if (effect.type === 'electric') {
+                this.ctx.save();
+                
+                // Calcular alpha baseado no progresso
+                const alpha = effect.alpha * (1 - progress);
+                
+                // Círculo de choque elétrico
+                this.ctx.strokeStyle = `rgba(0, 207, 255, ${alpha})`;
+                this.ctx.lineWidth = 3 * (1 - progress * 0.5);
+                this.ctx.setLineDash([3, 3]);
+                this.ctx.beginPath();
+                this.ctx.arc(effect.x, effect.y, 15 + progress * 10, 0, Math.PI * 2);
+                this.ctx.stroke();
+                this.ctx.setLineDash([]);
+                
+                // Raios elétricos
+                for (let i = 0; i < 6; i++) {
+                    const angle = (i / 6) * Math.PI * 2;
+                    const radius = 20 + progress * 15;
+                    const rayX = effect.x + Math.cos(angle) * radius;
+                    const rayY = effect.y + Math.sin(angle) * radius;
+                    
+                    this.ctx.strokeStyle = `rgba(0, 207, 255, ${alpha * 0.8})`;
+                    this.ctx.lineWidth = 2 * (1 - progress);
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(effect.x, effect.y);
+                    this.ctx.lineTo(rayX, rayY);
+                    this.ctx.stroke();
+                }
+                
+                this.ctx.restore();
+            }
+        }
+    }
 } 

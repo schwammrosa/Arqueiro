@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Limpar Configuração - Arqueiro</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f0f0f0; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .button { background: #dc3545; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .button:hover { background: #c82333; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; padding: 15px; border-radius: 5px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Limpar Configuração - Arqueiro</h1>
+        
+        <div class="warning">
+            <h3>⚠️ Atenção!</h3>
+            <p>Esta ação irá <strong>remover completamente</strong> todas as configurações salvas, incluindo:</p>
+            <ul>
+                <li>Configurações das torres</li>
+                <li>Configurações dos inimigos</li>
+                <li>Árvore de habilidades</li>
+                <li>Pontos de habilidade</li>
+                <li>Configurações do jogo</li>
+            </ul>
+            <p>Tudo será resetado para os valores padrão.</p>
+        </div>
+        
+        <div class="info">
+            <h3>ℹ️ Problema Identificado</h3>
+            <p>A torre Tesla está limitada a 3 inimigos devido a uma configuração salva com <code>chainMax: 3</code>.</p>
+            <p>Limpar a configuração resolverá este problema.</p>
+        </div>
+        
+        <button class="button" onclick="clearConfig()">
+            🗑️ Limpar Todas as Configurações
+        </button>
+        
+        <div id="result"></div>
+        
+        <div style="margin-top: 30px;">
+            <h3>📋 Após limpar:</h3>
+            <ol>
+                <li>Abra o jogo principal em <a href="http://localhost:8000" target="_blank">http://localhost:8000</a></li>
+                <li>Vá para "Configurações"</li>
+                <li>Verifique se "Máximo de Encadeamentos Tesla" está em 5</li>
+                <li>Teste a torre Tesla</li>
+            </ol>
+        </div>
+    </div>
+    
+    <script>
+        function clearConfig() {
+            try {
+                // Limpar todas as configurações salvas
+                localStorage.removeItem('arqueiroConfig');
+                localStorage.removeItem('arqueiroSkillTree');
+                localStorage.removeItem('arqueiroSkillPoints');
+                
+                // Mostrar resultado
+                const result = document.getElementById('result');
+                result.innerHTML = `
+                    <div class="success">
+                        <h3>✅ Configurações Limpas!</h3>
+                        <p>Todas as configurações foram removidas com sucesso.</p>
+                        <p>Agora você pode abrir o jogo principal e testar a torre Tesla.</p>
+                    </div>
+                `;
+                
+                console.log('Configurações limpas com sucesso!');
+                
+            } catch (error) {
+                const result = document.getElementById('result');
+                result.innerHTML = `
+                    <div class="warning">
+                        <h3>❌ Erro ao limpar configurações</h3>
+                        <p>Erro: ${error.message}</p>
+                    </div>
+                `;
+                console.error('Erro ao limpar configurações:', error);
+            }
+        }
+        
+        // Verificar configurações atuais
+        window.onload = function() {
+            const config = localStorage.getItem('arqueiroConfig');
+            if (config) {
+                try {
+                    const parsed = JSON.parse(config);
+                    console.log('Configuração atual:', parsed);
+                    
+                    if (parsed.towers && parsed.towers.tesla) {
+                        console.log('Tesla chainMax atual:', parsed.towers.tesla.chainMax);
+                    }
+                } catch (e) {
+                    console.error('Erro ao ler configuração:', e);
+                }
+            }
+        };
+    </script>
+</body>
+</html> 

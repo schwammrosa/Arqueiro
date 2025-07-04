@@ -380,7 +380,17 @@ function applyConfigToFields() {
     }
     // Tesla - parâmetro especial
     if (towerConfig.tesla) {
-        document.getElementById('teslaChainMax').value = towerConfig.tesla.chainMax || 3;
+        document.getElementById('teslaChainMax').value = towerConfig.tesla.chainMax || 5;
+    }
+
+    // Torre Especial
+    if (towerConfig.special) {
+        document.getElementById('specialCost').value = towerConfig.special.cost;
+        document.getElementById('specialRange').value = towerConfig.special.range;
+        document.getElementById('specialDamage').value = towerConfig.special.damage;
+        document.getElementById('specialFireRate').value = towerConfig.special.fireRate;
+        document.getElementById('specialColor').value = towerConfig.special.color || '#8e44ad';
+        document.getElementById('specialEffect').value = towerConfig.special.effect || '';
     }
 }
 
@@ -489,7 +499,15 @@ function collectConfigFromFields() {
                 upgradeDamage: parseFloat(document.getElementById('teslaUpgradeDamage').value),
                 upgradeRange: parseFloat(document.getElementById('teslaUpgradeRange').value),
                 upgradeSpeed: parseFloat(document.getElementById('teslaUpgradeSpeed').value),
-                chainMax: parseInt(document.getElementById('teslaChainMax').value)
+                chainMax: parseInt(document.getElementById('teslaChainMax').value),
+                special: {
+                    cost: parseInt(document.getElementById('specialCost').value),
+                    range: parseInt(document.getElementById('specialRange').value),
+                    damage: parseInt(document.getElementById('specialDamage').value),
+                    fireRate: parseInt(document.getElementById('specialFireRate').value),
+                    color: document.getElementById('specialColor').value,
+                    effect: document.getElementById('specialEffect').value
+                }
             }
         },
         

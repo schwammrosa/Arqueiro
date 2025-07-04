@@ -505,6 +505,15 @@ body {
     max-height: 90px;
     outline: none;
     box-sizing: border-box;
+    min-height: 70px !important;
+    height: auto !important;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: visible !important;
 }
 .special-skill-btn:disabled,
 .special-skill-btn.cooldown {
@@ -914,4 +923,64 @@ body {
 .painel-lateral-btn.onda:hover     { background: #1565c0; }
 .painel-lateral-btn.pausar:hover   { background: #424242; }
 .painel-lateral-btn.config:hover   { background: #00838f; }
-.painel-lateral-btn.upgrades:hover { background: #ffec80; color: #b26a00; } 
+.painel-lateral-btn.upgrades:hover { background: #ffec80; color: #b26a00; }
+
+.special-skill-btn .skill-cooldown {
+    display: block !important;
+    color: #d84315 !important;
+    font-weight: bold !important;
+    font-size: 0.62em !important;
+    margin-top: 1px !important;
+    min-height: 0.9em;
+    height: auto;
+    line-height: 1.05;
+    text-align: center;
+    max-width: 100%;
+    overflow: visible;
+    white-space: normal;
+    box-sizing: border-box;
+    opacity: 1 !important;
+    pointer-events: none;
+    z-index: 20;
+}
+
+.special-skill-btn .skill-icon {
+    width: 100%;
+    max-width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+    overflow: visible;
+    font-size: 1.3em;
+    line-height: 1;
+}
+
+.special-skill-btn .skill-label {
+    width: 100%;
+    max-width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+    overflow: visible;
+    white-space: normal;
+    font-size: 0.62em;
+    line-height: 1.05;
+    margin-top: 1px;
+}
+
+@media (max-width: 600px) {
+    .special-skill-btn {
+        max-width: 70px;
+        min-width: 48px;
+        font-size: 0.85em;
+        padding-top: 2px !important;
+        padding-bottom: 2px !important;
+    }
+    .special-skill-btn .skill-icon {
+        font-size: 1em;
+    }
+    .special-skill-btn .skill-label {
+        font-size: 0.52em;
+    }
+    .special-skill-btn .skill-cooldown {
+        font-size: 0.52em !important;
+    }
+} 

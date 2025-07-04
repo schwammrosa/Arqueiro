@@ -109,9 +109,26 @@ export class Enemy {
 
         // Desenhar inimigo
         ctx.save();
-        ctx.fillStyle = this.color;
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 2;
+        
+        // Efeito visual de slow - inimigos lentos ficam azulados
+        let fillColor = this.color;
+        let strokeColor = '#000000';
+        
+        if (this.slowUntil && Date.now() < this.slowUntil) {
+            // Aplicar efeito azulado para inimigos lentos
+            fillColor = this.color;
+            strokeColor = '#36b9cc';
+            ctx.lineWidth = 3;
+            
+            // Adicionar brilho azul
+            ctx.shadowColor = '#36b9cc';
+            ctx.shadowBlur = 8;
+        } else {
+            ctx.lineWidth = 2;
+        }
+        
+        ctx.fillStyle = fillColor;
+        ctx.strokeStyle = strokeColor;
         
         // Desenhar círculo do inimigo
         ctx.beginPath();
@@ -138,6 +155,31 @@ export class Enemy {
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 1;
         ctx.strokeRect(barX, barY, barWidth, barHeight);
+        
+        // Barra de status do slow (se ativo)
+        if (this.slowUntil && Date.now() < this.slowUntil) {
+            const slowBarY = barY - 8;
+            const slowBarWidth = barWidth;
+            const slowBarHeight = 3;
+            
+            // Calcular progresso do slow
+            const slowStartTime = this.slowUntil - (this.freezeBonus || 1) * 1000;
+            const slowProgress = (Date.now() - slowStartTime) / (this.slowUntil - slowStartTime);
+            const remainingProgress = Math.max(0, 1 - slowProgress);
+            
+            // Fundo da barra de slow
+            ctx.fillStyle = 'rgba(54, 185, 204, 0.3)';
+            ctx.fillRect(barX, slowBarY, slowBarWidth, slowBarHeight);
+            
+            // Progresso da barra de slow
+            ctx.fillStyle = '#36b9cc';
+            ctx.fillRect(barX, slowBarY, slowBarWidth * remainingProgress, slowBarHeight);
+            
+            // Borda da barra de slow
+            ctx.strokeStyle = '#36b9cc';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(barX, slowBarY, slowBarWidth, slowBarHeight);
+        }
         
         // Desenhar ícone baseado no tipo
         ctx.font = '16px Arial';

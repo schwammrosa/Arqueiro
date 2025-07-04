@@ -2,7 +2,7 @@ let TESLA_ID_COUNTER = 1;
 
 // Classe Torre
 export class Tower {
-    constructor(x, y, type, towerTypes, gameConfig, gameState, ctx, Projectile, updateUI, showNotification) {
+    constructor(x, y, type, towerTypes, gameConfig, gameState, ctx, Projectile, updateUI, showNotification, TeslaChainProjectile, CannonProjectile) {
         this.x = x;
         this.y = y;
         this.type = type;
@@ -11,11 +11,14 @@ export class Tower {
         this.gameState = gameState;
         this.ctx = ctx;
         this.Projectile = Projectile;
+        this.TeslaChainProjectile = TeslaChainProjectile;
+        this.CannonProjectile = CannonProjectile;
         this.updateUI = updateUI;
         this.showNotification = showNotification;
         this.level = 1;
         this.isSelected = false;
         this.totalCost = 0;
+        this.activeProjectiles = []; // Array para rastrear projéteis ativos
         this.setBaseStats();
         this.applyBonuses();
         if (this.type === 'tesla') {
@@ -75,15 +78,15 @@ export class Tower {
         }
         if (this.type === 'cannon') {
             if (this.gameConfig.cannonDamageBonus) damage *= this.gameConfig.cannonDamageBonus;
-            if (this.gameConfig.cannonRangeBonus) range *= this.gameConfig.cannonRangeBonus;
+            if (this.gameConfig.cannonAreaBonus) this.areaBonus = this.gameConfig.cannonAreaBonus;
         }
         if (this.type === 'magic') {
             if (this.gameConfig.mageDamageBonus) damage *= this.gameConfig.mageDamageBonus;
-            this.freezeBonus = this.gameConfig.mageFreezeBonus || 0;
+            this.freezeBonus = this.gameConfig.mageFreezeBonus || 1; // Duração padrão de 1 segundo
         }
         if (this.type === 'tesla') {
             if (this.gameConfig.teslaDamageBonus) damage *= this.gameConfig.teslaDamageBonus;
-            this.chainBonus = this.gameConfig.teslaChainBonus || 0;
+            this.chainBonus = this.gameConfig.teslaChainBonus || 0; // Bônus da árvore (0 = padrão, 1 = +1 inimigo, etc)
         }
         this.damage = Math.floor(damage);
         this.range = Math.floor(range);
@@ -92,16 +95,26 @@ export class Tower {
 
     update(deltaTime) {
         if (this.gameState.isPaused) return;
+        
+        // Limpar projéteis que não existem mais
+        this.activeProjectiles = this.activeProjectiles.filter(projectile => 
+            this.gameState.projectiles.indexOf(projectile) !== -1 && !projectile.isRemoved
+        );
+        
         if (this.target && this.gameState.enemies.indexOf(this.target) === -1) {
             this.target = null;
         }
         if (!this.target || !this.isTargetInRange(this.target)) {
             this.target = this.findTarget();
         }
-        this.lastShot = (this.lastShot || 0) + deltaTime;
-        if (this.target && this.lastShot >= this.fireRate) {
-            this.shoot();
-            this.lastShot = 0;
+        
+        // Só atirar se não há projéteis ativos (cooldown por projétil)
+        if (this.target && this.activeProjectiles.length === 0) {
+            this.lastShot = (this.lastShot || 0) + deltaTime;
+            if (this.lastShot >= this.fireRate) {
+                this.shoot();
+                this.lastShot = 0;
+            }
         }
     }
     
@@ -141,64 +154,63 @@ export class Tower {
             return;
         }
         if (this.type === 'cannon') {
-            // Ataque em área
+            // Ataque em área - dano será causado quando o projétil atingir o alvo
             let areaRadius = this.gameConfig.gridSize * 1.2;
             let areaDamageMultiplier = 1.0;
             if (this.towerTypes.cannon) {
                 areaRadius = this.towerTypes.cannon.areaRadius || areaRadius;
                 areaDamageMultiplier = (this.towerTypes.cannon.areaDamageMultiplier || 100) / 100;
             }
-            for (let enemy of this.gameState.enemies) {
-                if (this.getDistance(enemy) <= areaRadius) {
-                    enemy.takeDamage(Math.floor(this.damage * areaDamageMultiplier));
-                }
+            
+            // Aplicar bônus de área da árvore de habilidades
+            if (this.areaBonus) {
+                areaRadius *= this.areaBonus;
             }
-            const projectile = new this.Projectile(
+            
+            // Criar projétil especial do canhão que causa dano em área
+            const cannonProjectile = new this.CannonProjectile(
                 this.x,
                 this.y,
                 this.target,
                 this.damage,
                 this.color,
-                this.gameConfig
+                this.gameConfig,
+                this.gameState,
+                areaRadius,
+                areaDamageMultiplier
             );
-            this.gameState.projectiles.push(projectile);
+            this.gameState.projectiles.push(cannonProjectile);
+            this.activeProjectiles.push(cannonProjectile);
         } else if (this.type === 'magic') {
-            // Ataque single target com slow
-            this.target.takeDamage(this.damage);
-            // Aplicar lentidão
-            let slowEffect = 0.5; // 50% padrão
-            if (this.towerTypes.magic) {
-                slowEffect = 1 - ((this.towerTypes.magic.slowEffect || 50) / 100);
-            }
-            if (!this.target.slowUntil || this.target.slowUntil < Date.now()) {
-                this.target.slowUntil = Date.now() + this.freezeBonus * 1000;
-                this.target.originalSpeed = this.target.originalSpeed || this.target.speed;
-                this.target.speed *= slowEffect;
-            } else {
-                this.target.slowUntil += this.freezeBonus * 1000;
-            }
+            // Ataque single target com slow - o dano será causado pelo projétil
             const projectile = new this.Projectile(
                 this.x,
                 this.y,
                 this.target,
                 this.damage,
                 this.color,
-                this.gameConfig
+                this.gameConfig,
+                this // Passar referência da torre para aplicar slow
             );
             this.gameState.projectiles.push(projectile);
+            this.activeProjectiles.push(projectile);
         } else if (this.type === 'tesla') {
-            // LOG extra: mostrar o valor de gameConfig.teslaChainBonus
-            console.log('[TESLA] gameConfig.teslaChainBonus:', this.gameConfig.teslaChainBonus, '| this.chainBonus:', this.chainBonus);
-            // Usar chainRadius configurável
+            // Sistema de ricochete Tesla
             let chainRadius = this.range * (this.gameConfig.teslaChainRadius || 1.2);
-            let maxChain = 1 + (this.chainBonus || 0);
+            let maxChain = 2 + (this.chainBonus || 0); // 2 (padrão) + chainBonus (da árvore)
             if (this.towerTypes.tesla && this.towerTypes.tesla.chainMax) {
                 maxChain = Math.min(maxChain, this.towerTypes.tesla.chainMax);
             }
-            // Ataque em cadeia: até maxChain inimigos diferentes
+            
+
+            
+
+            
+            // Encontrar todos os alvos em cadeia
             let chainTargets = [this.target];
             let used = new Set([this.target]);
             let last = this.target;
+            
             while (chainTargets.length < maxChain) {
                 let next = null;
                 let minDist = Infinity;
@@ -218,27 +230,20 @@ export class Tower {
                     break;
                 }
             }
-            // LOG para depuração
-            console.log('[TESLA] chainBonus:', this.chainBonus, '| maxChain:', maxChain, '| chainTargets:', chainTargets.map(e => e && e.id ? e.id : e));
-            // Dano decrescente para a quantidade real de alvos
-            const base = this.damage;
-            const chainDamages = chainTargets.map((_, idx) => idx === 0 ? base : idx === 1 ? Math.floor(base * 0.7) : Math.floor(base * 0.5));
-            chainTargets.forEach((enemy, idx) => {
-                enemy.takeDamage(chainDamages[idx]);
-            });
-            // Efeito visual: projétil azul para cada alvo
-            chainTargets.forEach((enemy, idx) => {
-                const projColor = idx === 0 ? this.color : '#00cfff';
-                const projectile = new this.Projectile(
-                    this.x,
-                    this.y,
-                    enemy,
-                    chainDamages[idx],
-                    projColor,
-                    this.gameConfig
-                );
-                this.gameState.projectiles.push(projectile);
-            });
+            
+            // Criar um único projétil que ricocheteia
+            const baseDamage = this.damage;
+            const teslaProjectile = new this.TeslaChainProjectile(
+                this.x,
+                this.y,
+                chainTargets,
+                baseDamage,
+                this.color,
+                this.gameConfig,
+                this.gameState
+            );
+            this.gameState.projectiles.push(teslaProjectile);
+            this.activeProjectiles.push(teslaProjectile);
             return;
         } else {
             // Arqueiro: ataque simples
@@ -251,6 +256,7 @@ export class Tower {
                 this.gameConfig
             );
             this.gameState.projectiles.push(projectile);
+            this.activeProjectiles.push(projectile);
         }
     }
     
@@ -291,6 +297,36 @@ export class Tower {
         return refund;
     }
     
+
+    
+    createSlowEffect() {
+        // Verificar se o target ainda existe
+        if (!this.target || !this.target.x || !this.target.y) {
+            return;
+        }
+        
+        // Criar efeito visual de slow aplicado
+        const slowEffect = {
+            x: this.target.x,
+            y: this.target.y,
+            startTime: Date.now(),
+            duration: 500,
+            alpha: 0.8
+        };
+        
+        if (!this.gameState.visualEffects) {
+            this.gameState.visualEffects = [];
+        }
+        this.gameState.visualEffects.push(slowEffect);
+        
+        setTimeout(() => {
+            const index = this.gameState.visualEffects.indexOf(slowEffect);
+            if (index > -1) {
+                this.gameState.visualEffects.splice(index, 1);
+            }
+        }, slowEffect.duration);
+    }
+
     draw() {
         this.ctx.fillStyle = this.color;
         this.ctx.fillRect(
@@ -317,6 +353,7 @@ export class Tower {
             );
         }
         if (this.isSelected) {
+            // Mostrar alcance da torre
             this.ctx.strokeStyle = this.color;
             this.ctx.lineWidth = 2;
             this.ctx.setLineDash([5, 5]);
@@ -324,6 +361,39 @@ export class Tower {
             this.ctx.arc(this.x, this.y, this.range, 0, Math.PI * 2);
             this.ctx.stroke();
             this.ctx.setLineDash([]);
+            
+            // Mostrar área de efeito para canhão
+            if (this.type === 'cannon') {
+                let areaRadius = this.gameConfig.gridSize * 1.2;
+                if (this.towerTypes.cannon) {
+                    areaRadius = this.towerTypes.cannon.areaRadius || areaRadius;
+                }
+                
+                // Aplicar bônus de área da árvore de habilidades
+                if (this.areaBonus) {
+                    areaRadius *= this.areaBonus;
+                }
+                
+                // Área de efeito com transparência
+                this.ctx.fillStyle = 'rgba(255, 100, 0, 0.2)';
+                this.ctx.beginPath();
+                this.ctx.arc(this.x, this.y, areaRadius, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // Borda da área de efeito
+                this.ctx.strokeStyle = '#ff6600';
+                this.ctx.lineWidth = 3;
+                this.ctx.setLineDash([]);
+                this.ctx.beginPath();
+                this.ctx.arc(this.x, this.y, areaRadius, 0, Math.PI * 2);
+                this.ctx.stroke();
+                
+                // Texto indicando área de efeito
+                this.ctx.font = '14px Arial';
+                this.ctx.fillStyle = '#ff6600';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('Área de Efeito', this.x, this.y - areaRadius - 10);
+            }
         }
     }
 } 

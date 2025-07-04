@@ -18,7 +18,7 @@ import {
 // Importar classes
 import { Tower } from './js/classes/Tower.js';
 import { Enemy } from './js/classes/Enemy.js';
-import { Projectile } from './js/classes/Projectile.js';
+import { Projectile, TeslaChainProjectile, CannonProjectile } from './js/classes/Projectile.js';
 import { DamageNumber } from './js/classes/DamageNumber.js';
 
 // Importar sistemas
@@ -51,14 +51,14 @@ const SKILL_TREE = [
     { id: 'torre', name: 'Desbloquear Torre Especial', desc: 'Nova torre exclusiva', max: 1, cost: 3, parent: 'esp', branch: 'esp', children: [], row: 2, col: 3 },
     // Camada 3 (topo)
     { id: 'vel_arq', name: 'Velocidade Arqueiro +', desc: '+10% de velocidade de ataque Arqueiro', max: 3, cost: 2, parent: 'dano_arq', branch: 'dano', children: [], row: 1, col: 2 },
-    { id: 'alc_can', name: 'Alcance Canhão +', desc: '+15% de alcance do dano em área', max: 2, cost: 2, parent: 'dano_can', branch: 'dano', children: [], row: 1, col: 2 },
+    { id: 'alc_can', name: 'Área Explosão +', desc: '+15% de área de efeito da explosão', max: 2, cost: 2, parent: 'dano_can', branch: 'dano', children: [], row: 1, col: 2 },
     { id: 'cong_mag', name: 'Congelamento Mago +', desc: '+1s de congelamento', max: 2, cost: 2, parent: 'dano_mag', branch: 'dano', children: [], row: 1, col: 2 },
     { id: 'enc_tes', name: 'Encadeamento Tesla +', desc: '+1 inimigo encadeado', max: 2, cost: 2, parent: 'dano_tes', branch: 'dano', children: [], row: 1, col: 2 },
 ];
 
 const SKILL_ICONS = {
     vida: '❤️', cura: '💚', defesa: '🛡️',
-    dano: '⚔️', dano_arq: '🏹', vel_arq: '💨', dano_can: '💣', alc_can: '📏', dano_mag: '🔮', cong_mag: '❄️', dano_tes: '⚡', enc_tes: '🔗',
+    dano: '⚔️', dano_arq: '🏹', vel_arq: '💨', dano_can: '💣', alc_can: '💥', dano_mag: '🔮', cong_mag: '❄️', dano_tes: '⚡', enc_tes: '🔗',
     esp: '✨', chuva: '🏹', gelo: '❄️', ouro: '💰', torre: '🌟'
 };
 
@@ -115,16 +115,22 @@ function renderSkillTreePanel(branch, containerId) {
         layer.forEach(node => {
             const nodeDiv = document.createElement('div');
             nodeDiv.className = 'skill-node';
-            nodeDiv.innerHTML = `<div class=\"skill-icon\">${SKILL_ICONS[node.id] || '❔'}</div>`;
+            const level = skillTree[node.id] || 0;
+            const unlocked = level > 0;
+            const available = !unlocked && canUnlockSkill(node);
+            // Adicionar cadeado se bloqueado
+            let iconHtml = SKILL_ICONS[node.id] || '❔';
+            if (!unlocked && !available) {
+                iconHtml += ' <span class="skill-lock">🔒</span>';
+                nodeDiv.classList.add('locked');
+            }
+            nodeDiv.innerHTML = `<div class="skill-icon">${iconHtml}</div>`;
             nodeDiv.style.position = 'relative';
             nodeDiv.style.zIndex = 2;
             nodeDivs[node.id] = nodeDiv;
             // Tooltip
             const tooltip = document.createElement('div');
             tooltip.className = 'skill-tooltip';
-            const level = skillTree[node.id] || 0;
-            const unlocked = level > 0;
-            const available = !unlocked && canUnlockSkill(node);
             tooltip.innerHTML = `<b>${node.name}</b><br>${node.desc}<br><span style='color:#b26a00;font-size:0.95em;'>${unlocked ? 'Desbloqueada' : available ? 'Disponível' : 'Bloqueada'}</span><br>Custo: ${node.cost}<br>Nível: ${level}/${node.max}`;
             nodeDiv.appendChild(tooltip);
             nodeDiv.onmouseenter = () => { tooltip.style.display = 'block'; };
@@ -221,7 +227,7 @@ function applySkillTreeEffects(gameConfig, skillTree) {
     gameConfig.archerDamageBonus = 1 + (skillTree['dano_arq'] || 0) * 0.10;
     gameConfig.archerSpeedBonus = 1 + (skillTree['vel_arq'] || 0) * 0.10;
     gameConfig.cannonDamageBonus = 1 + (skillTree['dano_can'] || 0) * 0.10;
-    gameConfig.cannonRangeBonus = 1 + (skillTree['alc_can'] || 0) * 0.15;
+            gameConfig.cannonAreaBonus = 1 + (skillTree['alc_can'] || 0) * 0.15;
     gameConfig.mageDamageBonus = 1 + (skillTree['dano_mag'] || 0) * 0.10;
     gameConfig.mageFreezeBonus = (skillTree['cong_mag'] || 0) * 1.0; // +1s por nível
     gameConfig.teslaDamageBonus = 1 + (skillTree['dano_tes'] || 0) * 0.10;
@@ -231,12 +237,14 @@ function applySkillTreeEffects(gameConfig, skillTree) {
     gameConfig.iceStorm = (skillTree['gelo'] || 0) > 0;
     gameConfig.goldPerWaveBonus = 1 + (skillTree['ouro'] || 0) * 0.10;
     gameConfig.specialTowerUnlocked = (skillTree['torre'] || 0) > 0;
+    console.log('[DEBUG] applySkillTreeEffects: skillTree["torre"] =', skillTree['torre'], '=> specialTowerUnlocked =', gameConfig.specialTowerUnlocked, 'gameConfig:', gameConfig);
+    window.GAME_CONFIG = gameConfig;
 }
 
 // Modificar getInitialGameState para aplicar a árvore de habilidades
 function getInitialGameState() {
     let config = loadGameConfig();
-    applySkillTreeEffects(config, skillTree);
+    applySkillTreeEffects(config, loadSkillTree());
     return {
         health: config.initialHealth,
         gold: config.initialGold,
@@ -276,6 +284,7 @@ function reloadConfigs() {
     const oldCanvasHeight = GAME_CONFIG.canvasHeight;
     
     GAME_CONFIG = loadGameConfig();
+    applySkillTreeEffects(GAME_CONFIG, loadSkillTree());
     TOWER_TYPES = loadTowerConfig();
     
     // Atualizar tamanho do canvas se necessário
@@ -348,6 +357,8 @@ const uiSystem = new UISystem(gameState);
 
 // Inicializar sistema principal do jogo
 const gameSystem = new GameSystem(gameState, GAME_CONFIG, enemyPath, Enemy, chooseEnemyType, calculateEnemyStats, DamageNumber, uiSystem, renderSystem);
+// Tornar gameSystem acessível globalmente para o menu
+window.gameSystem = gameSystem;
 
 // Mostrar informações da torre
 function showTowerInfo(tower) {
@@ -419,31 +430,36 @@ function updateUI() {
 
 // Gerar dinamicamente as opções de torres no painel lateral
 function renderTowerOptions() {
+    const GAME_CONFIG = window.GAME_CONFIG;
+    console.log('[DEBUG] renderTowerOptions executando. GAME_CONFIG:', GAME_CONFIG);
     const towerOptionsDiv = document.getElementById('footerTowerBar');
     if (!towerOptionsDiv) {
-        console.error('Container #footerTowerBar não encontrado!');
-        return;
-    }
-    if (!TOWER_TYPES || Object.keys(TOWER_TYPES).length === 0) {
-        console.error('TOWER_TYPES não carregado ou vazio!', TOWER_TYPES);
         return;
     }
     towerOptionsDiv.innerHTML = '';
     Object.entries(TOWER_TYPES).forEach(([key, tower]) => {
-        if (key === 'special' && !GAME_CONFIG.specialTowerUnlocked) return;
         const btn = document.createElement('button');
         btn.className = 'tower-btn';
         btn.dataset.tower = key;
         btn.dataset.cost = tower.cost;
+        let locked = false;
+        if (key === 'special' && !GAME_CONFIG.specialTowerUnlocked) {
+            console.log('[DEBUG] BLOQUEIO Torre Especial:', GAME_CONFIG.specialTowerUnlocked, GAME_CONFIG);
+            locked = true;
+            btn.classList.add('locked');
+            btn.disabled = true;
+            btn.title = 'Desbloqueie a torre especial na árvore de habilidades para usar';
+            btn.style.border = '2px solid #0066cc';
+        }
         btn.innerHTML = `
-            <div class=\"tower-icon\">${tower.icon || ''}</div>
-            <div class=\"tower-info\">
-                <div class=\"tower-name\">${tower.name}</div>
-                <div class=\"tower-cost\">${tower.cost} ouro</div>
+            <div class="tower-icon" style="position:relative;">${tower.icon || ''}${locked ? '<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.5em;z-index:10;pointer-events:none;">🔒</span>' : ''}</div>
+            <div class="tower-info">
+                <div class="tower-name">${tower.name}</div>
+                <div class="tower-cost">${tower.cost} ouro</div>
             </div>
         `;
         btn.addEventListener('click', () => {
-            if (btn.classList.contains('disabled')) return;
+            if (btn.classList.contains('disabled') || btn.classList.contains('locked')) return;
             gameState.selectedTower = key;
             document.querySelectorAll('.footer-tower-bar .tower-btn').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
@@ -489,7 +505,7 @@ canvas.addEventListener('click', (e) => {
         const cost = TOWER_TYPES[towerType].cost;
 
         if (gameState.gold >= cost) {
-            gameState.towers.push(new Tower(gridPos.x, gridPos.y, towerType, TOWER_TYPES, GAME_CONFIG, gameState, ctx, Projectile, uiSystem.updateUI, uiSystem.showNotification));
+            gameState.towers.push(new Tower(gridPos.x, gridPos.y, towerType, TOWER_TYPES, GAME_CONFIG, gameState, ctx, Projectile, uiSystem.updateUI, uiSystem.showNotification, TeslaChainProjectile, CannonProjectile));
             gameState.gold -= cost;
             gameState.selectedTower = null;
             uiSystem.updateUI();
@@ -552,16 +568,21 @@ function updateArrowRainButton() {
     btn.style.display = 'block';
     let locked = !isSpecialSkillUnlocked();
     let cooldownText = '';
-    if (!locked && !arrowRainReady) cooldownText = `${arrowRainCooldown}s`;
+    if (!locked && !arrowRainReady) cooldownText = `<span style='color:#d84315;font-weight:bold;'>${arrowRainCooldown}s</span>`;
     btn.disabled = locked || !arrowRainReady;
     btn.classList.toggle('locked', locked);
     btn.innerHTML = `
         <span class="skill-icon">🏹</span>
         <span class="skill-label">Chuva de Flechas</span>
         <span class="skill-cooldown">${cooldownText}</span>
-        ${locked ? '<span class="skill-lock">🔒</span>' : ''}
+        ${locked ? '<span class="skill-lock" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.5em;z-index:10;pointer-events:none;">🔒</span>' : ''}
     `;
     btn.title = locked ? 'Desbloqueie a habilidade especial na árvore para usar' : 'Chuva de Flechas (Recarga)';
+    if (locked) {
+        btn.style.border = '2px solid #0066cc';
+    } else {
+        btn.style.border = '';
+    }
 }
 
 function startArrowRainCooldown() {
@@ -638,8 +659,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (iceStormReady && isSpecialSkillUnlocked()) activateIceStorm();
         });
     }
+    // Atualizar botões imediatamente
     updateArrowRainButton();
     updateIceStormButton();
+    
+    // Atualizar novamente após um pequeno delay para garantir que tudo carregou
+    setTimeout(() => {
+        updateArrowRainButton();
+        updateIceStormButton();
+    }, 100);
 });
 
 // Interceptar clique no canvas para lançar a habilidade
@@ -689,10 +717,11 @@ window.renderGame = function() {
     }
 };
 
-// Inicializar jogo
+// Inicializar jogo (pausado até clicar em "Jogar")
 gameSystem.initializeFirstWave();
 uiSystem.updateUI();
-gameSystem.startGameLoop();
+// Não iniciar o game loop automaticamente - será iniciado quando clicar em "Jogar"
+// gameSystem.startGameLoop();
 
 window.arrowRainSelecting = arrowRainSelecting;
 window.arrowRainPreview = arrowRainPreview;
@@ -791,16 +820,21 @@ function updateIceStormButton() {
     btn.style.display = 'block';
     let locked = !isSpecialSkillUnlocked();
     let cooldownText = '';
-    if (!locked && !iceStormReady) cooldownText = `${iceStormCooldown}s`;
+    if (!locked && !iceStormReady) cooldownText = `<span style='color:#d84315;font-weight:bold;'>${iceStormCooldown}s</span>`;
     btn.disabled = locked || !iceStormReady;
     btn.classList.toggle('locked', locked);
     btn.innerHTML = `
         <span class="skill-icon">❄️</span>
         <span class="skill-label">Tempestade de Gelo</span>
         <span class="skill-cooldown">${cooldownText}</span>
-        ${locked ? '<span class="skill-lock">🔒</span>' : ''}
+        ${locked ? '<span class="skill-lock" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.5em;z-index:10;pointer-events:none;">🔒</span>' : ''}
     `;
     btn.title = locked ? 'Desbloqueie a habilidade especial na árvore para usar' : 'Tempestade de Gelo (Recarga)';
+    if (locked) {
+        btn.style.border = '2px solid #0066cc';
+    } else {
+        btn.style.border = '';
+    }
 }
 
 function startIceStormCooldown() {
@@ -849,19 +883,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     updateIceStormButton();
 });
-// Atualizar botão ao iniciar partida
+// Atualizar botões ao iniciar partida
+updateArrowRainButton();
 updateIceStormButton();
 
 // --- Ouro extra por onda ---
 // No fim da onda, ao premiar o jogador:
 // Dentro do gameSystem.gameLoop, após completar a onda:
-const waveBonusMultiplier = 10; // Exemplo: 10 de pontos base por onda
-const waveBonus = (this.gameState.wave + 1) * waveBonusMultiplier;
-this.gameState.score += waveBonus;
+// const waveBonusMultiplier = 10; // Exemplo: 10 de pontos base por onda
+// const waveBonus = (gameState.wave + 1) * waveBonusMultiplier;
+// gameState.score += waveBonus;
 // Aplicar bônus de ouro extra por onda
-const goldBonus = Math.floor((GAME_CONFIG.goldPerWaveBonus || 1) * 10); // Exemplo: 10 de ouro base por onda
-this.gameState.gold += goldBonus;
-this.uiSystem.showNotification(`Onda ${this.gameState.wave + 1} completada! +${waveBonus} pontos! +${goldBonus} ouro extra!`, 'success');
+// const goldBonus = Math.floor((GAME_CONFIG.goldPerWaveBonus || 1) * 10); // Exemplo: 10 de ouro base por onda
+// gameState.gold += goldBonus;
+// uiSystem.showNotification(`Onda ${gameState.wave + 1} completada! +${waveBonus} pontos! +${goldBonus} ouro extra!`, 'success');
 
 // Sempre que skillTree for alterada, reaplicar efeitos e atualizar torres
 function updateSkillTreeAndConfig() {
@@ -878,12 +913,46 @@ function updateSkillTreeAndConfig() {
 // Função para atualizar árvore e efeitos após upgrade
 function onSkillTreeUpgrade() {
     skillTree = loadSkillTree();
+    console.log('[DEBUG] skillTree após upgrade:', skillTree);
     updateSkillTreeAndConfig();
     updateArrowRainButton();
     updateIceStormButton();
+    // Recarregar GAME_CONFIG e skillTree do localStorage antes de atualizar o menu de torres
+    const updatedSkillTree = loadSkillTree();
+    applySkillTreeEffects(GAME_CONFIG, updatedSkillTree);
+    console.log('[DEBUG] GAME_CONFIG.specialTowerUnlocked:', GAME_CONFIG.specialTowerUnlocked);
+    renderTowerOptions(); // Atualiza o menu de torres ao desbloquear habilidades
+    console.log('[DEBUG] renderTowerOptions chamado após upgrade');
 }
 
 document.addEventListener('skillTreeChanged', () => {
     updateArrowRainButton();
     updateIceStormButton();
-}); 
+});
+
+// Funções de debug já estão definidas no HTML
+
+// Função de teste para cooldowns
+window.testCooldowns = function() {
+    console.log('Testando cooldowns...');
+    
+    // Forçar cooldown ativo
+    arrowRainCooldown = 10;
+    iceStormCooldown = 15;
+    arrowRainReady = false;
+    iceStormReady = false;
+    
+    updateArrowRainButton();
+    updateIceStormButton();
+    
+    console.log('Cooldowns forçados - verifique se aparecem na tela');
+};
+
+// Função para verificar elementos
+window.checkElements = function() {
+    console.log('Verificando elementos...');
+    console.log('btnArrowRain:', document.getElementById('btnArrowRain'));
+    console.log('btnIceStorm:', document.getElementById('btnIceStorm'));
+    console.log('arrowRainCooldown:', document.getElementById('arrowRainCooldown'));
+    console.log('iceStormCooldown:', document.getElementById('iceStormCooldown'));
+}; 

@@ -233,7 +233,7 @@
                     <div class="config-grid">
                         <div class="config-item">
                             <label for="magicCost">Custo:</label>
-                            <input type="number" id="magicCost" value="100" min="10" max="200">
+                            <input type="number" id="magicCost" value="85" min="10" max="200">
                         </div>
                         <div class="config-item">
                             <label for="magicRange">Alcance:</label>
@@ -241,13 +241,13 @@
                         </div>
                         <div class="config-item">
                             <label for="magicDamage">Dano:</label>
-                            <input type="number" id="magicDamage" value="20" min="5" max="50">
+                            <input type="number" id="magicDamage" value="25" min="5" max="50">
                         </div>
-                                                 <div class="config-item">
-                             <label for="magicFireRate">Taxa de Tiro (frames):</label>
-                             <input type="number" id="magicFireRate" value="48" min="15" max="180">
-                             <span class="description">Frames para atirar (60fps = 0.8 segundos)</span>
-                         </div>
+                                                                         <div class="config-item">
+                            <label for="magicFireRate">Taxa de Tiro (ms):</label>
+                            <input type="number" id="magicFireRate" value="800" min="100" max="3000">
+                            <span class="description">Milissegundos para atirar (800ms = 0.8 segundos)</span>
+                        </div>
                         <div class="config-item">
                             <label for="magicUpgradeDamage">Multiplicador de Dano por Upgrade (%):</label>
                             <input type="number" id="magicUpgradeDamage" value="30" min="5" max="100" step="1">
@@ -264,9 +264,9 @@
                             <span class="description">Reduz o tempo entre ataques da Mágica em % a cada upgrade (padrão: -10%)</span>
                         </div>
                         <div class="config-item">
-                            <label for="magicSlowEffect">Efeito de Lentidão (%):</label>
-                            <input type="number" id="magicSlowEffect" value="50" min="10" max="90" step="1">
-                            <span class="description">Reduz a velocidade do inimigo atingido pela Mágica (padrão: 50%)</span>
+                            <label for="magicSlowEffect">Redução de Velocidade (%):</label>
+                            <input type="number" id="magicSlowEffect" value="40" min="10" max="90" step="1">
+                            <span class="description">Reduz a velocidade do inimigo para X% da velocidade original (padrão: 40% = 60% de redução)</span>
                         </div>
                         <div class="config-item">
                             <label for="magicFreezeDuration">Duração do Congelamento (s):</label>
@@ -282,7 +282,7 @@
                     <div class="config-grid">
                         <div class="config-item">
                             <label for="teslaCost">Custo:</label>
-                            <input type="number" id="teslaCost" value="120" min="10" max="300">
+                            <input type="number" id="teslaCost" value="95" min="10" max="300">
                         </div>
                         <div class="config-item">
                             <label for="teslaRange">Alcance:</label>
@@ -290,11 +290,11 @@
                         </div>
                         <div class="config-item">
                             <label for="teslaDamage">Dano:</label>
-                            <input type="number" id="teslaDamage" value="18" min="5" max="50">
+                            <input type="number" id="teslaDamage" value="20" min="5" max="50">
                         </div>
                         <div class="config-item">
                             <label for="teslaFireRate">Taxa de Tiro (ms):</label>
-                            <input type="number" id="teslaFireRate" value="1200" min="15" max="3000">
+                            <input type="number" id="teslaFireRate" value="1000" min="15" max="3000">
                             <span class="description">Milissegundos para atirar</span>
                         </div>
                         <div class="config-item">
@@ -319,8 +319,40 @@
                         </div>
                         <div class="config-item">
                             <label for="teslaChainMax">Máximo de Encadeamentos:</label>
-                            <input type="number" id="teslaChainMax" value="3" min="1" max="10" step="1">
-                            <span class="description">Limite máximo de inimigos encadeados pela Tesla (padrão: 3)</span>
+                            <input type="number" id="teslaChainMax" value="5" min="1" max="10" step="1">
+                            <span class="description">Limite máximo de inimigos encadeados pela Tesla (padrão: 5)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Torre Especial -->
+                <div class="tower-config">
+                    <h3>🌟 Torre Especial</h3>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label for="specialCost">Custo:</label>
+                            <input type="number" id="specialCost" value="200" min="50" max="1000">
+                        </div>
+                        <div class="config-item">
+                            <label for="specialRange">Alcance:</label>
+                            <input type="number" id="specialRange" value="9999" min="100" max="9999">
+                        </div>
+                        <div class="config-item">
+                            <label for="specialDamage">Dano:</label>
+                            <input type="number" id="specialDamage" value="80" min="10" max="500">
+                        </div>
+                        <div class="config-item">
+                            <label for="specialFireRate">Taxa de Tiro (ms):</label>
+                            <input type="number" id="specialFireRate" value="120" min="15" max="3000">
+                            <span class="description">Milissegundos para atirar (padrão: 120ms)</span>
+                        </div>
+                        <div class="config-item">
+                            <label for="specialColor">Cor (hex):</label>
+                            <input type="text" id="specialColor" value="#8e44ad" maxlength="7" style="width:90px;">
+                        </div>
+                        <div class="config-item">
+                            <label for="specialEffect">Descrição/Efeito:</label>
+                            <input type="text" id="specialEffect" value="Atira em todos os inimigos a cada 2s" maxlength="60" style="width:220px;">
                         </div>
                     </div>
                 </div>
@@ -544,7 +576,7 @@
 
         <!-- Botões de Ação -->
         <div class="config-actions">
-            <button id="saveConfig" class="btn btn-primary">�� Salvar Configurações</button>
+            <button id="saveConfig" class="btn btn-primary">Salvar Configurações</button>
             <button id="resetConfig" class="btn btn-secondary">🔄 Restaurar Padrões</button>
             <button id="exportConfig" class="btn btn-success">📤 Exportar Config</button>
             <button id="importConfig" class="btn btn-info">📥 Importar Config</button>

@@ -20,21 +20,25 @@ export const DEFAULT_TOWER_TYPES = {
     },
     magic: {
         name: 'Mágica',
-        cost: 100,
+        cost: 85,
         range: 140,
-        damage: 20,
+        damage: 25,
         fireRate: 800,
         color: '#36b9cc',
-        icon: '🔮'
+        icon: '🔮',
+        slowEffect: 40, // 40% da velocidade original (60% de redução)
+        freezeDuration: 1 // 1 segundo de duração
     },
     tesla: {
         name: 'Tesla',
-        cost: 120,
-        range: 110,
-        damage: 18,
-        fireRate: 1200,
+        cost: 95,
+        range: 120,
+        damage: 20,
+        fireRate: 1000,
         color: '#7d5fff',
-        icon: '⚡'
+        icon: '⚡',
+        chainMax: 5,        // Máximo de alvos encadeados
+        chainRadius: 1.2    // Multiplicador do alcance para encadeamento
     },
     special: {
         name: 'Torre Especial',
