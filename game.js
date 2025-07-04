@@ -292,9 +292,9 @@ function reloadConfigs() {
     
     // Atualizar tamanho do canvas se necessário
     if (oldCanvasWidth !== GAME_CONFIG.canvasWidth || oldCanvasHeight !== GAME_CONFIG.canvasHeight) {
-        canvas.width = GAME_CONFIG.canvasWidth;
-        canvas.height = GAME_CONFIG.canvasHeight;
         console.log('Canvas redimensionado:', GAME_CONFIG.canvasWidth, 'x', GAME_CONFIG.canvasHeight);
+        // Usar adjustCanvasSize() para aplicar as novas dimensões com responsividade
+        adjustCanvasSize();
     }
     
     // Atualizar RenderSystem com novas configurações
@@ -319,6 +319,11 @@ function reloadConfigs() {
     if (typeof GAME_CONFIG.iceStormCooldown !== 'undefined') {
         window.ICE_STORM_COOLDOWN = GAME_CONFIG.iceStormCooldown;
     }
+    
+    // Aplicar configuração do teslaChainRadius
+    if (TOWER_TYPES.tesla && typeof TOWER_TYPES.tesla.chainRadius !== 'undefined') {
+        GAME_CONFIG.teslaChainRadius = TOWER_TYPES.tesla.chainRadius;
+    }
     if (typeof GAME_CONFIG.iceStormDuration !== 'undefined') {
         window.ICE_STORM_BASE_DURATION = GAME_CONFIG.iceStormDuration;
     }
@@ -332,9 +337,9 @@ function adjustCanvasSize() {
     const canvas = document.getElementById('gameCanvas');
     if (!canvas) return;
     
-    // Dimensões base do jogo
-    const baseWidth = 800;
-    const baseHeight = 600;
+    // Usar dimensões das configurações salvas (não valores fixos!)
+    const baseWidth = GAME_CONFIG.canvasWidth || 800;
+    const baseHeight = GAME_CONFIG.canvasHeight || 600;
     
     // Obter dimensões da tela
     const screenWidth = window.innerWidth;
@@ -355,7 +360,11 @@ function adjustCanvasSize() {
         scale = Math.min(availableWidth / baseWidth, availableHeight / baseHeight);
     }
     
-    // Aplicar dimensões
+    // Aplicar dimensões configuradas (não fixas!)
+    canvas.width = baseWidth;
+    canvas.height = baseHeight;
+    
+    // Aplicar escala CSS para responsividade
     if (scale < 1) {
         canvas.style.width = (baseWidth * scale) + 'px';
         canvas.style.height = (baseHeight * scale) + 'px';
@@ -364,11 +373,7 @@ function adjustCanvasSize() {
         canvas.style.height = baseHeight + 'px';
     }
     
-    // Manter dimensões internas do canvas
-    canvas.width = baseWidth;
-    canvas.height = baseHeight;
-    
-    console.log(`Canvas ajustado: ${canvas.style.width} x ${canvas.style.height} (escala: ${scale.toFixed(2)})`);
+    console.log(`Canvas ajustado: ${baseWidth}x${baseHeight} (configurado), exibindo como ${canvas.style.width} x ${canvas.style.height} (escala: ${scale.toFixed(2)})`);
 }
 
 // Ajustar canvas ao carregar e redimensionar
@@ -564,9 +569,16 @@ window.updateTowerButtonStates = function() {
 
 // Chamar após carregar as configs e sempre que recarregar
 function onReady() {
+    // Garantir que as configurações estejam carregadas antes de ajustar o canvas
+    GAME_CONFIG = loadGameConfig();
+    applySkillTreeEffects(GAME_CONFIG, loadSkillTree());
+    TOWER_TYPES = loadTowerConfig();
+    
+    // Agora ajustar o canvas com as configurações corretas
+    adjustCanvasSize();
     renderTowerOptions();
-    adjustCanvasSize(); // Ajustar canvas para responsividade
-    // ... outros inits se necessário
+    
+    console.log('🎮 Jogo inicializado com canvas:', GAME_CONFIG.canvasWidth, 'x', GAME_CONFIG.canvasHeight);
 }
 
 if (document.readyState === 'loading') {
@@ -1399,4 +1411,236 @@ window.debugRewardSystem = function() {
         console.error('gameSystem não encontrado');
         return null;
     }
+};
+
+// Função de debug para testar as configurações visuais
+window.debugVisualConfigs = function() {
+    console.log('=== Configurações Visuais - Debug ===');
+    
+    const canvas = document.getElementById('gameCanvas');
+    const visualConfigs = {
+        canvas: {
+            // Dimensões reais do canvas
+            actualWidth: canvas.width,
+            actualHeight: canvas.height,
+            // Configurações carregadas
+            configWidth: GAME_CONFIG.canvasWidth,
+            configHeight: GAME_CONFIG.canvasHeight,
+            // Dimensões CSS (para responsividade)
+            cssWidth: canvas.style.width || 'auto',
+            cssHeight: canvas.style.height || 'auto',
+            // Dimensões de exibição
+            clientWidth: canvas.clientWidth,
+            clientHeight: canvas.clientHeight,
+            // Status de sincronização
+            isWidthSynced: canvas.width === GAME_CONFIG.canvasWidth,
+            isHeightSynced: canvas.height === GAME_CONFIG.canvasHeight
+        },
+        projectiles: {
+            speed: GAME_CONFIG.projectileSpeed,
+            size: GAME_CONFIG.projectileSize,
+            activeSample: gameState.projectiles.length > 0 ? {
+                speed: gameState.projectiles[0]?.speed,
+                size: gameState.projectiles[0]?.size
+            } : null
+        },
+        damageNumbers: {
+            lifetime: GAME_CONFIG.damageNumberLifetime,
+            speed: GAME_CONFIG.damageNumberSpeed,
+            activeSample: gameState.damageNumbers.length > 0 ? {
+                maxLife: gameState.damageNumbers[0]?.maxLife,
+                velocityY: gameState.damageNumbers[0]?.velocityY
+            } : null
+        },
+        grid: {
+            size: GAME_CONFIG.gridSize,
+            horizontalCells: Math.floor(GAME_CONFIG.canvasWidth / GAME_CONFIG.gridSize),
+            verticalCells: Math.floor(GAME_CONFIG.canvasHeight / GAME_CONFIG.gridSize)
+        }
+    };
+    
+    console.log('📊 Canvas Status:', {
+        '✅ Sincronizado': visualConfigs.canvas.isWidthSynced && visualConfigs.canvas.isHeightSynced,
+        '📐 Tamanho Real': `${visualConfigs.canvas.actualWidth}x${visualConfigs.canvas.actualHeight}`,
+        '⚙️ Configurado': `${visualConfigs.canvas.configWidth}x${visualConfigs.canvas.configHeight}`,
+        '🖥️ CSS Display': `${visualConfigs.canvas.cssWidth} x ${visualConfigs.canvas.cssHeight}`,
+        '👁️ Visualização': `${visualConfigs.canvas.clientWidth}x${visualConfigs.canvas.clientHeight}`
+    });
+    
+    // Verificar se as configurações estão sendo aplicadas corretamente
+    const savedConfig = localStorage.getItem('arqueiroConfig');
+    if (savedConfig) {
+        const config = JSON.parse(savedConfig);
+        console.log('💾 Configurações Salvas:', {
+            canvasWidth: config.canvasWidth,
+            canvasHeight: config.canvasHeight,
+            projectileSpeed: config.projectileSpeed,
+            projectileSize: config.projectileSize,
+            damageNumberLifetime: config.damageNumberLifetime,
+            damageNumberSpeed: config.damageNumberSpeed
+        });
+        
+        // Verificar discrepâncias
+        const discrepancies = [];
+        if (config.canvasWidth !== GAME_CONFIG.canvasWidth) {
+            discrepancies.push(`Width: Salvo(${config.canvasWidth}) ≠ Carregado(${GAME_CONFIG.canvasWidth})`);
+        }
+        if (config.canvasHeight !== GAME_CONFIG.canvasHeight) {
+            discrepancies.push(`Height: Salvo(${config.canvasHeight}) ≠ Carregado(${GAME_CONFIG.canvasHeight})`);
+        }
+        
+        if (discrepancies.length > 0) {
+            console.warn('⚠️ Discrepâncias encontradas:', discrepancies);
+        } else {
+            console.log('✅ Todas as configurações estão sincronizadas!');
+        }
+    }
+    
+    return visualConfigs;
+};
+
+// Função para forçar redimensionamento do canvas
+window.forceCanvasResize = function() {
+    console.log('🔄 Forçando redimensionamento do canvas...');
+    adjustCanvasSize();
+    console.log('✅ Canvas redimensionado!');
+    debugVisualConfigs();
+};
+
+// Função de teste para o problema do canvas
+window.testCanvasResize = function() {
+    console.log('🧪 Testando redimensionamento do canvas...');
+    
+    const canvas = document.getElementById('gameCanvas');
+    console.log('📊 Estado inicial:', {
+        canvasWidth: canvas.width,
+        canvasHeight: canvas.height,
+        configWidth: GAME_CONFIG.canvasWidth,
+        configHeight: GAME_CONFIG.canvasHeight
+    });
+    
+    // Simular mudança de configuração
+    console.log('1️⃣ Alterando configuração para 1000x700...');
+    GAME_CONFIG.canvasWidth = 1000;
+    GAME_CONFIG.canvasHeight = 700;
+    
+    // Aplicar mudança
+    console.log('2️⃣ Aplicando mudança...');
+    adjustCanvasSize();
+    
+    // Verificar resultado
+    console.log('3️⃣ Estado final:', {
+        canvasWidth: canvas.width,
+        canvasHeight: canvas.height,
+        configWidth: GAME_CONFIG.canvasWidth,
+        configHeight: GAME_CONFIG.canvasHeight,
+        success: canvas.width === 1000 && canvas.height === 700
+    });
+    
+    // Restaurar configuração original
+    console.log('4️⃣ Restaurando configuração original...');
+    GAME_CONFIG = loadGameConfig();
+    adjustCanvasSize();
+    
+    console.log('✅ Teste concluído!');
+};
+
+// Função de debug simples para verificar se o canvas está funcionando
+window.debugCanvas = function() {
+    const canvas = document.getElementById('gameCanvas');
+    const configs = loadGameConfig();
+    
+    console.log(`
+🎮 DEBUG DO CANVAS
+==================
+
+📐 DIMENSÕES ATUAIS:
+   Canvas Real: ${canvas.width} x ${canvas.height}
+   Configuração: ${GAME_CONFIG.canvasWidth} x ${GAME_CONFIG.canvasHeight}
+   
+🖥️ EXIBIÇÃO:
+   CSS: ${canvas.style.width || 'auto'} x ${canvas.style.height || 'auto'}
+   Visualização: ${canvas.clientWidth} x ${canvas.clientHeight}
+   
+✅ STATUS:
+   Largura OK: ${canvas.width === GAME_CONFIG.canvasWidth ? '✅' : '❌'}
+   Altura OK: ${canvas.height === GAME_CONFIG.canvasHeight ? '✅' : '❌'}
+   
+💾 CONFIGURAÇÃO SALVA:
+   Largura: ${configs.canvasWidth}
+   Altura: ${configs.canvasHeight}
+   
+🔧 AÇÕES DISPONÍVEIS:
+   - debugVisualConfigs() - Debug completo
+   - forceCanvasResize() - Forçar redimensionamento
+   - testCanvasResize() - Testar mudança de tamanho
+    `);
+    
+    if (canvas.width !== GAME_CONFIG.canvasWidth || canvas.height !== GAME_CONFIG.canvasHeight) {
+        console.log('⚠️ PROBLEMA DETECTADO: Canvas não está sincronizado com as configurações!');
+        console.log('🔧 Execute: forceCanvasResize() para corrigir');
+    } else {
+        console.log('✅ Tudo funcionando corretamente!');
+    }
+};
+
+// Função de debug para testar layout das habilidades especiais
+window.debugSpecialSkills = function() {
+    const skillsBar = document.getElementById('specialSkillsFixedBar');
+    const arrowBtn = document.getElementById('btnArrowRain');
+    const iceBtn = document.getElementById('btnIceStorm');
+    
+    console.log(`
+🎯 DEBUG DAS HABILIDADES ESPECIAIS
+=================================
+
+📍 POSICIONAMENTO:
+   Container: ${skillsBar ? 'Encontrado' : 'Não encontrado'}
+   Chuva de Flecha: ${arrowBtn ? 'Visível' : 'Oculto'}
+   Tempestade de Gelo: ${iceBtn ? 'Visível' : 'Oculto'}
+   
+🎨 LAYOUT:
+   Direção: ${skillsBar ? getComputedStyle(skillsBar).flexDirection : 'N/A'}
+   Gap: ${skillsBar ? getComputedStyle(skillsBar).gap : 'N/A'}
+   Posição: ${skillsBar ? getComputedStyle(skillsBar).position : 'N/A'}
+   
+📱 RESPONSIVIDADE:
+   Largura da tela: ${window.innerWidth}px
+   Dispositivo: ${window.innerWidth <= 480 ? 'Mobile pequeno' : window.innerWidth <= 600 ? 'Mobile' : window.innerWidth <= 768 ? 'Tablet' : 'Desktop'}
+   
+🔧 CONTROLES:
+   - showSpecialSkills() - Mostrar ambas habilidades
+   - hideSpecialSkills() - Ocultar ambas habilidades
+   - toggleIceStorm() - Alternar tempestade de gelo
+    `);
+    
+    if (skillsBar) {
+        const rect = skillsBar.getBoundingClientRect();
+        console.log('📐 Dimensões do container:', {
+            left: rect.left,
+            bottom: window.innerHeight - rect.bottom,
+            width: rect.width,
+            height: rect.height
+        });
+    }
+};
+
+// Funções auxiliares para testar habilidades
+window.showSpecialSkills = function() {
+    document.getElementById('btnArrowRain').style.display = 'flex';
+    document.getElementById('btnIceStorm').style.display = 'flex';
+    console.log('✅ Ambas habilidades visíveis');
+};
+
+window.hideSpecialSkills = function() {
+    document.getElementById('btnArrowRain').style.display = 'none';
+    document.getElementById('btnIceStorm').style.display = 'none';
+    console.log('❌ Ambas habilidades ocultas');
+};
+
+window.toggleIceStorm = function() {
+    const iceBtn = document.getElementById('btnIceStorm');
+    const isVisible = iceBtn.style.display !== 'none';
+    iceBtn.style.display = isVisible ? 'none' : 'flex';
+    console.log(`❄️ Tempestade de Gelo: ${isVisible ? 'Oculta' : 'Visível'}`);
 };

@@ -204,7 +204,7 @@ export class Tower {
             this.activeProjectiles.push(projectile);
         } else if (this.type === 'tesla') {
             // Sistema de ricochete Tesla
-            let chainRadius = this.range * (this.gameConfig.teslaChainRadius || 1.2);
+            let chainRadius = this.range * (this.towerTypes.tesla?.chainRadius || this.gameConfig.teslaChainRadius || 1.2);
             let maxChain = 2 + (this.chainBonus || 0); // 2 (padrão) + chainBonus (da árvore)
             if (this.towerTypes.tesla && this.towerTypes.tesla.chainMax) {
                 maxChain = Math.min(maxChain, this.towerTypes.tesla.chainMax);

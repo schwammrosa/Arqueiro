@@ -1041,15 +1041,15 @@ a.painel-lateral-btn:active {
     margin: 16px 0 0 0;
     z-index: 10;
 }
-/* Botões das habilidades especiais - Posicionados na lateral esquerda */
+/* Botões das habilidades especiais - Posicionados lado a lado na lateral esquerda */
 #specialSkillsFixedBar {
     position: fixed;
     left: 20px;
     bottom: 120px; /* Margem maior para não conflitar com barra de torres */
     z-index: 120;
     display: flex;
-    flex-direction: column;
-    gap: 12px;
+    flex-direction: row; /* Mudança: lado a lado */
+    gap: 15px; /* Gap horizontal entre os botões */
 }
 .special-skill-btn {
     position: relative;
@@ -1087,8 +1087,8 @@ a.painel-lateral-btn:active {
 }
 
 .special-skill-btn:hover {
-    transform: translateX(5px);
-    box-shadow: 0 6px 20px rgba(255,152,0,0.20);
+    transform: translateY(-3px); /* Mudança: movimento para cima fica melhor com layout horizontal */
+    box-shadow: 0 8px 24px rgba(255,152,0,0.25);
     border-color: #f57c00;
 }
 .special-skill-btn:disabled,
@@ -1119,12 +1119,13 @@ a.painel-lateral-btn:active {
     filter: drop-shadow(0 1px 2px #fff8);
     z-index: 2;
 }
-/* Tablet - Botões menores mas ainda visíveis */
+/* Tablet - Botões menores mas ainda visíveis, mantendo layout horizontal */
 @media (max-width: 768px) and (min-width: 601px) {
     #specialSkillsFixedBar {
         left: 15px;
         bottom: 100px; /* Margem para não conflitar com barra de torres */
-        gap: 10px;
+        gap: 12px; /* Gap horizontal entre os botões */
+        flex-direction: row; /* Manter lado a lado */
     }
     .special-skill-btn {
         width: 120px;
@@ -1143,12 +1144,13 @@ a.painel-lateral-btn:active {
     }
 }
 
-/* Mobile - Botões compactos */
+/* Mobile - Botões compactos, mantendo layout horizontal */
 @media (max-width: 600px) {
     #specialSkillsFixedBar {
         left: 10px;
         bottom: 70px; /* Margem para não conflitar com barra de torres */
-        gap: 8px;
+        gap: 10px; /* Gap horizontal entre os botões */
+        flex-direction: row; /* Manter lado a lado */
     }
     .special-skill-btn {
         font-size: 1.1em;
@@ -1168,12 +1170,13 @@ a.painel-lateral-btn:active {
     }
 }
 
-/* Mobile muito pequeno - Ajuste adicional */
+/* Mobile muito pequeno - Ajuste adicional, mantendo layout horizontal */
 @media (max-width: 480px) {
     #specialSkillsFixedBar {
         left: 8px;
         bottom: 80px; /* Margem maior para não conflitar com painel lateral */
-        gap: 6px;
+        gap: 8px; /* Gap horizontal entre os botões */
+        flex-direction: row; /* Manter lado a lado */
     }
     .special-skill-btn {
         width: 60px;

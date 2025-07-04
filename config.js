@@ -379,9 +379,10 @@ function applyConfigToFields() {
         el = document.getElementById('magicSlowEffect'); if (el) el.value = towerConfig.magic.slowEffect || 50;
         el = document.getElementById('magicFreezeDuration'); if (el) el.value = towerConfig.magic.freezeDuration || 1;
     }
-    // Tesla - parâmetro especial
+    // Tesla - parâmetros especiais
     if (towerConfig.tesla) {
         el = document.getElementById('teslaChainMax'); if (el) el.value = towerConfig.tesla.chainMax || 5;
+        el = document.getElementById('teslaChainRadius'); if (el) el.value = towerConfig.tesla.chainRadius || 1.2;
     }
 
     // Torre Especial
@@ -501,14 +502,15 @@ function collectConfigFromFields() {
                 upgradeRange: parseFloat(document.getElementById('teslaUpgradeRange').value),
                 upgradeSpeed: parseFloat(document.getElementById('teslaUpgradeSpeed').value),
                 chainMax: parseInt(document.getElementById('teslaChainMax').value),
-                special: {
-                    cost: parseInt(document.getElementById('specialCost').value),
-                    range: parseInt(document.getElementById('specialRange').value),
-                    damage: parseInt(document.getElementById('specialDamage').value),
-                    fireRate: parseInt(document.getElementById('specialFireRate').value),
-                    color: document.getElementById('specialColor').value,
-                    effect: document.getElementById('specialEffect').value
-                }
+                chainRadius: parseFloat(document.getElementById('teslaChainRadius').value)
+            },
+            special: {
+                cost: parseInt(document.getElementById('specialCost').value),
+                range: parseInt(document.getElementById('specialRange').value),
+                damage: parseInt(document.getElementById('specialDamage').value),
+                fireRate: parseInt(document.getElementById('specialFireRate').value),
+                color: document.getElementById('specialColor').value,
+                effect: document.getElementById('specialEffect').value
             }
         },
         
@@ -989,22 +991,48 @@ function setupEventListeners() {
 
 // Salvar configurações
 function saveConfig() {
-    const config = collectConfigFromFields();
-    
-    // Validar caminho antes de salvar
-    if (!validatePath()) {
-        showNotification('Caminho inválido! Corrija antes de salvar.', 'error');
-        return;
-    }
-    
-    if (saveGameConfig(config)) {
-        showNotification('Configurações salvas com sucesso!', 'success');
-        currentConfig = config;
+    try {
+        const config = collectConfigFromFields();
         
-        // Notificar o jogo sobre a mudança
+        // Validar caminho antes de salvar
+        if (!validatePath()) {
+            showNotification('Caminho inválido! Corrija antes de salvar.', 'error');
+            return;
+        }
+        
+        // Salvar configurações do jogo
+        saveGameConfig(config);
+        
+        // Salvar configurações das torres
+        saveTowerConfig(config.towers);
+        
+        // Salvar configurações dos inimigos
+        const enemyConfig = {
+            enemyBaseHealth: config.enemyBaseHealth,
+            enemyHealthIncrease: config.enemyHealthIncrease,
+            enemySpeed: config.enemySpeed,
+            enemyReward: config.enemyReward,
+            enemiesPerWave: config.enemiesPerWave,
+            enemiesIncrease: config.enemiesIncrease,
+            enemyTypes: config.enemyTypes
+        };
+        saveEnemyConfig(enemyConfig);
+        
+        // Notificar sobre mudança de configuração
         notifyConfigChanged();
-    } else {
-        showNotification('Erro ao salvar configurações!', 'error');
+        
+        showNotification('Configurações salvas com sucesso!', 'success');
+        
+        // Se estamos no mesmo domínio, tentar aplicar mudanças imediatamente
+        if (window.opener && window.opener.reloadConfigs) {
+            console.log('🔄 Aplicando configurações ao jogo...');
+            window.opener.reloadConfigs();
+            window.opener.forceCanvasResize && window.opener.forceCanvasResize();
+        }
+        
+    } catch (error) {
+        console.error('Erro ao salvar configurações:', error);
+        showNotification('Erro ao salvar configurações: ' + error.message, 'error');
     }
 }
 
