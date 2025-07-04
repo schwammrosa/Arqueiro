@@ -34,7 +34,6 @@ const DEFAULT_CONFIG = {
     waveBonusMultiplier: 50,
     upgradeBonusMultiplier: 25,
     waveDelaySeconds: 5,
-    maxWaves: 20,
     goldMultiplier: 1,
     enemyHealthMultiplier: 1.1,
     enemySpeedMultiplier: 1.05,
@@ -282,7 +281,7 @@ function applyConfigToFields() {
     el = document.getElementById('waveBonusMultiplier'); if (el) el.value = currentConfig.waveBonusMultiplier || 50;
     el = document.getElementById('upgradeBonusMultiplier'); if (el) el.value = currentConfig.upgradeBonusMultiplier || 25;
     el = document.getElementById('waveDelaySeconds'); if (el) el.value = currentConfig.waveDelaySeconds || 5;
-    el = document.getElementById('maxWaves'); if (el) el.value = currentConfig.maxWaves;
+
     el = document.getElementById('goldMultiplier'); if (el) el.value = currentConfig.goldMultiplier;
     el = document.getElementById('enemyHealthMultiplier'); if (el) el.value = currentConfig.enemyHealthMultiplier;
     el = document.getElementById('enemySpeedMultiplier'); if (el) el.value = currentConfig.enemySpeedMultiplier;
@@ -409,7 +408,7 @@ function collectConfigFromFields() {
         waveBonusMultiplier: parseInt(document.getElementById('waveBonusMultiplier').value),
         upgradeBonusMultiplier: parseInt(document.getElementById('upgradeBonusMultiplier').value),
         waveDelaySeconds: parseInt(document.getElementById('waveDelaySeconds').value),
-        maxWaves: parseInt(document.getElementById('maxWaves').value),
+    
         goldMultiplier: parseFloat(document.getElementById('goldMultiplier').value),
         enemyHealthMultiplier: parseFloat(document.getElementById('enemyHealthMultiplier').value),
         enemySpeedMultiplier: parseFloat(document.getElementById('enemySpeedMultiplier').value),

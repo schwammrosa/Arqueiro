@@ -13,7 +13,6 @@ export const DEFAULT_GAME_CONFIG = {
     waveDelaySeconds: 5,
     
     // Configurações de ondas
-    maxWaves: 20,
     goldMultiplier: 1,
     enemyHealthMultiplier: 1.25,
     enemySpeedMultiplier: 1.15,

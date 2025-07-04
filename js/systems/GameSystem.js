@@ -73,16 +73,18 @@ export class GameSystem {
         this.uiSystem.updateUI();
     }
 
-    // Game over
-    gameOver(victory = false) {
+    // Game over - apenas por derrota (jogo infinito)
+    gameOver() {
         this.gameState.isGameOver = true;
-        // Corrigir número de ondas exibidas
-        const wavesSurvived = victory ? this.gameState.wave : this.gameState.wave - 1;
+        // Calcular ondas sobrevividas
+        const wavesSurvived = this.gameState.wave - 1;
         document.getElementById('final-wave').textContent = wavesSurvived;
+        
         // Adicionar tempo final e pontuação
         const minutes = Math.floor(this.gameState.gameTime / 60);
         const seconds = Math.floor(this.gameState.gameTime % 60);
         const finalTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
         // Atualizar o conteúdo do game over
         const gameOverContent = document.querySelector('.game-over-content p');
         gameOverContent.innerHTML = `
@@ -91,23 +93,22 @@ export class GameSystem {
             Pontuação: ${this.gameState.score}
         `;
         document.getElementById('gameOver').style.display = 'flex';
-
-        if (victory) {
-            // Recompensa por vitória
-            const UPGRADE_POINTS_KEY = 'arqueiroUpgradePoints';
-            let points = 2; // Pode ajustar o valor
-            let current = parseInt(localStorage.getItem(UPGRADE_POINTS_KEY) || '0');
-            localStorage.setItem(UPGRADE_POINTS_KEY, current + points);
-            // Exibir mensagem de recompensa
-            setTimeout(() => {
-                if (document.getElementById('gameOver')) {
-                    const msg = document.createElement('div');
-                    msg.style = 'margin-top:18px;font-size:1.2em;color:#ff9800;font-weight:bold;';
-                    msg.innerHTML = `Parabéns! Você ganhou <b>+${points} ponto${points>1?'s':''} de upgrade</b>!`;
-                    document.querySelector('.game-over-content').appendChild(msg);
-                }
-            }, 300);
-        }
+        
+        // Recompensa por sobrevivência (sempre dar pontos)
+        const UPGRADE_POINTS_KEY = 'arqueiroUpgradePoints';
+        let points = Math.max(1, Math.floor(wavesSurvived / 10)); // 1 ponto a cada 10 ondas
+        let current = parseInt(localStorage.getItem(UPGRADE_POINTS_KEY) || '0');
+        localStorage.setItem(UPGRADE_POINTS_KEY, current + points);
+        
+        // Exibir mensagem de recompensa
+        setTimeout(() => {
+            if (document.getElementById('gameOver')) {
+                const msg = document.createElement('div');
+                msg.style = 'margin-top:18px;font-size:1.2em;color:#ff9800;font-weight:bold;';
+                msg.innerHTML = `Você ganhou <b>+${points} ponto${points>1?'s':''} de upgrade</b> pela sobrevivência!`;
+                document.querySelector('.game-over-content').appendChild(msg);
+            }
+        }, 300);
     }
 
     // Restart do jogo
@@ -223,12 +224,7 @@ export class GameSystem {
 
         // Verificar fim da onda - SÓ quando todos os inimigos foram spawnados E derrotados
         if (this.gameState.waveInProgress && this.gameState.allEnemiesSpawned && this.gameState.enemies.length === 0) {
-            // Verificar vitória
-            if (this.gameState.wave >= this.GAME_CONFIG.maxWaves) {
-                this.uiSystem.showNotification('Vitória! Você completou todas as ondas!', 'success');
-                this.gameOver(true); // true = vitória
-                return;
-            }
+            // JOGO INFINITO - Removida verificação de vitória por limite de ondas
             const savedConfig = localStorage.getItem('arqueiroConfig');
             const waveBonusMultiplier = savedConfig ? JSON.parse(savedConfig).waveBonusMultiplier || 50 : 50;
             const waveBonus = (this.gameState.wave + 1) * waveBonusMultiplier;
@@ -242,7 +238,7 @@ export class GameSystem {
         }
 
         if (this.gameState.health <= 0 && !this.gameState.isGameOver) {
-            this.gameOver(false); // false = derrota
+            this.gameOver();
         }
 
         this.cleanupOrphanedReferences();
