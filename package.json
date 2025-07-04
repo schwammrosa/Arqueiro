@@ -1,0 +1,26 @@
+{
+  "name": "arqueiro-tower-defense",
+  "version": "1.0.0",
+  "description": "Jogo Tower Defense com múltiplas torres, árvore de habilidades e sistema de progressão",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python -m http.server 8000",
+    "start": "python -m http.server 8000"
+  },
+  "keywords": [
+    "tower-defense",
+    "game",
+    "javascript",
+    "html5",
+    "canvas"
+  ],
+  "author": "Arqueiro Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seu-usuario/arqueiro-tower-defense.git"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+} 

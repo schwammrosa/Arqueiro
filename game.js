@@ -237,7 +237,6 @@ function applySkillTreeEffects(gameConfig, skillTree) {
     gameConfig.iceStorm = (skillTree['gelo'] || 0) > 0;
     gameConfig.goldPerWaveBonus = 1 + (skillTree['ouro'] || 0) * 0.10;
     gameConfig.specialTowerUnlocked = (skillTree['torre'] || 0) > 0;
-    console.log('[DEBUG] applySkillTreeEffects: skillTree["torre"] =', skillTree['torre'], '=> specialTowerUnlocked =', gameConfig.specialTowerUnlocked, 'gameConfig:', gameConfig);
     window.GAME_CONFIG = gameConfig;
 }
 
@@ -431,7 +430,6 @@ function updateUI() {
 // Gerar dinamicamente as opções de torres no painel lateral
 function renderTowerOptions() {
     const GAME_CONFIG = window.GAME_CONFIG;
-    console.log('[DEBUG] renderTowerOptions executando. GAME_CONFIG:', GAME_CONFIG);
     const towerOptionsDiv = document.getElementById('footerTowerBar');
     if (!towerOptionsDiv) {
         return;
@@ -444,7 +442,6 @@ function renderTowerOptions() {
         btn.dataset.cost = tower.cost;
         let locked = false;
         if (key === 'special' && !GAME_CONFIG.specialTowerUnlocked) {
-            console.log('[DEBUG] BLOQUEIO Torre Especial:', GAME_CONFIG.specialTowerUnlocked, GAME_CONFIG);
             locked = true;
             btn.classList.add('locked');
             btn.disabled = true;
@@ -948,6 +945,8 @@ window.testCooldowns = function() {
     console.log('Cooldowns forçados - verifique se aparecem na tela');
 };
 
+
+
 // Função para verificar elementos
 window.checkElements = function() {
     console.log('Verificando elementos...');
@@ -955,4 +954,132 @@ window.checkElements = function() {
     console.log('btnIceStorm:', document.getElementById('btnIceStorm'));
     console.log('arrowRainCooldown:', document.getElementById('arrowRainCooldown'));
     console.log('iceStormCooldown:', document.getElementById('iceStormCooldown'));
+};
+
+// Função utilitária para calcular ouro acumulado até uma onda
+function calcularOuroAteOnda(onda, enemiesPerWave, enemyReward) {
+    let total = 0;
+    for (let i = 1; i < onda; i++) {
+        const enemiesThisWave = enemiesPerWave + (i - 1) * (GAME_CONFIG.enemiesIncrease || 2);
+        const goldThisWave = enemiesThisWave * (GAME_CONFIG.enemyReward || 10);
+        total += goldThisWave;
+    }
+    return total;
+}
+
+// Salvar maior onda atingida ao perder
+function salvarMaiorOnda(onda) {
+    const key = 'maiorOndaAtingida';
+    const atual = parseInt(localStorage.getItem(key) || '1');
+    if (onda > atual) localStorage.setItem(key, onda);
+}
+
+// Adicionar botão Continuar no menu inicial
+function adicionarBotaoContinuarMenu() {
+    const key = 'maiorOndaAtingida';
+    const maiorOnda = parseInt(localStorage.getItem(key) || '1');
+    let btn = document.getElementById('btnContinue');
+    if (!btn) {
+        btn = document.createElement('button');
+        btn.id = 'btnContinue';
+        btn.className = 'main-menu-btn';
+        btn.textContent = 'Continuar';
+        btn.style.background = 'linear-gradient(135deg, #28a745, #1e7e34)';
+        btn.style.color = 'white';
+        btn.style.fontWeight = 'bold';
+        btn.style.marginBottom = '10px';
+        btn.onclick = iniciarModoContinuar;
+        const menu = document.querySelector('.main-menu-content');
+        menu.insertBefore(btn, menu.firstChild.nextSibling); // Após o botão Jogar
+    }
+    btn.style.display = maiorOnda > 1 ? 'block' : 'none';
+}
+
+document.addEventListener('DOMContentLoaded', adicionarBotaoContinuarMenu);
+
+// Adicionar botão Continuar na tela de game over
+function adicionarBotaoContinuarGameOver() {
+    const key = 'maiorOndaAtingida';
+    const maiorOnda = parseInt(localStorage.getItem(key) || '1');
+    let btn = document.getElementById('btnContinueGameOver');
+    if (!btn) {
+        btn = document.createElement('button');
+        btn.id = 'btnContinueGameOver';
+        btn.className = 'btn btn-success';
+        btn.textContent = 'Continuar do Nível ' + maiorOnda;
+        btn.style.marginTop = '18px';
+        btn.onclick = () => {
+            document.getElementById('gameOver').style.display = 'none';
+            iniciarModoContinuar();
+        };
+        document.querySelector('.game-over-content').appendChild(btn);
+    }
+    btn.style.display = maiorOnda > 1 ? 'block' : 'none';
+    btn.textContent = 'Continuar do Nível ' + maiorOnda;
+}
+
+// Função para iniciar o modo continuar
+function iniciarModoContinuar() {
+    const key = 'maiorOndaAtingida';
+    const maiorOnda = parseInt(localStorage.getItem(key) || '1');
+    
+    if (maiorOnda <= 1) return;
+    
+    // Calcular ouro acumulado
+    const enemiesPerWave = GAME_CONFIG.enemiesPerWave || 5;
+    const enemyReward = GAME_CONFIG.enemyReward || 10;
+    const enemiesIncrease = GAME_CONFIG.enemiesIncrease || 2;
+    const ouro = calcularOuroAteOnda(maiorOnda, enemiesPerWave, enemyReward);
+    
+    // Função customizada para o modo continuar
+    function getInitialGameStateContinuar() {
+        let config = loadGameConfig();
+        applySkillTreeEffects(config, loadSkillTree());
+        
+        return {
+            health: config.initialHealth,
+            gold: ouro,
+            wave: maiorOnda - 1, // O jogo já incrementa ao iniciar a próxima onda
+            isPaused: false,
+            isGameOver: false,
+            selectedTower: null,
+            towers: [],
+            enemies: [],
+            projectiles: [],
+            waveInProgress: false,
+            allEnemiesSpawned: false,
+            waveTimer: 0,
+            nextWaveTimer: 0,
+            gameTime: 0,
+            score: 0,
+            damageNumbers: [],
+            monstersThisWave: 0,
+            monstersDefeated: 0
+        };
+    }
+    
+    gameSystem.restart(getInitialGameStateContinuar, () => {
+        // Usar uma versão customizada que não reseta o wave
+        const savedConfig = localStorage.getItem('arqueiroConfig');
+        const waveDelaySeconds = savedConfig ? JSON.parse(savedConfig).waveDelaySeconds || 5 : 5;
+        gameSystem.gameState.nextWaveTimer = waveDelaySeconds;
+        gameSystem.gameState.waveInProgress = false;
+        gameSystem.gameState.allEnemiesSpawned = false;
+    });
+    
+    // Esconder menu se estiver visível
+    const menu = document.getElementById('mainMenu');
+    if (menu) menu.style.display = 'none';
+}
+
+// Integrar ao fluxo de game over
+// (Chame adicionarBotaoContinuarGameOver() ao exibir a tela de derrota)
+const originalGameOver = gameSystem.gameOver.bind(gameSystem);
+gameSystem.gameOver = function(victory = false) {
+    originalGameOver(victory);
+    if (!victory) {
+        salvarMaiorOnda(this.gameState.wave);
+        adicionarBotaoContinuarGameOver();
+    }
+    adicionarBotaoContinuarMenu();
 }; 

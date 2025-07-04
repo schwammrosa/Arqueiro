@@ -20,7 +20,13 @@ export class GameSystem {
         const savedConfig = localStorage.getItem('arqueiroConfig');
         const waveDelaySeconds = savedConfig ? JSON.parse(savedConfig).waveDelaySeconds || 5 : 5;
         this.gameState.nextWaveTimer = waveDelaySeconds;
-        this.gameState.wave = 0;
+        
+        // NÃO resetar wave para 0 se estiver no modo continuar
+        // Só resetar se for uma nova partida (wave = 0)
+        if (this.gameState.wave === 0) {
+            this.gameState.wave = 0;
+        }
+        
         this.gameState.waveInProgress = false;
         this.gameState.allEnemiesSpawned = false;
     }
@@ -107,13 +113,23 @@ export class GameSystem {
     // Restart do jogo
     restart(getInitialGameState, initializeFirstWave) {
         this.gameState = getInitialGameState();
-        if (typeof gameState !== 'undefined') gameState = this.gameState;
-        if (this.uiSystem && typeof this.uiSystem.setGameState === 'function') this.uiSystem.setGameState(this.gameState);
+        
+        if (typeof gameState !== 'undefined') {
+            gameState = this.gameState;
+        }
+        
+        if (this.uiSystem && typeof this.uiSystem.setGameState === 'function') {
+            this.uiSystem.setGameState(this.gameState);
+        }
+        
         document.getElementById('gameOver').style.display = 'none';
         this.uiSystem.updateUI();
+        
         initializeFirstWave();
+        
         this.lastTime = performance.now();
         this.startGameLoop();
+        
         // Resetar variáveis globais e tooltips
         if (window.setArrowRainSelecting) window.setArrowRainSelecting(false);
         if (window.setArrowRainPreview) window.setArrowRainPreview(null);
