@@ -198,6 +198,8 @@ body {
     top: 0;
     left: 0;
     background: #e9ecef;
+    max-width: 100%;
+    height: auto;
 }
 
 .game-over {
@@ -371,9 +373,178 @@ body {
     }
     .game-container {
         padding: 0;
+        overflow-x: auto;
     }
     #gameCanvas {
         margin: 0 auto;
+        max-width: 100%;
+        height: auto;
+    }
+}
+
+/* Responsividade para tablets */
+@media (max-width: 768px) {
+    .top-panel {
+        position: relative;
+        padding: 8px 2vw;
+    }
+    
+    .stats {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 8px 6px;
+        font-size: 0.9em;
+    }
+    
+    .stat {
+        min-width: 120px;
+        text-align: center;
+    }
+    
+    .ui-panel {
+        padding: 8px 0;
+    }
+    
+    .controls {
+        gap: 6px;
+    }
+    
+    .painel-lateral-btn {
+        font-size: 0.9em;
+        padding: 8px 12px;
+        min-height: 40px;
+    }
+    
+    .game-container {
+        min-height: 100vh;
+        padding-bottom: 120px; /* Espaço para barra de torres */
+    }
+    
+    #gameCanvas {
+        width: 100%;
+        max-width: 100vw;
+        height: auto;
+    }
+    
+    /* Melhorias para painéis em tablets */
+    .tower-info-content {
+        padding: 20px;
+        max-width: 90vw;
+        width: 90%;
+    }
+    
+    .tower-info-content h3 {
+        font-size: 1.2em;
+        margin-bottom: 15px;
+    }
+    
+    .tower-actions {
+        gap: 8px;
+    }
+    
+    .btn {
+        padding: 10px 16px;
+        font-size: 1em;
+    }
+}
+
+/* Responsividade para celular */
+@media (max-width: 480px) {
+    .top-panel {
+        padding: 6px 1vw;
+    }
+    
+    .stats {
+        gap: 4px;
+        padding: 6px 4px;
+        font-size: 0.8em;
+    }
+    
+    .stat {
+        min-width: 100px;
+        flex: 1;
+    }
+    
+    .label {
+        font-size: 0.85em;
+    }
+    
+    .value {
+        font-size: 0.9em;
+        font-weight: bold;
+    }
+    
+    .ui-panel {
+        padding: 6px 0;
+    }
+    
+    .controls {
+        gap: 4px;
+    }
+    
+    .painel-lateral-btn {
+        font-size: 0.8em;
+        padding: 6px 8px;
+        min-height: 36px;
+    }
+    
+    .game-container {
+        padding-bottom: 140px; /* Mais espaço para barra de torres */
+    }
+    
+    #gameCanvas {
+        width: 100%;
+        max-width: 100vw;
+    }
+    
+    /* Melhorias para painéis em celular */
+    .tower-info-content {
+        padding: 16px;
+        max-width: 95vw;
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .tower-info-content h3 {
+        font-size: 1.1em;
+        margin-bottom: 12px;
+    }
+    
+    .tower-stats {
+        margin-bottom: 20px;
+    }
+    
+    .tower-stats .stat {
+        padding: 6px 0;
+        font-size: 0.9em;
+    }
+    
+    .tower-actions {
+        gap: 6px;
+    }
+    
+    .btn {
+        padding: 8px 12px;
+        font-size: 0.9em;
+        min-height: 40px;
+    }
+    
+    /* Melhorias para modais em celular */
+    .upgrade-modal-content {
+        padding: 16px;
+        max-width: 95vw;
+        margin: 20px;
+    }
+    
+    .upgrade-item {
+        padding: 12px;
+        font-size: 0.9em;
+    }
+    
+    .upgrade-btn {
+        padding: 6px 10px;
+        font-size: 0.8em;
     }
 }
 

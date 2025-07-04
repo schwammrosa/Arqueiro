@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arqueiro - Tower Defense Infinito</title>
+    <title>Tower Defense</title>
     <link rel="icon" type="image/x-icon" href="assets/imagen/favicon.ico">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="skill-tree.css">
@@ -132,11 +132,12 @@
 
     <div id="mainMenu" class="main-menu-overlay">
         <div class="main-menu-content">
-            <h1 class="main-menu-title">Arqueiro - Tower Defense Infinito</h1>
+            <h1 class="main-menu-title">Tower Defense</h1>
             <p style="color: #4fdfff; text-align: center; margin-bottom: 20px; font-size: 1.1em;">
-                🎮 Modo Infinito - Sobreviva o máximo de ondas possível!
+                Modo Infinito - Sobreviva o máximo de ondas possível!
             </p>
             <button id="btnPlay" class="main-menu-btn">Jogar</button>
+            <button id="btnContinue" class="main-menu-btn btn-continue" style="display: none;">Continuar</button>
             <button id="btnMenuConfig" class="main-menu-btn">Configurações</button>
             <button id="btnMenuCredits" class="main-menu-btn">Créditos</button>
         </div>
@@ -164,11 +165,12 @@
         background: #222b3a;
         border-radius: 18px;
         box-shadow: 0 8px 40px #000a;
-        padding: 48px 36px 36px 36px;
+        padding: 48px 40px 40px 40px;
         display: flex;
         flex-direction: column;
         align-items: center;
         min-width: 320px;
+        max-width: 400px;
     }
     .main-menu-title {
         color: #4fdfff;
@@ -183,18 +185,45 @@
         color: white;
         border: none;
         border-radius: 8px;
-        padding: 16px 40px;
-        margin: 10px 0;
+        padding: 16px 20px;
+        margin: 12px 0;
         font-size: 1.2em;
         font-weight: 600;
         cursor: pointer;
         box-shadow: 0 2px 12px #0004;
-        transition: background 0.2s, transform 0.2s;
+        transition: all 0.3s ease;
+        width: 200px;
+        min-height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
     }
     .main-menu-btn:hover {
         background: linear-gradient(135deg, #4fdfff, #007bff);
         transform: translateY(-2px) scale(1.04);
     }
+    .btn-continue {
+        background: linear-gradient(135deg, #28a745, #1e7e34) !important;
+        color: white !important;
+        font-weight: bold !important;
+        position: relative;
+        overflow: hidden;
+        flex-direction: column;
+        line-height: 1.3;
+        padding: 12px 20px;
+    }
+    .btn-continue:hover {
+        background: linear-gradient(135deg, #34ce57, #28a745) !important;
+        transform: translateY(-2px) scale(1.04);
+    }
+    .btn-continue .onda-info {
+        font-size: 0.85em;
+        font-weight: normal;
+        opacity: 0.9;
+        margin-top: 2px;
+    }
+
     .main-menu-modal {
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
@@ -222,6 +251,68 @@
         font-size: 2em;
         color: #4fdfff;
         cursor: pointer;
+    }
+    
+    /* Responsividade para celular */
+    @media (max-width: 768px) {
+        .main-menu-content {
+            padding: 32px 24px 24px 24px;
+            min-width: 280px;
+            max-width: 90vw;
+            margin: 0 16px;
+        }
+        
+        .main-menu-title {
+            font-size: 1.8em;
+            margin-bottom: 24px;
+        }
+        
+        .main-menu-btn {
+            width: 180px;
+            min-height: 50px;
+            font-size: 1.1em;
+            padding: 14px 16px;
+            margin: 8px 0;
+        }
+        
+        .btn-continue {
+            padding: 10px 16px;
+            line-height: 1.2;
+        }
+        
+        .btn-continue .onda-info {
+            font-size: 0.8em;
+            margin-top: 1px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .main-menu-content {
+            padding: 24px 16px 16px 16px;
+            min-width: 260px;
+            margin: 0 8px;
+        }
+        
+        .main-menu-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        
+        .main-menu-btn {
+            width: 160px;
+            min-height: 46px;
+            font-size: 1em;
+            padding: 12px 14px;
+            margin: 6px 0;
+        }
+        
+        .btn-continue {
+            padding: 8px 14px;
+        }
+        
+        .btn-continue .onda-info {
+            font-size: 0.75em;
+        }
     }
     </style>
 
@@ -276,10 +367,53 @@
         console.log(`🎯 Teste: ${hitCount} inimigos seriam atingidos`);
     };
 
+    // Função para testar o botão "Continuar"
+    window.testContinuarButton = function(onda = 5) {
+        // Simular progresso
+        localStorage.setItem('maiorOndaAtingida', onda.toString());
+        console.log(`Progresso simulado: Onda ${onda} salva`);
+        
+        // Atualizar botão
+        if (typeof window.adicionarBotaoContinuarMenu !== 'undefined') {
+            window.adicionarBotaoContinuarMenu();
+            console.log('Botão "Continuar" atualizado');
+        }
+        
+        // Mostrar status
+        const btn = document.getElementById('btnContinue');
+        if (btn) {
+            console.log('Botão encontrado. Visível:', btn.style.display);
+            console.log('Conteúdo HTML:', btn.innerHTML);
+        }
+    };
+
+    // Função para testar responsividade
+    window.testResponsividade = function() {
+        const info = {
+            tela: `${window.innerWidth}x${window.innerHeight}`,
+            dispositivo: window.innerWidth <= 480 ? 'Celular' : window.innerWidth <= 768 ? 'Tablet' : 'Desktop',
+            canvas: document.getElementById('gameCanvas'),
+            orientacao: window.innerHeight > window.innerWidth ? 'Retrato' : 'Paisagem'
+        };
+        
+        console.log('📱 Teste de Responsividade:', info);
+        
+        if (info.canvas) {
+            console.log('Canvas:', {
+                dimensaoInterna: `${info.canvas.width}x${info.canvas.height}`,
+                dimensaoCSS: `${info.canvas.style.width} x ${info.canvas.style.height}`,
+                visivel: info.canvas.offsetWidth > 0
+            });
+        }
+        
+        return info;
+    };
+
     // Menu inicial
     document.addEventListener('DOMContentLoaded', function() {
         const menu = document.getElementById('mainMenu');
         const btnPlay = document.getElementById('btnPlay');
+        const btnContinue = document.getElementById('btnContinue');
         const btnConfig = document.getElementById('btnMenuConfig');
         const btnCredits = document.getElementById('btnMenuCredits');
         const creditsModal = document.getElementById('creditsModal');
@@ -303,6 +437,23 @@
                 gameSystem.startGameLoop();
             }
         };
+        
+        // Ao clicar em Continuar, esconde o menu e inicia o modo continuar
+        btnContinue.onclick = function() {
+            menu.style.display = 'none';
+            if (typeof window.iniciarModoContinuar !== 'undefined') {
+                window.iniciarModoContinuar();
+            } else {
+                console.log('Função iniciarModoContinuar não encontrada');
+            }
+        };
+        
+        // Verificar se deve mostrar o botão "Continuar" (com delay para garantir que game.js foi carregado)
+        setTimeout(function() {
+            if (typeof window.adicionarBotaoContinuarMenu !== 'undefined') {
+                window.adicionarBotaoContinuarMenu();
+            }
+        }, 100);
         // Configurações: vai para config.html
         btnConfig.onclick = function() {
             window.location.href = 'config.html';

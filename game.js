@@ -323,6 +323,56 @@ function reloadConfigs() {
     }
 }
 
+// Função para ajustar o tamanho do canvas responsivamente
+function adjustCanvasSize() {
+    const canvas = document.getElementById('gameCanvas');
+    if (!canvas) return;
+    
+    // Dimensões base do jogo
+    const baseWidth = 800;
+    const baseHeight = 600;
+    
+    // Obter dimensões da tela
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    
+    // Calcular fator de escala para dispositivos móveis
+    let scale = 1;
+    
+    if (screenWidth <= 480) {
+        // Celular - ajustar para caber na tela com margem
+        const availableWidth = screenWidth * 0.95;
+        const availableHeight = (screenHeight - 200) * 0.8; // Espaço para UI
+        scale = Math.min(availableWidth / baseWidth, availableHeight / baseHeight);
+    } else if (screenWidth <= 768) {
+        // Tablet - escala moderada
+        const availableWidth = screenWidth * 0.9;
+        const availableHeight = (screenHeight - 150) * 0.85;
+        scale = Math.min(availableWidth / baseWidth, availableHeight / baseHeight);
+    }
+    
+    // Aplicar dimensões
+    if (scale < 1) {
+        canvas.style.width = (baseWidth * scale) + 'px';
+        canvas.style.height = (baseHeight * scale) + 'px';
+    } else {
+        canvas.style.width = baseWidth + 'px';
+        canvas.style.height = baseHeight + 'px';
+    }
+    
+    // Manter dimensões internas do canvas
+    canvas.width = baseWidth;
+    canvas.height = baseHeight;
+    
+    console.log(`Canvas ajustado: ${canvas.style.width} x ${canvas.style.height} (escala: ${scale.toFixed(2)})`);
+}
+
+// Ajustar canvas ao carregar e redimensionar
+window.addEventListener('resize', adjustCanvasSize);
+window.addEventListener('orientationchange', () => {
+    setTimeout(adjustCanvasSize, 100);
+});
+
 // Escutar mudanças de configuração
 onConfigChanged((newConfig) => {
     console.log('Configuração alterada, recarregando...');
@@ -468,6 +518,7 @@ function renderTowerOptions() {
 // Chamar após carregar as configs e sempre que recarregar
 function onReady() {
     renderTowerOptions();
+    adjustCanvasSize(); // Ajustar canvas para responsividade
     // ... outros inits se necessário
 }
 
@@ -982,25 +1033,21 @@ function salvarMaiorOnda(onda) {
     if (onda > atual) localStorage.setItem(key, onda);
 }
 
-// Adicionar botão Continuar no menu inicial
+// Controlar visibilidade do botão Continuar no menu inicial
 function adicionarBotaoContinuarMenu() {
     const key = 'maiorOndaAtingida';
     const maiorOnda = parseInt(localStorage.getItem(key) || '1');
-    let btn = document.getElementById('btnContinue');
-    if (!btn) {
-        btn = document.createElement('button');
-        btn.id = 'btnContinue';
-        btn.className = 'main-menu-btn';
-        btn.textContent = 'Continuar';
-        btn.style.background = 'linear-gradient(135deg, #28a745, #1e7e34)';
-        btn.style.color = 'white';
-        btn.style.fontWeight = 'bold';
-        btn.style.marginBottom = '10px';
-        btn.onclick = iniciarModoContinuar;
-        const menu = document.querySelector('.main-menu-content');
-        menu.insertBefore(btn, menu.firstChild.nextSibling); // Após o botão Jogar
+    const btn = document.getElementById('btnContinue');
+    
+    if (btn) {
+        // Atualizar texto do botão com a onda
+        if (maiorOnda > 1) {
+            btn.innerHTML = `Continuar<br><span class="onda-info">(Onda ${maiorOnda})</span>`;
+            btn.style.display = 'flex';
+        } else {
+            btn.style.display = 'none';
+        }
     }
-    btn.style.display = maiorOnda > 1 ? 'block' : 'none';
 }
 
 document.addEventListener('DOMContentLoaded', adicionarBotaoContinuarMenu);
@@ -1111,6 +1158,10 @@ function iniciarModoContinuar() {
     // Notificar o jogador
     uiSystem.showNotification(`Continuando do nível ${maiorOnda} com ${ouro} ouro!`, 'info');
 }
+
+// Expor função para o escopo global
+window.iniciarModoContinuar = iniciarModoContinuar;
+window.adicionarBotaoContinuarMenu = adicionarBotaoContinuarMenu;
 
 // Integrar ao fluxo de game over
 // (Chame adicionarBotaoContinuarGameOver() ao exibir a tela de derrota)
