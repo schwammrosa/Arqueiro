@@ -49,10 +49,26 @@
         </div>
         <div class="ui-panel">
             <div class="controls">
-                <button id="start-wave" class="painel-lateral-btn onda">PRÓXIMA ONDA</button>
-                <button id="pause" class="painel-lateral-btn pausar">Pausar</button>
-                <a href="config.html" class="painel-lateral-btn config" style="text-decoration:underline;">⚙️ Configurações</a>
-                <button id="btnUpgrades" class="painel-lateral-btn upgrades">Upgrades</button>
+                <button id="start-wave" class="painel-lateral-btn onda" title="Iniciar próxima onda">
+                    <span class="btn-icon">▶️</span>
+                    <span class="btn-text">PRÓXIMA ONDA</span>
+                </button>
+                <button id="pause" class="painel-lateral-btn pausar" title="Pausar/Continuar jogo">
+                    <span class="btn-icon">⏸️</span>
+                    <span class="btn-text">Pausar</span>
+                </button>
+                <button id="speedButton" class="painel-lateral-btn velocidade" title="Alterar velocidade do jogo (1x)">
+                    <span class="btn-icon">⚡</span>
+                    <span class="btn-text">1x</span>
+                </button>
+                <a href="config.html" class="painel-lateral-btn config" title="Configurações do jogo">
+                    <span class="btn-icon">⚙️</span>
+                    <span class="btn-text">Configurações</span>
+                </a>
+                <button id="btnUpgrades" class="painel-lateral-btn upgrades" title="Árvore de habilidades">
+                    <span class="btn-icon">⭐</span>
+                    <span class="btn-text">Upgrades</span>
+                </button>
             </div>
         </div>
         
@@ -117,15 +133,7 @@
 
     <div id="infoTooltip" class="info-tooltip" style="display:none;"></div>
     
-    <!-- Controles de Velocidade e Debug -->
-    <div style="position: fixed; top: 10px; right: 10px; z-index: 1000; display: flex; gap: 5px;">
-        <button id="speedButton" style="background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-weight: bold;">
-            1x
-        </button>
-        <button id="debugButton" style="background: #333; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
-            Debug: OFF
-        </button>
-    </div>
+
 
     <!-- Painel/modal de upgrades -->
     <div id="upgradeModal" class="upgrade-modal" style="display:none;">

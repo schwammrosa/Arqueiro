@@ -536,7 +536,19 @@ export class GameSystem {
             this.wasAutoPaused = false;
         }
         
-        document.getElementById('pause').textContent = this.gameState.isPaused ? 'Continuar' : 'Pausar';
+        const pauseBtn = document.getElementById('pause');
+        const pauseIcon = pauseBtn.querySelector('.btn-icon');
+        const pauseText = pauseBtn.querySelector('.btn-text');
+        
+        if (this.gameState.isPaused) {
+            if (pauseIcon) pauseIcon.textContent = '▶️';
+            if (pauseText) pauseText.textContent = 'Continuar';
+            pauseBtn.title = 'Continuar jogo';
+        } else {
+            if (pauseIcon) pauseIcon.textContent = '⏸️';
+            if (pauseText) pauseText.textContent = 'Pausar';
+            pauseBtn.title = 'Pausar jogo';
+        }
         this.uiSystem.updateUI();
     }
     
@@ -641,8 +653,14 @@ export class GameSystem {
     updateSpeedUI() {
         const speedBtn = document.getElementById('speedButton');
         if (speedBtn) {
-            speedBtn.textContent = `${this.gameSpeed}x`;
-            speedBtn.title = `Velocidade: ${this.gameSpeed}x (clique para alterar)`;
+            // Atualizar texto do botão (considerando estrutura com span)
+            const speedText = speedBtn.querySelector('.btn-text');
+            if (speedText) {
+                speedText.textContent = `${this.gameSpeed}x`;
+            } else {
+                speedBtn.textContent = `${this.gameSpeed}x`;
+            }
+            speedBtn.title = `Alterar velocidade do jogo (${this.gameSpeed}x)`;
         }
         
         // Atualizar display na UI

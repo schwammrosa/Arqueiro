@@ -499,6 +499,8 @@ function renderTowerOptions() {
         btn.className = 'tower-btn';
         btn.dataset.tower = key;
         btn.dataset.cost = tower.cost;
+        btn.dataset.towerName = tower.name;
+        btn.title = `${tower.name} - ${tower.cost} ouro`;
         let locked = false;
         if (key === 'special' && !GAME_CONFIG.specialTowerUnlocked) {
             locked = true;
@@ -520,9 +522,45 @@ function renderTowerOptions() {
             document.querySelectorAll('.footer-tower-bar .tower-btn').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
         });
+        
+        // Verificar se o jogador tem ouro suficiente
+        if (gameState.gold < tower.cost && !locked) {
+            btn.classList.add('disabled');
+        }
+        
         towerOptionsDiv.appendChild(btn);
     });
+    
+    // Atualizar estado dos botões quando o ouro mudar
+    updateTowerButtonStates();
 }
+
+// Função para atualizar estados dos botões de torre baseado no ouro
+window.updateTowerButtonStates = function() {
+    if (!gameState) return;
+    
+    const towerButtons = document.querySelectorAll('.footer-tower-bar .tower-btn');
+    towerButtons.forEach(btn => {
+        const cost = parseInt(btn.dataset.cost) || 0;
+        const towerKey = btn.dataset.tower;
+        const tower = TOWER_TYPES[towerKey];
+        
+        if (!tower) return;
+        
+        // Remover estados anteriores
+        btn.classList.remove('disabled');
+        
+        // Verificar se está bloqueado (torre especial)
+        const isLocked = towerKey === 'special' && !GAME_CONFIG.specialTowerUnlocked;
+        
+        if (!isLocked && gameState.gold < cost) {
+            btn.classList.add('disabled');
+            btn.title = `${tower.name} - ${cost} ouro (Ouro insuficiente: ${gameState.gold}/${cost})`;
+                 } else if (!isLocked) {
+             btn.title = `${tower.name} - ${cost} ouro`;
+         }
+     });
+};
 
 // Chamar após carregar as configs e sempre que recarregar
 function onReady() {
@@ -1168,15 +1206,19 @@ window.debugSpeedSystem = function() {
             testSkill: function(skillName) {
                 console.log(`Testando habilidade: ${skillName}`);
                 const success = gs.useSpecialSkill(skillName);
-                console.log(`Resultado: ${success ? 'Sucesso' : 'Falhou (cooldown ou não desbloqueado)'}`);
+                console.log(`Resultado: ${success ? 'Sucesso' : 'Falhou'}`);
                 return success;
             },
-            testSpeedCooldown: function() {
-                console.log('🔍 Teste de cooldown com velocidade:');
-                console.log('1. Use uma habilidade especial');
-                console.log('2. Altere a velocidade para 8x');
-                console.log('3. Observe o cooldown diminuir mais rápido');
-                console.log('4. Volte para 1x e compare');
+            toggleGameSpeed: function() {
+                gs.toggleGameSpeed();
+                console.log(`Nova velocidade: ${gs.gameSpeed}x`);
+            },
+            resetSkillCooldowns: function() {
+                Object.keys(gs.specialSkills).forEach(skillName => {
+                    gs.specialSkills[skillName].ready = true;
+                    gs.specialSkills[skillName].lastUsed = 0;
+                });
+                console.log('Cooldowns resetados');
             }
         };
     } else {
@@ -1185,186 +1227,176 @@ window.debugSpeedSystem = function() {
     }
 };
 
-// Função de debug para monitorar deltaTime e movimento
-window.debugMovementSystem = function() {
-    console.log('=== Sistema de Movimento e Spawn - Debug ===');
+// Função de debug para sistema responsivo
+window.debugResponsive = function() {
+    console.log('=== Sistema Responsivo - Debug ===');
     
-    if (window.gameSystem) {
-        const gs = window.gameSystem.gameState;
-        console.log(`Inimigos ativos: ${gs.enemies.length}`);
-        
-        // Informações de spawn
-        console.log(`--- Sistema de Spawn ---`);
-        console.log(`Onda em progresso: ${gs.waveInProgress}`);
-        console.log(`Inimigos spawnados: ${gs.enemiesSpawned}/${gs.monstersThisWave}`);
-        console.log(`Todos spawnados: ${gs.allEnemiesSpawned}`);
-        console.log(`Intervalo de spawn: ${gs.spawnInterval}s`);
-        console.log(`Último spawn: ${gs.lastSpawnTime.toFixed(2)}s`);
-        console.log(`Tempo atual: ${gs.gameTime.toFixed(2)}s`);
-        console.log(`Próximo spawn em: ${Math.max(0, gs.spawnInterval - (gs.gameTime - gs.lastSpawnTime)).toFixed(2)}s`);
-        
-        if (gs.enemies.length > 0) {
-            const enemy = gs.enemies[0];
-            console.log(`--- Movimento ---`);
-            console.log(`Exemplo - Posição: (${enemy.x.toFixed(2)}, ${enemy.y.toFixed(2)})`);
-            console.log(`PathIndex: ${enemy.pathIndex}/${enemy.enemyPath.length - 1}`);
-            console.log(`Velocidade: ${enemy.speed}`);
-            console.log(`Estado de slow: ${enemy.slowUntil ? 'Ativo até ' + new Date(enemy.slowUntil) : 'Inativo'}`);
-        }
-        
-        console.log(`--- Estado do Jogo ---`);
-        console.log(`Jogo pausado: ${gs.isPaused}`);
-        console.log(`Auto-pausado: ${window.gameSystem.wasAutoPaused}`);
-        console.log(`Página visível: ${!document.hidden}`);
+    const screenInfo = {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        ratio: window.devicePixelRatio || 1
+    };
+    
+    const breakpoints = {
+        mobile: screenInfo.width <= 480,
+        tablet: screenInfo.width > 480 && screenInfo.width <= 768,
+        desktop: screenInfo.width > 768
+    };
+    
+    console.log('Informações da tela:', screenInfo);
+    console.log('Breakpoints:', breakpoints);
+    
+    // Analisar elementos responsivos
+    const leftPanel = document.getElementById('leftPanel');
+    const towerBar = document.getElementById('towerOptions');
+    const gameCanvas = document.getElementById('gameCanvas');
+    
+    if (leftPanel) {
+        const leftPanelStyles = getComputedStyle(leftPanel);
+        console.log('Painel esquerdo:', {
+            width: leftPanelStyles.width,
+            display: leftPanelStyles.display,
+            position: leftPanelStyles.position
+        });
+    }
+    
+    if (towerBar) {
+        const towerBarStyles = getComputedStyle(towerBar);
+        console.log('Barra de torres:', {
+            width: towerBarStyles.width,
+            height: towerBarStyles.height,
+            flexDirection: towerBarStyles.flexDirection
+        });
+    }
+    
+    if (gameCanvas) {
+        console.log('Canvas:', {
+            width: gameCanvas.width,
+            height: gameCanvas.height,
+            clientWidth: gameCanvas.clientWidth,
+            clientHeight: gameCanvas.clientHeight
+        });
     }
     
     return {
-        monitor: () => {
-            // Monitorar deltaTime por 10 segundos
-            let samples = [];
-            let count = 0;
-            const maxSamples = 600; // ~10 segundos a 60fps
-            
-            const originalGameLoop = window.gameSystem.gameLoop.bind(window.gameSystem);
-            window.gameSystem.gameLoop = function(currentTime) {
-                const deltaTime = currentTime - this.lastTime;
-                
-                if (count < maxSamples) {
-                    samples.push(deltaTime);
-                    count++;
-                    
-                    if (deltaTime > 50) {
-                        console.warn(`[DELTA] DeltaTime alto: ${deltaTime.toFixed(2)}ms`);
-                    }
-                    
-                    if (count === maxSamples) {
-                        const avg = samples.reduce((a, b) => a + b) / samples.length;
-                        const max = Math.max(...samples);
-                        const min = Math.min(...samples);
-                        console.log(`\n=== Relatório DeltaTime ===`);
-                        console.log(`Média: ${avg.toFixed(2)}ms`);
-                        console.log(`Máximo: ${max.toFixed(2)}ms`);
-                        console.log(`Mínimo: ${min.toFixed(2)}ms`);
-                        console.log(`Amostras > 50ms: ${samples.filter(s => s > 50).length}`);
-                        console.log(`Amostras > 100ms: ${samples.filter(s => s > 100).length}`);
-                        
-                        // Restaurar gameLoop original
-                        window.gameSystem.gameLoop = originalGameLoop;
-                    }
-                }
-                
-                return originalGameLoop(currentTime);
-            };
-            
-            console.log('Monitoramento iniciado por 10 segundos...');
-        },
-        
-        testMinimize: () => {
-            console.log('Simulando minimização/reativação...');
-            document.dispatchEvent(new Event('visibilitychange'));
-        },
-        
-        testSpawnPause: () => {
-            console.log('\n=== Teste de Spawn com Pausa ===');
-            
-            if (!window.gameSystem || !window.gameSystem.gameState.waveInProgress) {
-                console.log('❌ Nenhuma onda em progresso. Inicie uma onda primeiro.');
-                return;
-            }
-            
-            const gs = window.gameSystem.gameState;
-            console.log(`Estado inicial:`);
-            console.log(`- Pausado: ${gs.isPaused}`);
-            console.log(`- Inimigos: ${gs.enemiesSpawned}/${gs.monstersThisWave}`);
-            console.log(`- Tempo: ${gs.gameTime.toFixed(2)}s`);
-            
-            console.log('\n1. Pausando jogo por 3 segundos...');
-            window.gameSystem.togglePause();
-            
+        screenInfo,
+        breakpoints,
+        testBreakpoint: function(width) {
+            console.log(`Testando breakpoint com width: ${width}px`);
+            // Simular mudança de tamanho
+            const body = document.body;
+            body.style.width = width + 'px';
             setTimeout(() => {
-                console.log(`Estado após pausa:`);
-                console.log(`- Pausado: ${gs.isPaused}`);
-                console.log(`- Inimigos: ${gs.enemiesSpawned}/${gs.monstersThisWave} (deve ser igual)`);
-                console.log(`- Tempo: ${gs.gameTime.toFixed(2)}s (deve ser igual)`);
-                
-                console.log('\n2. Despausando jogo...');
+                body.style.width = '';
+                console.log('Teste de breakpoint concluído');
+            }, 1000);
+        },
+        toggleMobileMode: function() {
+            document.body.classList.toggle('mobile-debug');
+            console.log('Modo mobile debug alterado');
+        }
+    };
+};
+
+// Função de debug para movimento e spawn
+window.debugMovementSystem = function() {
+    console.log('=== Sistema de Movimento - Debug ===');
+    
+    if (window.gameSystem) {
+        const gs = window.gameSystem.gameState;
+        console.log(`Estado do jogo:`);
+        console.log(`- Onda: ${gs.wave}`);
+        console.log(`- Inimigos ativos: ${gs.enemies.length}`);
+        console.log(`- Projéteis ativos: ${gs.projectiles.length}`);
+        console.log(`- Torres: ${gs.towers.length}`);
+        console.log(`- Velocidade: ${window.gameSystem.gameSpeed}x`);
+        console.log(`- Pausado: ${gs.isPaused}`);
+        
+        // Informações detalhadas dos inimigos
+        gs.enemies.forEach((enemy, index) => {
+            console.log(`Inimigo ${index + 1}:`, {
+                type: enemy.type,
+                health: enemy.health,
+                maxHealth: enemy.maxHealth,
+                speed: enemy.speed,
+                position: { x: enemy.x, y: enemy.y },
+                pathIndex: enemy.pathIndex,
+                frozen: enemy.frozen || false
+            });
+        });
+        
+        return {
+            spawnEnemy: function(type = 'basic') {
+                console.log(`Spawning enemy tipo: ${type}`);
+                const EnemyClass = window.Enemy;
+                if (EnemyClass) {
+                    const enemy = new EnemyClass(type);
+                    gs.enemies.push(enemy);
+                    console.log('Inimigo adicionado:', enemy);
+                } else {
+                    console.error('Classe Enemy não encontrada');
+                }
+            },
+            clearEnemies: function() {
+                gs.enemies.length = 0;
+                console.log('Todos os inimigos removidos');
+            },
+            pauseToggle: function() {
                 window.gameSystem.togglePause();
-                
-                setTimeout(() => {
-                    console.log(`Estado após despausar:`);
-                    console.log(`- Pausado: ${gs.isPaused}`);
-                    console.log(`- Inimigos: ${gs.enemiesSpawned}/${gs.monstersThisWave} (pode ter aumentado)`);
-                    console.log(`- Tempo: ${gs.gameTime.toFixed(2)}s (deve ter aumentado)`);
-                    console.log('\n✅ Teste concluído! Verifique se o spawn pausou/despausou corretamente.');
-                }, 2000);
-            }, 3000);
-        }
-    };
-};
-
-// Função de debug para testar sistema de recompensas
-window.debugRewardSystem = function() {
-    const points = parseInt(localStorage.getItem('arqueiroUpgradePoints') || '0');
-    const lastWave = parseInt(localStorage.getItem('arqueiroLastRewardedWave') || '0');
-    
-    console.log('=== Sistema de Recompensas - Status ===');
-    console.log('Pontos atuais:', points);
-    console.log('Última onda recompensada:', lastWave);
-    console.log('');
-    console.log('Para testar:');
-    console.log('- debugRewardSystem.simulate(55) // Simular morte na onda 55');
-    console.log('- debugRewardSystem.reset() // Resetar sistema');
-    console.log('- debugRewardSystem.setLastWave(30) // Definir última onda');
-    
-    return {
-        simulate: (wave) => {
-            console.log(`\n--- Simulando morte na onda ${wave} ---`);
-            const lastRewardedWave = parseInt(localStorage.getItem('arqueiroLastRewardedWave') || '0');
-            const newProgress = Math.max(0, wave - lastRewardedWave);
-            let points = 0;
-            
-            if (newProgress >= 10) {
-                points = Math.floor(newProgress / 10);
-            } else if (newProgress >= 5) {
-                points = 1;
+                console.log(`Jogo ${gs.isPaused ? 'pausado' : 'despausado'}`);
+            },
+            setSpeed: function(speed) {
+                window.gameSystem.setGameSpeed(speed);
+                console.log(`Velocidade alterada para: ${speed}x`);
             }
-            
-            // Marcos especiais
-            if (wave >= 25 && lastRewardedWave < 25) points += 1;
-            if (wave >= 50 && lastRewardedWave < 50) points += 2;
-            if (wave >= 100 && lastRewardedWave < 100) points += 3;
-            
-            console.log(`Progresso: ${lastRewardedWave} → ${wave} (${newProgress} novas)`);
-            console.log(`Pontos que ganharia: ${points}`);
-            console.log(`Marcos: 25=${wave >= 25 && lastRewardedWave < 25}, 50=${wave >= 50 && lastRewardedWave < 50}, 100=${wave >= 100 && lastRewardedWave < 100}`);
-        },
-        reset: () => {
-            localStorage.setItem('arqueiroUpgradePoints', '0');
-            localStorage.setItem('arqueiroLastRewardedWave', '0');
-            console.log('Sistema resetado!');
-        },
-        setLastWave: (wave) => {
-            localStorage.setItem('arqueiroLastRewardedWave', wave);
-            console.log(`Última onda definida para: ${wave}`);
-        }
-    };
+        };
+    } else {
+        console.error('gameSystem não encontrado');
+        return null;
+    }
 };
 
-// Integrar ao fluxo de game over
-// (Chame adicionarBotaoContinuarGameOver() ao exibir a tela de derrota)
-const originalGameOver = gameSystem.gameOver.bind(gameSystem);
-gameSystem.gameOver = function(victory = false) {
-    // Evitar múltiplas execuções
-    if (this.gameState.isGameOver) return;
+// Função de debug para sistema de recompensas
+window.debugRewardSystem = function() {
+    console.log('=== Sistema de Recompensas - Debug ===');
     
-    originalGameOver(victory);
-    
-    // Só executar uma vez após game over
-    setTimeout(() => {
-        if (!victory) {
-            salvarMaiorOnda(this.gameState.wave);
-            adicionarBotaoContinuarGameOver();
-        }
-        adicionarBotaoContinuarMenu();
-    }, 500);
-}; 
+    if (window.gameSystem) {
+        const gs = window.gameSystem.gameState;
+        console.log(`Estado atual:`);
+        console.log(`- Ouro: ${gs.gold}`);
+        console.log(`- Pontuação: ${gs.score}`);
+        console.log(`- Onda: ${gs.wave}`);
+        console.log(`- Vida: ${gs.health}`);
+        
+        return {
+            addGold: function(amount) {
+                gs.gold += amount;
+                console.log(`Adicionados ${amount} ouro. Total: ${gs.gold}`);
+                window.uiSystem.updateUI();
+            },
+            addScore: function(amount) {
+                gs.score += amount;
+                console.log(`Adicionados ${amount} pontos. Total: ${gs.score}`);
+                window.uiSystem.updateUI();
+            },
+            setWave: function(wave) {
+                gs.wave = wave;
+                console.log(`Onda alterada para: ${wave}`);
+                window.uiSystem.updateUI();
+            },
+            setHealth: function(health) {
+                gs.health = health;
+                console.log(`Vida alterada para: ${health}`);
+                window.uiSystem.updateUI();
+            },
+            calculateTotalReward: function() {
+                const totalGold = calcularOuroAteOnda(gs.wave, 5, 10);
+                console.log(`Ouro total até onda ${gs.wave}: ${totalGold}`);
+                return totalGold;
+            }
+        };
+    } else {
+        console.error('gameSystem não encontrado');
+        return null;
+    }
+};

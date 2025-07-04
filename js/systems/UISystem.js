@@ -30,14 +30,20 @@ export class UISystem {
         } else {
             startBtn.disabled = false;
         }
-        document.querySelectorAll('.tower-btn').forEach(btn => {
-            const cost = parseInt(btn.dataset.cost);
-            if (this.gameState.gold < cost) {
-                btn.classList.add('disabled');
-            } else {
-                btn.classList.remove('disabled');
-            }
-        });
+        // Atualizar estados dos botões de torre baseado no ouro
+        if (typeof window.updateTowerButtonStates === 'function') {
+            window.updateTowerButtonStates();
+        } else {
+            // Fallback para o sistema antigo
+            document.querySelectorAll('.tower-btn').forEach(btn => {
+                const cost = parseInt(btn.dataset.cost);
+                if (this.gameState.gold < cost) {
+                    btn.classList.add('disabled');
+                } else {
+                    btn.classList.remove('disabled');
+                }
+            });
+        }
     }
 
     showNotification(message, type = 'info') {

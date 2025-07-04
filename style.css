@@ -4,6 +4,22 @@
     box-sizing: border-box;
 }
 
+/* Regra global para remover sublinhado de todos os links com classe btn */
+a.btn,
+a.painel-lateral-btn,
+a[class*="btn"] {
+    text-decoration: none !important;
+}
+
+a.btn:hover,
+a.painel-lateral-btn:hover,
+a[class*="btn"]:hover,
+a.btn:focus,
+a.painel-lateral-btn:focus,
+a[class*="btn"]:focus {
+    text-decoration: none !important;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -83,11 +99,188 @@ body {
 }
 
 .painel-lateral-btn {
-    width: 100%;
-    min-width: 0;
-    min-height: 48px;
+    min-width: 140px;
+    min-height: 44px;
     margin: 0;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1em;
+    font-weight: bold;
+    letter-spacing: 1px;
+    box-shadow: 0 2px 8px #0001;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    outline: none;
+    position: relative;
+    text-decoration: none !important;
 }
+
+/* Garantir que links do painel lateral não tenham sublinhado */
+a.painel-lateral-btn,
+a.painel-lateral-btn:hover,
+a.painel-lateral-btn:focus,
+a.painel-lateral-btn:active {
+    text-decoration: none !important;
+}
+
+.painel-lateral-btn .btn-icon {
+    font-size: 1.2em;
+    display: flex;
+    align-items: center;
+    transition: font-size 0.2s ease;
+}
+
+.painel-lateral-btn .btn-text {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    white-space: nowrap;
+}
+
+/* PC - Layout completo */
+@media (min-width: 769px) {
+    .painel-lateral-btn {
+        min-width: 140px;
+        gap: 8px;
+    }
+    
+    .painel-lateral-btn .btn-icon {
+        font-size: 1.1em;
+    }
+    
+    .painel-lateral-btn .btn-text {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Tablet - Ícones + texto compacto */
+@media (min-width: 481px) and (max-width: 768px) {
+    .painel-lateral-btn {
+        min-width: 100px;
+        gap: 4px;
+        font-size: 0.9em;
+        min-height: 40px;
+    }
+    
+    .painel-lateral-btn .btn-icon {
+        font-size: 1.3em;
+    }
+    
+    .painel-lateral-btn .btn-text {
+        opacity: 1;
+        transform: translateX(0);
+        font-size: 0.85em;
+    }
+}
+
+/* Mobile - Apenas ícones com tooltips */
+@media (max-width: 480px) {
+    .painel-lateral-btn {
+        min-width: 48px;
+        max-width: 48px;
+        width: 48px;
+        height: 48px;
+        padding: 8px;
+        gap: 0;
+        border-radius: 12px;
+        position: relative;
+    }
+    
+    .painel-lateral-btn .btn-icon {
+        font-size: 1.5em;
+    }
+    
+    .painel-lateral-btn .btn-text {
+        opacity: 0;
+        transform: translateX(-10px);
+        position: absolute;
+        pointer-events: none;
+    }
+    
+    /* Botão de velocidade em mobile - mostrar texto além do ícone */
+    .painel-lateral-btn.velocidade .btn-text {
+        opacity: 1;
+        transform: translateX(0);
+        position: static;
+        font-size: 0.7em;
+        margin-top: -2px;
+        font-weight: bold;
+    }
+    
+    .painel-lateral-btn.velocidade {
+        flex-direction: column;
+        justify-content: center;
+        gap: 2px;
+    }
+    
+    .painel-lateral-btn.velocidade .btn-icon {
+        font-size: 1.2em;
+    }
+    
+    /* Tooltip em mobile */
+    .painel-lateral-btn:hover::before {
+        content: attr(title);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 0.8em;
+        white-space: nowrap;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        margin-bottom: 8px;
+        opacity: 1;
+        animation: tooltipFadeIn 0.2s ease;
+    }
+    
+    .painel-lateral-btn:hover::after {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 4px solid transparent;
+        border-top-color: rgba(0, 0, 0, 0.9);
+        margin-bottom: 4px;
+        z-index: 1000;
+    }
+}
+
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.painel-lateral-btn:active {
+    box-shadow: 0 1px 4px #0002;
+    transform: scale(0.98);
+}
+
+.painel-lateral-btn.onda     { background: #1976d2; color: #fff; }
+.painel-lateral-btn.pausar   { background: #616161; color: #fff; }
+.painel-lateral-btn.velocidade { background: #28a745; color: #fff; }
+.painel-lateral-btn.config   { background: #0097a7; color: #fff; }
+.painel-lateral-btn.upgrades { background: #ffd700; color: #23263a; border: 2px solid #ff9800; }
+
+.painel-lateral-btn.onda:hover     { background: #1565c0; }
+.painel-lateral-btn.pausar:hover   { background: #424242; }
+.painel-lateral-btn.velocidade:hover { background: #1e7e34; }
+.painel-lateral-btn.config:hover   { background: #00838f; }
+.painel-lateral-btn.upgrades:hover { background: #ffec80; color: #b26a00; }
 
 .tower-selection h3 {
     color: #495057;
@@ -409,10 +602,7 @@ body {
         gap: 8px;
         align-items: center;
         margin-left: 0;
-    }
-    .painel-lateral-btn {
-        min-width: 0;
-        width: 100%;
+        justify-content: center;
     }
     .game-container {
         padding: 0;
@@ -451,12 +641,6 @@ body {
     
     .controls {
         gap: 6px;
-    }
-    
-    .painel-lateral-btn {
-        font-size: 0.9em;
-        padding: 8px 12px;
-        min-height: 40px;
     }
     
     .game-container {
@@ -526,12 +710,6 @@ body {
         gap: 4px;
     }
     
-    .painel-lateral-btn {
-        font-size: 0.8em;
-        padding: 6px 8px;
-        min-height: 36px;
-    }
-    
     .game-container {
         padding-bottom: 140px; /* Mais espaço para barra de torres */
     }
@@ -591,90 +769,267 @@ body {
     }
 }
 
-/* Barra de torres no rodapé */
+/* ===== OTIMIZAÇÃO DA BARRA DE TORRES ===== */
+
 .footer-tower-bar {
     position: fixed;
+    bottom: 0;
     left: 0;
     right: 0;
-    bottom: 0;
-    background: #fff;
-    box-shadow: 0 -2px 16px rgba(0,0,0,0.08);
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-top: 2px solid #dee2e6;
+    padding: 8px 16px;
     display: flex;
     justify-content: center;
-    align-items: center;
-    gap: 16px;
-    padding: 16px 0 12px 0;
-    z-index: 100;
+    gap: 8px;
+    z-index: 95;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
     overflow-x: auto;
-    border-top-left-radius: 18px;
-    border-top-right-radius: 18px;
+    overflow-y: hidden;
+    min-height: 70px;
+    align-items: center;
 }
 
 .footer-tower-bar::-webkit-scrollbar {
-    height: 8px;
+    height: 4px;
 }
+
 .footer-tower-bar::-webkit-scrollbar-thumb {
-    background: #e9ecef;
-    border-radius: 4px;
+    background: #007bff;
+    border-radius: 2px;
 }
 
-.footer-tower-bar .tower-btn {
-    background: #f8f9fa;
-    border: 2px solid #e9ecef;
-    border-radius: 12px;
-    padding: 10px 18px;
-    min-width: 90px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    font-size: 1em;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+/* PC - Layout completo das torres */
+@media (min-width: 769px) {
+    .footer-tower-bar .tower-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: left;
+        min-width: 140px;
+        max-width: 180px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .footer-tower-bar .tower-icon {
+        font-size: 1.8em;
+        min-width: 32px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .footer-tower-bar .tower-info {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .footer-tower-bar .tower-name {
+        font-weight: 600;
+        color: #495057;
+        font-size: 0.95em;
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .footer-tower-bar .tower-cost {
+        font-size: 0.8em;
+        color: #6c757d;
+        font-weight: 500;
+    }
 }
 
+/* Tablet - Layout intermediário */
+@media (min-width: 481px) and (max-width: 768px) {
+    .footer-tower-bar {
+        padding: 6px 12px;
+        gap: 6px;
+        min-height: 65px;
+    }
+    
+    .footer-tower-bar .tower-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: 8px 12px;
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        min-width: 80px;
+        max-width: 100px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+    
+    .footer-tower-bar .tower-icon {
+        font-size: 1.6em;
+        line-height: 1;
+    }
+    
+    .footer-tower-bar .tower-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1px;
+        min-width: 0;
+    }
+    
+    .footer-tower-bar .tower-name {
+        font-weight: 600;
+        color: #495057;
+        font-size: 0.7em;
+        line-height: 1.1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+    
+    .footer-tower-bar .tower-cost {
+        font-size: 0.65em;
+        color: #6c757d;
+        font-weight: 500;
+        line-height: 1;
+    }
+}
+
+/* Mobile - Layout ultra-compacto */
+@media (max-width: 480px) {
+    .footer-tower-bar {
+        padding: 4px 8px;
+        gap: 4px;
+        min-height: 60px;
+    }
+    
+    .footer-tower-bar .tower-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        padding: 6px 8px;
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        min-width: 60px;
+        max-width: 70px;
+        width: 60px;
+        height: 52px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        position: relative;
+    }
+    
+    .footer-tower-bar .tower-icon {
+        font-size: 1.4em;
+        line-height: 1;
+    }
+    
+    .footer-tower-bar .tower-info {
+        display: none; /* Ocultar informações detalhadas */
+    }
+    
+    .footer-tower-bar .tower-name {
+        display: none;
+    }
+    
+    .footer-tower-bar .tower-cost {
+        font-size: 0.6em;
+        color: #6c757d;
+        font-weight: bold;
+        line-height: 1;
+        position: absolute;
+        bottom: 2px;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+    }
+    
+    /* Tooltip para mobile */
+    .footer-tower-bar .tower-btn:hover::before {
+        content: attr(data-tower-name) " - " attr(data-cost) " ouro";
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.7em;
+        white-space: nowrap;
+        z-index: 1000;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        margin-bottom: 4px;
+        opacity: 1;
+        animation: tooltipFadeIn 0.2s ease;
+    }
+    
+    .footer-tower-bar .tower-btn:hover::after {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 3px solid transparent;
+        border-top-color: rgba(0, 0, 0, 0.9);
+        z-index: 1000;
+    }
+}
+
+/* Estados universais dos botões de torre */
 .footer-tower-bar .tower-btn.selected,
-.footer-tower-bar .tower-btn:focus {
-    border-color: #007bff;
-    background: #e3f2fd;
+.footer-tower-bar .tower-btn.selected:hover {
+    border-color: #28a745;
+    background: linear-gradient(135deg, #d4edda, #c3e6cb);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
 }
 
 .footer-tower-bar .tower-btn:hover {
-    background: #e9ecef;
     border-color: #007bff;
+    background: linear-gradient(135deg, #f8f9fa, #e3f2fd);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
 }
 
-.footer-tower-bar .tower-icon {
-    font-size: 1.6em;
-    margin-bottom: 2px;
+.footer-tower-bar .tower-btn.locked {
+    opacity: 0.6;
+    border-color: #0066cc;
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
 }
 
-.footer-tower-bar .tower-name {
-    font-size: 1em;
-    color: #495057;
-    font-weight: 600;
+.footer-tower-bar .tower-btn.locked:hover {
+    transform: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.footer-tower-bar .tower-cost {
-    font-size: 0.9em;
-    color: #6c757d;
+.footer-tower-bar .tower-btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: #f5f5f5;
 }
 
-@media (max-width: 600px) {
-    .footer-tower-bar {
-        gap: 8px;
-        padding: 10px 0 8px 0;
-    }
-    .footer-tower-bar .tower-btn {
-        min-width: 70px;
-        font-size: 0.95em;
-        padding: 7px 8px;
-    }
-    .footer-tower-bar .tower-icon {
-        font-size: 1.2em;
-    }
+.footer-tower-bar .tower-btn.disabled:hover {
+    border-color: #e9ecef;
+    background: #f5f5f5;
+    transform: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .special-skills-bar {
@@ -686,14 +1041,15 @@ body {
     margin: 16px 0 0 0;
     z-index: 10;
 }
+/* Botões das habilidades especiais - Posicionados na lateral esquerda */
 #specialSkillsFixedBar {
     position: fixed;
-    right: 32px;
-    bottom: 32px;
+    left: 20px;
+    bottom: 120px; /* Margem maior para não conflitar com barra de torres */
     z-index: 120;
     display: flex;
-    flex-direction: row;
-    gap: 18px;
+    flex-direction: column;
+    gap: 12px;
 }
 .special-skill-btn {
     position: relative;
@@ -729,6 +1085,12 @@ body {
     justify-content: center !important;
     overflow: visible !important;
 }
+
+.special-skill-btn:hover {
+    transform: translateX(5px);
+    box-shadow: 0 6px 20px rgba(255,152,0,0.20);
+    border-color: #f57c00;
+}
 .special-skill-btn:disabled,
 .special-skill-btn.cooldown {
     opacity: 0.6;
@@ -757,10 +1119,35 @@ body {
     filter: drop-shadow(0 1px 2px #fff8);
     z-index: 2;
 }
+/* Tablet - Botões menores mas ainda visíveis */
+@media (max-width: 768px) and (min-width: 601px) {
+    #specialSkillsFixedBar {
+        left: 15px;
+        bottom: 100px; /* Margem para não conflitar com barra de torres */
+        gap: 10px;
+    }
+    .special-skill-btn {
+        width: 120px;
+        height: 70px;
+        min-width: 120px;
+        min-height: 70px;
+        max-width: 120px;
+        max-height: 70px;
+        font-size: 1.3em;
+    }
+    .skill-label {
+        font-size: 0.65em;
+    }
+    .skill-cooldown {
+        font-size: 0.75em;
+    }
+}
+
+/* Mobile - Botões compactos */
 @media (max-width: 600px) {
     #specialSkillsFixedBar {
-        right: 10px;
-        bottom: 10px;
+        left: 10px;
+        bottom: 70px; /* Margem para não conflitar com barra de torres */
         gap: 8px;
     }
     .special-skill-btn {
@@ -778,6 +1165,30 @@ body {
     }
     .skill-cooldown {
         font-size: 0.7em;
+    }
+}
+
+/* Mobile muito pequeno - Ajuste adicional */
+@media (max-width: 480px) {
+    #specialSkillsFixedBar {
+        left: 8px;
+        bottom: 80px; /* Margem maior para não conflitar com painel lateral */
+        gap: 6px;
+    }
+    .special-skill-btn {
+        width: 60px;
+        height: 40px;
+        min-width: 60px;
+        min-height: 40px;
+        max-width: 60px;
+        max-height: 40px;
+        font-size: 1em;
+    }
+    .skill-label {
+        font-size: 0.6em;
+    }
+    .skill-cooldown {
+        font-size: 0.65em;
     }
 }
 
@@ -1107,37 +1518,6 @@ body {
     z-index: 2;
     pointer-events: none;
 }
-
-.painel-lateral-btn {
-    min-width: 140px;
-    min-height: 44px;
-    margin: 0;
-    padding: 0;
-    border: none;
-    border-radius: 10px;
-    font-size: 1.1em;
-    font-weight: bold;
-    letter-spacing: 1px;
-    box-shadow: 0 2px 8px #0001;
-    cursor: pointer;
-    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    outline: none;
-}
-.painel-lateral-btn:active {
-    box-shadow: 0 1px 4px #0002;
-    transform: scale(0.98);
-}
-.painel-lateral-btn.onda     { background: #1976d2; color: #fff; }
-.painel-lateral-btn.pausar   { background: #616161; color: #fff; }
-.painel-lateral-btn.config   { background: #0097a7; color: #fff; }
-.painel-lateral-btn.upgrades { background: #ffd700; color: #23263a; border: 2px solid #ff9800; }
-.painel-lateral-btn.onda:hover     { background: #1565c0; }
-.painel-lateral-btn.pausar:hover   { background: #424242; }
-.painel-lateral-btn.config:hover   { background: #00838f; }
-.painel-lateral-btn.upgrades:hover { background: #ffec80; color: #b26a00; }
 
 .special-skill-btn .skill-cooldown {
     display: block !important;
