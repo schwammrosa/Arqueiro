@@ -15,7 +15,7 @@ export class UISystem {
         const seconds = Math.floor(this.gameState.gameTime % 60);
         document.getElementById('gameTime').textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         if (this.gameState.waveInProgress) {
-            document.getElementById('nextWaveTimer').textContent = 'Em andamento';
+            document.getElementById('nextWaveTimer').textContent = '--';
         } else if (this.gameState.nextWaveTimer > 0) {
             const seconds = Math.ceil(this.gameState.nextWaveTimer);
             document.getElementById('nextWaveTimer').textContent = `${seconds}s`;
