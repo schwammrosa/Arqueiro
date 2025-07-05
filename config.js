@@ -1135,6 +1135,13 @@ function showNotification(message, type = 'info') {
     notification.className = `notification notification-${type}`;
     notification.textContent = message;
     
+    // Verificar se há outras notificações e ajustar posição
+    const existingNotifications = document.querySelectorAll('.notification');
+    if (existingNotifications.length > 0) {
+        const offset = existingNotifications.length * 80; // 80px de espaçamento
+        notification.style.top = `${20 + offset}px`;
+    }
+    
     // Adicionar ao DOM
     document.body.appendChild(notification);
     
@@ -1143,38 +1150,25 @@ function showNotification(message, type = 'info') {
         notification.classList.add('show');
     }, 100);
     
-    // Remover após 3 segundos
+    // Remover após 4 segundos
     setTimeout(() => {
         notification.classList.remove('show');
         setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 300);
-    }, 3000);
+            if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+                // Reposicionar notificações restantes
+                repositionNotifications();
+            }
+        }, 400);
+    }, 4000);
 }
 
-// Adicionar estilos de animação
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    
-    @keyframes slideOut {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-    }
-`;
-document.head.appendChild(style); 
+// Função para reposicionar notificações restantes
+function repositionNotifications() {
+    const notifications = document.querySelectorAll('.notification');
+    notifications.forEach((notification, index) => {
+        notification.style.top = `${20 + (index * 80)}px`;
+    });
+}
+
+// As animações agora estão definidas no config-style.css 
