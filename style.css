@@ -1992,3 +1992,72 @@ a.painel-lateral-btn:active {
 .control-btn .btn-text {
     font-size: 0.85em;
 }
+
+/* Estilos para a tela de seleção de dificuldade */
+.difficulty-options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.difficulty-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.difficulty-btn:hover {
+    transform: scale(1.02);
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.difficulty-icon {
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+.difficulty-name {
+    font-size: 18px;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 5px;
+}
+
+.difficulty-desc {
+    font-size: 14px;
+    color: #aaa;
+    text-align: center;
+}
+
+/* Estilos específicos para cada dificuldade */
+#btnEasy {
+    border-color: rgba(0, 255, 0, 0.3);
+}
+
+#btnNormal {
+    border-color: rgba(255, 255, 0, 0.3);
+}
+
+#btnHard {
+    border-color: rgba(255, 0, 0, 0.3);
+}
+
+#btnEasy:hover {
+    border-color: rgba(0, 255, 0, 0.6);
+}
+
+#btnNormal:hover {
+    border-color: rgba(255, 255, 0, 0.6);
+}
+
+#btnHard:hover {
+    border-color: rgba(255, 0, 0, 0.6);
+}

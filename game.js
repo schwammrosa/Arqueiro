@@ -216,6 +216,130 @@ window.addEventListener('mousedown', (e) => {
 let GAME_CONFIG = loadGameConfig();
 let TOWER_TYPES = loadTowerConfig();
 
+// Função para aplicar preset de dificuldade
+function applyDifficultyPreset(difficulty) {
+    const PRESETS = {
+        easy: {
+            name: 'Fácil',
+            config: {
+                initialHealth: 50,
+                initialGold: 150,
+                waveDelaySeconds: 8,
+                upgradeBaseCost: 50,
+                sellPercentage: 75,
+                enemyBaseHealth: 30,
+                enemyHealthIncrease: 8,
+                enemySpeed: 0.3,
+                enemyHealthMultiplier: 1.1,
+                enemySpeedMultiplier: 1.05,
+                enemiesPerWave: 5,
+                enemiesIncrease: 2,
+                goldMultiplier: 1.5
+            }
+        },
+        normal: {
+            name: 'Normal',
+            config: {
+                initialHealth: 20,
+                initialGold: 100,
+                waveDelaySeconds: 5,
+                upgradeBaseCost: 75,
+                sellPercentage: 50,
+                enemyBaseHealth: 50,
+                enemyHealthIncrease: 15,
+                enemySpeed: 0.5,
+                enemyHealthMultiplier: 1.25,
+                enemySpeedMultiplier: 1.15,
+                enemiesPerWave: 8,
+                enemiesIncrease: 3,
+                goldMultiplier: 1
+            }
+        },
+        hard: {
+            name: 'Difícil',
+            config: {
+                initialHealth: 10,
+                initialGold: 75,
+                waveDelaySeconds: 3,
+                upgradeBaseCost: 100,
+                sellPercentage: 25,
+                enemyBaseHealth: 80,
+                enemyHealthIncrease: 25,
+                enemySpeed: 0.8,
+                enemyHealthMultiplier: 1.4,
+                enemySpeedMultiplier: 1.25,
+                enemiesPerWave: 12,
+                enemiesIncrease: 4,
+                goldMultiplier: 0.8
+            }
+        }
+    };
+
+    const preset = PRESETS[difficulty];
+    if (!preset) return;
+
+    // Salvar a dificuldade selecionada
+    localStorage.setItem('selectedDifficulty', difficulty);
+
+    // Aplicar configurações
+    GAME_CONFIG = { ...GAME_CONFIG, ...preset.config };
+    localStorage.setItem('arqueiroConfig', JSON.stringify(GAME_CONFIG));
+
+    // Iniciar o jogo
+    document.getElementById('difficultyModal').style.display = 'none';
+    document.getElementById('mainMenu').style.display = 'none';
+    iniciarNovoJogo();
+}
+
+// Função para mostrar o modal de dificuldade
+function showDifficultyModal() {
+    document.getElementById('difficultyModal').style.display = 'flex';
+}
+
+// Event listeners para os botões de dificuldade
+function setupDifficultyEventListeners() {
+    // Botão Jogar agora mostra o modal de dificuldade
+    const btnPlay = document.getElementById('btnPlay');
+    if (btnPlay) {
+        btnPlay.addEventListener('click', () => {
+            showDifficultyModal();
+        });
+    }
+
+    // Botões de dificuldade
+    const btnEasy = document.getElementById('btnEasy');
+    if (btnEasy) {
+        btnEasy.addEventListener('click', () => {
+            applyDifficultyPreset('easy');
+        });
+    }
+
+    const btnNormal = document.getElementById('btnNormal');
+    if (btnNormal) {
+        btnNormal.addEventListener('click', () => {
+            applyDifficultyPreset('normal');
+        });
+    }
+
+    const btnHard = document.getElementById('btnHard');
+    if (btnHard) {
+        btnHard.addEventListener('click', () => {
+            applyDifficultyPreset('hard');
+        });
+    }
+
+    // Verificar se já existe uma dificuldade selecionada para o botão Continuar
+    const savedDifficulty = localStorage.getItem('selectedDifficulty');
+    if (savedDifficulty) {
+        const btnContinue = document.getElementById('btnContinue');
+        if (btnContinue) {
+            btnContinue.addEventListener('click', () => {
+                applyDifficultyPreset(savedDifficulty);
+            });
+        }
+    }
+}
+
 // Função para aplicar os efeitos da árvore de habilidades ao GAME_CONFIG
 function applySkillTreeEffects(gameConfig, skillTree) {
     // Vida/Suporte
@@ -638,6 +762,9 @@ function onReady() {
     // Agora ajustar o canvas com as configurações corretas
     adjustCanvasSize();
     renderTowerOptions();
+    
+    // Configurar event listeners da dificuldade
+    setupDifficultyEventListeners();
     
     // Garantir que as habilidades especiais sejam verificadas na inicialização
     setTimeout(() => {
@@ -1340,3 +1467,4 @@ function iniciarNovoJogo() {
 window.iniciarModoContinuar = iniciarModoContinuar;
 window.iniciarNovoJogo = iniciarNovoJogo;
 window.adicionarBotaoContinuarMenu = adicionarBotaoContinuarMenu;
+window.showDifficultyModal = showDifficultyModal;

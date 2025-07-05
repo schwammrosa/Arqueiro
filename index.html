@@ -195,6 +195,30 @@
         </div>
     </div>
 
+    <!-- Modal de Seleção de Dificuldade -->
+    <div id="difficultyModal" class="main-menu-modal" style="display:none;">
+        <div class="main-menu-modal-content">
+            <h2>Selecione a Dificuldade</h2>
+            <div class="difficulty-options">
+                <button id="btnEasy" class="difficulty-btn" onclick="selectDifficulty('easy')">
+                    <span class="difficulty-icon">🟢</span>
+                    <span class="difficulty-name">Fácil</span>
+                    <span class="difficulty-desc">Mais vida, mais ouro, inimigos mais fracos</span>
+                </button>
+                <button id="btnNormal" class="difficulty-btn" onclick="selectDifficulty('normal')">
+                    <span class="difficulty-icon">🟡</span>
+                    <span class="difficulty-name">Normal</span>
+                    <span class="difficulty-desc">Configurações balanceadas</span>
+                </button>
+                <button id="btnHard" class="difficulty-btn" onclick="selectDifficulty('hard')">
+                    <span class="difficulty-icon">🔴</span>
+                    <span class="difficulty-name">Difícil</span>
+                    <span class="difficulty-desc">Menos vida, menos ouro, inimigos mais fortes</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="creditsModal" class="main-menu-modal" style="display:none;">
         <div class="main-menu-modal-content">
             <span id="closeCreditsModal" class="main-menu-close">&times;</span>
@@ -1016,6 +1040,102 @@
 
     <script>
 
+    // Função para selecionar dificuldade
+    function selectDifficulty(difficulty) {
+        console.log('Dificuldade selecionada:', difficulty);
+        
+        // Esconder modal de dificuldade
+        const difficultyModal = document.getElementById('difficultyModal');
+        if (difficultyModal) {
+            difficultyModal.style.setProperty('display', 'none', 'important');
+        }
+        
+        // Esconder menu principal
+        const mainMenu = document.getElementById('mainMenu');
+        if (mainMenu) {
+            mainMenu.style.display = 'none';
+        }
+        
+        // Aplicar configurações de dificuldade
+        const PRESETS = {
+            easy: {
+                name: 'Fácil',
+                config: {
+                    initialHealth: 50,
+                    initialGold: 150,
+                    waveDelaySeconds: 8,
+                    upgradeBaseCost: 50,
+                    sellPercentage: 75,
+                    enemyBaseHealth: 30,
+                    enemyHealthIncrease: 8,
+                    enemySpeed: 0.3,
+                    enemyHealthMultiplier: 1.1,
+                    enemySpeedMultiplier: 1.05,
+                    enemiesPerWave: 5,
+                    enemiesIncrease: 2,
+                    goldMultiplier: 1.5
+                }
+            },
+            normal: {
+                name: 'Normal',
+                config: {
+                    initialHealth: 20,
+                    initialGold: 100,
+                    waveDelaySeconds: 5,
+                    upgradeBaseCost: 75,
+                    sellPercentage: 50,
+                    enemyBaseHealth: 50,
+                    enemyHealthIncrease: 15,
+                    enemySpeed: 0.5,
+                    enemyHealthMultiplier: 1.25,
+                    enemySpeedMultiplier: 1.15,
+                    enemiesPerWave: 8,
+                    enemiesIncrease: 3,
+                    goldMultiplier: 1
+                }
+            },
+            hard: {
+                name: 'Difícil',
+                config: {
+                    initialHealth: 10,
+                    initialGold: 75,
+                    waveDelaySeconds: 3,
+                    upgradeBaseCost: 100,
+                    sellPercentage: 25,
+                    enemyBaseHealth: 80,
+                    enemyHealthIncrease: 25,
+                    enemySpeed: 0.8,
+                    enemyHealthMultiplier: 1.4,
+                    enemySpeedMultiplier: 1.25,
+                    enemiesPerWave: 12,
+                    enemiesIncrease: 4,
+                    goldMultiplier: 0.8
+                }
+            }
+        };
+
+        const preset = PRESETS[difficulty];
+        if (preset) {
+            // Salvar a dificuldade selecionada
+            localStorage.setItem('selectedDifficulty', difficulty);
+            
+            // Salvar configurações
+            const currentConfig = JSON.parse(localStorage.getItem('arqueiroConfig') || '{}');
+            const newConfig = { ...currentConfig, ...preset.config };
+            localStorage.setItem('arqueiroConfig', JSON.stringify(newConfig));
+            
+            console.log('Configurações aplicadas:', preset.name);
+        }
+        
+        // Iniciar o jogo
+        document.body.classList.add('game-running');
+        if (typeof window.iniciarNovoJogo !== 'undefined') {
+            window.iniciarNovoJogo();
+        } else {
+            console.log('Função iniciarNovoJogo não encontrada');
+        }
+    }
+
     // Menu inicial
     document.addEventListener('DOMContentLoaded', function() {
         const menu = document.getElementById('mainMenu');
@@ -1029,36 +1149,44 @@
 
 
 
-        // Ao clicar em Jogar, esconde o menu e inicia um novo jogo
+        // Ao clicar em Jogar, mostrar modal de seleção de dificuldade
         btnPlay.onclick = function() {
-            document.body.classList.add('game-running');
-
+            console.log('Botão Jogar clicado');
             
-            // Iniciar novo jogo usando função dedicada
-            if (typeof window.iniciarNovoJogo !== 'undefined') {
-                window.iniciarNovoJogo();
-            } else {
-
-                // Fallback: esconder menu e iniciar game loop básico
-            menu.style.display = 'none';
-            if (typeof window.gameSystem !== 'undefined' && window.gameSystem && !window.gameSystem.isRunning) {
-                window.gameSystem.startGameLoop();
-            } else if (typeof gameSystem !== 'undefined' && gameSystem && !gameSystem.isRunning) {
-                gameSystem.startGameLoop();
+                    // Verificar se o modal de dificuldade existe
+        const difficultyModal = document.getElementById('difficultyModal');
+        if (difficultyModal) {
+            console.log('Modal de dificuldade encontrado, mostrando...');
+            difficultyModal.style.setProperty('display', 'flex', 'important');
+        } else {
+                console.log('Modal de dificuldade não encontrado, usando fallback');
+                // Fallback: iniciar jogo diretamente
+                document.body.classList.add('game-running');
+                if (typeof window.iniciarNovoJogo !== 'undefined') {
+                    window.iniciarNovoJogo();
+                } else {
+                    menu.style.display = 'none';
+                    if (typeof window.gameSystem !== 'undefined' && window.gameSystem && !window.gameSystem.isRunning) {
+                        window.gameSystem.startGameLoop();
+                    } else if (typeof gameSystem !== 'undefined' && gameSystem && !gameSystem.isRunning) {
+                        gameSystem.startGameLoop();
+                    }
                 }
             }
         };
         
         // Ao clicar em Continuar, esconde o menu e inicia o modo continuar
         btnContinue.onclick = function() {
-            menu.style.display = 'none';
-            document.body.classList.add('game-running');
-
-            
-            if (typeof window.iniciarModoContinuar !== 'undefined') {
-                window.iniciarModoContinuar();
+            // Verificar se há uma dificuldade salva
+            const savedDifficulty = localStorage.getItem('selectedDifficulty');
+            if (savedDifficulty) {
+                console.log('Continuando com dificuldade:', savedDifficulty);
+                // Aplicar a dificuldade salva antes de continuar
+                selectDifficulty(savedDifficulty);
             } else {
-
+                // Se não há dificuldade salva, usar normal como padrão
+                console.log('Nenhuma dificuldade salva, usando normal como padrão');
+                selectDifficulty('normal');
             }
         };
         
