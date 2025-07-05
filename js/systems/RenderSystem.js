@@ -12,6 +12,12 @@ export class RenderSystem {
         // Inicializar imagens padrão
         this.initializeImages();
     }
+    
+    // Atualizar caminho dos inimigos
+    updateEnemyPath(newPath) {
+        this.enemyPath = newPath;
+        console.log('RenderSystem: Caminho atualizado para', newPath.length, 'pontos');
+    }
 
     // Inicializar imagens do jogo
     async initializeImages() {

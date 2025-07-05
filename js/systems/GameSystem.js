@@ -232,6 +232,9 @@ export class GameSystem {
             this.renderSystem.gameState = this.gameState;
         }
         
+        // Recarregar caminho dos inimigos se necessário
+        this.reloadEnemyPath();
+        
         document.getElementById('gameOver').style.display = 'none';
         this.uiSystem.updateUI();
         
@@ -598,6 +601,26 @@ export class GameSystem {
         
         // Atualizar UI
         this.uiSystem.updateUI();
+    }
+    
+    // Recarregar caminho dos inimigos
+    reloadEnemyPath() {
+        // Carregar caminho do localStorage
+        const savedPath = localStorage.getItem('enemyPath');
+        if (savedPath) {
+            try {
+                const newPath = JSON.parse(savedPath);
+                if (newPath && newPath.length > 0) {
+                    this.enemyPath = newPath;
+                    if (this.renderSystem && this.renderSystem.updateEnemyPath) {
+                        this.renderSystem.updateEnemyPath(newPath);
+                    }
+                    console.log('GameSystem: Caminho recarregado com', newPath.length, 'pontos');
+                }
+            } catch (e) {
+                console.error('Erro ao recarregar caminho:', e);
+            }
+        }
     }
     
     // Configurar detecção de visibilidade da página

@@ -448,17 +448,35 @@ onConfigChanged((newConfig) => {
 
 // Carregar caminho dos inimigos
 function loadEnemyPath() {
+    // Primeiro, tentar carregar do enemyPath separado (templates)
+    const savedPath = localStorage.getItem('enemyPath');
+    if (savedPath) {
+        try {
+            const path = JSON.parse(savedPath);
+            if (path && path.length > 0) {
+                console.log('Caminho carregado do template:', path.length, 'pontos');
+                return path;
+            }
+        } catch (e) {
+            console.error('Erro ao carregar caminho do template:', e);
+        }
+    }
+    
+    // Fallback: carregar do arqueiroConfig
     const savedConfig = localStorage.getItem('arqueiroConfig');
     if (savedConfig) {
         try {
             const config = JSON.parse(savedConfig);
             if (config.enemyPath && config.enemyPath.length > 0) {
+                console.log('Caminho carregado do config:', config.enemyPath.length, 'pontos');
                 return config.enemyPath;
             }
         } catch (e) {
             console.error('Erro ao carregar caminho dos inimigos:', e);
         }
     }
+    
+    console.log('Usando caminho padrão:', GAME_CONFIG.enemyPath.length, 'pontos');
     return GAME_CONFIG.enemyPath;
 }
 

@@ -202,14 +202,17 @@
             <div style="display: flex; flex-direction: column; gap: 15px;">
                 <button id="btnEasy" onclick="selectDifficulty('easy')" style="padding: 15px; border: 2px solid #00ff00; background: rgba(0, 255, 0, 0.1); border-radius: 10px; color: white; cursor: pointer; font-size: 16px;">
                     🟢 Fácil - Mais vida, mais ouro, inimigos mais fracos
+                    <div style="font-size: 12px; color: #4fdfff; margin-top: 5px;">Template: Labirinto</div>
                     <div id="progressEasy" style="display: none; margin-top: 5px; color: #4fdfff;"></div>
                 </button>
                 <button id="btnNormal" onclick="selectDifficulty('normal')" style="padding: 15px; border: 2px solid #ffff00; background: rgba(255, 255, 0, 0.1); border-radius: 10px; color: white; cursor: pointer; font-size: 16px;">
                     🟡 Normal - Configurações balanceadas
+                    <div style="font-size: 12px; color: #4fdfff; margin-top: 5px;">Template: Zigzag</div>
                     <div id="progressNormal" style="display: none; margin-top: 5px; color: #4fdfff;"></div>
                 </button>
                 <button id="btnHard" onclick="selectDifficulty('hard')" style="padding: 15px; border: 2px solid #ff0000; background: rgba(255, 0, 0, 0.1); border-radius: 10px; color: white; cursor: pointer; font-size: 16px;">
                     🔴 Difícil - Menos vida, menos ouro, inimigos mais fortes
+                    <div style="font-size: 12px; color: #4fdfff; margin-top: 5px;">Template: Linha Reta</div>
                     <div id="progressHard" style="display: none; margin-top: 5px; color: #4fdfff;"></div>
                 </button>
             </div>
@@ -1090,6 +1093,79 @@
         console.log('Modal exibido com sucesso');
     };
 
+    // Templates de caminho pré-definidos
+    const PATH_TEMPLATES = {
+        linear: {
+            name: 'Linha Reta',
+            description: 'Caminho simples em linha reta',
+            path: [
+                {x: 0, y: 7}, {x: 1, y: 7}, {x: 2, y: 7}, {x: 3, y: 7}, {x: 4, y: 7},
+                {x: 5, y: 7}, {x: 6, y: 7}, {x: 7, y: 7}, {x: 8, y: 7}, {x: 9, y: 7},
+                {x: 10, y: 7}, {x: 11, y: 7}, {x: 12, y: 7}, {x: 13, y: 7}, {x: 14, y: 7},
+                {x: 15, y: 7}, {x: 16, y: 7}, {x: 17, y: 7}, {x: 18, y: 7}, {x: 19, y: 7}
+            ]
+        },
+        zigzag: {
+            name: 'Zigzag',
+            description: 'Caminho em ziguezague',
+            path: [
+                // Primeira seção horizontal
+                {x: 0, y: 2}, {x: 1, y: 2}, {x: 2, y: 2}, {x: 3, y: 2}, {x: 4, y: 2},
+                // Descida
+                {x: 4, y: 3}, {x: 4, y: 4}, {x: 4, y: 5}, {x: 4, y: 6},
+                // Segunda seção horizontal
+                {x: 5, y: 6}, {x: 6, y: 6}, {x: 7, y: 6}, {x: 8, y: 6}, {x: 9, y: 6},
+                // Subida
+                {x: 9, y: 5}, {x: 9, y: 4}, {x: 9, y: 3}, {x: 9, y: 2},
+                // Terceira seção horizontal
+                {x: 10, y: 2}, {x: 11, y: 2}, {x: 12, y: 2}, {x: 13, y: 2}, {x: 14, y: 2},
+                // Descida final
+                {x: 14, y: 3}, {x: 14, y: 4}, {x: 14, y: 5}, {x: 14, y: 6},
+                // Final
+                {x: 15, y: 6}, {x: 16, y: 6}, {x: 17, y: 6}, {x: 18, y: 6}, {x: 19, y: 6}
+            ]
+        },
+        maze: {
+            name: 'Labirinto',
+            description: 'Caminho complexo tipo labirinto',
+            path: [
+                // Entrada
+                {x: 0, y: 12}, {x: 1, y: 12}, {x: 2, y: 12},
+                // Subir
+                {x: 2, y: 11}, {x: 2, y: 10}, {x: 2, y: 9}, {x: 2, y: 8},
+                // Direita
+                {x: 3, y: 8}, {x: 4, y: 8}, {x: 5, y: 8}, {x: 6, y: 8},
+                // Descer
+                {x: 6, y: 9}, {x: 6, y: 10}, {x: 6, y: 11}, {x: 6, y: 12},
+                // Direita
+                {x: 7, y: 12}, {x: 8, y: 12}, {x: 9, y: 12}, {x: 10, y: 12},
+                // Subir
+                {x: 10, y: 11}, {x: 10, y: 10}, {x: 10, y: 9}, {x: 10, y: 8}, {x: 10, y: 7},
+                {x: 10, y: 6}, {x: 10, y: 5}, {x: 10, y: 4},
+                // Direita
+                {x: 11, y: 4}, {x: 12, y: 4}, {x: 13, y: 4}, {x: 14, y: 4},
+                // Descer
+                {x: 14, y: 5}, {x: 14, y: 6}, {x: 14, y: 7}, {x: 14, y: 8},
+                // Direita final
+                {x: 15, y: 8}, {x: 16, y: 8}, {x: 17, y: 8}, {x: 18, y: 8}, {x: 19, y: 8}
+            ]
+        }
+    };
+
+    // Função para obter template de caminho baseado na dificuldade
+    function getPathTemplateForDifficulty(difficulty) {
+        switch (difficulty) {
+            case 'easy':
+                return PATH_TEMPLATES.maze; // Labirinto para fácil
+            case 'normal':
+                return PATH_TEMPLATES.zigzag; // Zigzag para normal
+            case 'hard':
+                return PATH_TEMPLATES.linear; // Linha reta para difícil
+            default:
+                return PATH_TEMPLATES.zigzag; // Padrão
+        }
+    }
+
     window.selectDifficulty = function(difficulty) {
         console.log('Dificuldade selecionada:', difficulty);
         
@@ -1177,6 +1253,20 @@
             const currentConfig = JSON.parse(localStorage.getItem('arqueiroConfig') || '{}');
             const newConfig = { ...currentConfig, ...preset.config };
             localStorage.setItem('arqueiroConfig', JSON.stringify(newConfig));
+            
+            // Aplicar template de caminho baseado na dificuldade
+            const pathTemplate = getPathTemplateForDifficulty(difficulty);
+            if (pathTemplate) {
+                localStorage.setItem('enemyPath', JSON.stringify(pathTemplate.path));
+                console.log('Template de caminho aplicado:', pathTemplate.name);
+                
+                // Mostrar notificação sobre o template aplicado
+                setTimeout(() => {
+                    if (typeof window.uiSystem !== 'undefined' && window.uiSystem.showNotification) {
+                        window.uiSystem.showNotification(`Template aplicado: ${pathTemplate.name}`, 'info');
+                    }
+                }, 1000);
+            }
             
             console.log('Configurações aplicadas:', preset.name);
         }
