@@ -216,129 +216,16 @@ window.addEventListener('mousedown', (e) => {
 let GAME_CONFIG = loadGameConfig();
 let TOWER_TYPES = loadTowerConfig();
 
-// Função para aplicar preset de dificuldade
-function applyDifficultyPreset(difficulty) {
-    const PRESETS = {
-        easy: {
-            name: 'Fácil',
-            config: {
-                initialHealth: 50,
-                initialGold: 150,
-                waveDelaySeconds: 8,
-                upgradeBaseCost: 50,
-                sellPercentage: 75,
-                enemyBaseHealth: 30,
-                enemyHealthIncrease: 8,
-                enemySpeed: 0.3,
-                enemyHealthMultiplier: 1.1,
-                enemySpeedMultiplier: 1.05,
-                enemiesPerWave: 5,
-                enemiesIncrease: 2,
-                goldMultiplier: 1.5
-            }
-        },
-        normal: {
-            name: 'Normal',
-            config: {
-                initialHealth: 20,
-                initialGold: 100,
-                waveDelaySeconds: 5,
-                upgradeBaseCost: 75,
-                sellPercentage: 50,
-                enemyBaseHealth: 50,
-                enemyHealthIncrease: 15,
-                enemySpeed: 0.5,
-                enemyHealthMultiplier: 1.25,
-                enemySpeedMultiplier: 1.15,
-                enemiesPerWave: 8,
-                enemiesIncrease: 3,
-                goldMultiplier: 1
-            }
-        },
-        hard: {
-            name: 'Difícil',
-            config: {
-                initialHealth: 10,
-                initialGold: 75,
-                waveDelaySeconds: 3,
-                upgradeBaseCost: 100,
-                sellPercentage: 25,
-                enemyBaseHealth: 80,
-                enemyHealthIncrease: 25,
-                enemySpeed: 0.8,
-                enemyHealthMultiplier: 1.4,
-                enemySpeedMultiplier: 1.25,
-                enemiesPerWave: 12,
-                enemiesIncrease: 4,
-                goldMultiplier: 0.8
-            }
-        }
-    };
-
-    const preset = PRESETS[difficulty];
-    if (!preset) return;
-
-    // Salvar a dificuldade selecionada
-    localStorage.setItem('selectedDifficulty', difficulty);
-
-    // Aplicar configurações
-    GAME_CONFIG = { ...GAME_CONFIG, ...preset.config };
-    localStorage.setItem('arqueiroConfig', JSON.stringify(GAME_CONFIG));
-
-    // Iniciar o jogo
-    document.getElementById('difficultyModal').style.display = 'none';
-    document.getElementById('mainMenu').style.display = 'none';
-    iniciarNovoJogo();
-}
+// Função para aplicar preset de dificuldade (removida - agora implementada no index.html)
+// function applyDifficultyPreset(difficulty) { ... }
 
 // Função para mostrar o modal de dificuldade
 function showDifficultyModal() {
     document.getElementById('difficultyModal').style.display = 'flex';
 }
 
-// Event listeners para os botões de dificuldade
-function setupDifficultyEventListeners() {
-    // Botão Jogar agora mostra o modal de dificuldade
-    const btnPlay = document.getElementById('btnPlay');
-    if (btnPlay) {
-        btnPlay.addEventListener('click', () => {
-            showDifficultyModal();
-        });
-    }
-
-    // Botões de dificuldade
-    const btnEasy = document.getElementById('btnEasy');
-    if (btnEasy) {
-        btnEasy.addEventListener('click', () => {
-            applyDifficultyPreset('easy');
-        });
-    }
-
-    const btnNormal = document.getElementById('btnNormal');
-    if (btnNormal) {
-        btnNormal.addEventListener('click', () => {
-            applyDifficultyPreset('normal');
-        });
-    }
-
-    const btnHard = document.getElementById('btnHard');
-    if (btnHard) {
-        btnHard.addEventListener('click', () => {
-            applyDifficultyPreset('hard');
-        });
-    }
-
-    // Verificar se já existe uma dificuldade selecionada para o botão Continuar
-    const savedDifficulty = localStorage.getItem('selectedDifficulty');
-    if (savedDifficulty) {
-        const btnContinue = document.getElementById('btnContinue');
-        if (btnContinue) {
-            btnContinue.addEventListener('click', () => {
-                applyDifficultyPreset(savedDifficulty);
-            });
-        }
-    }
-}
+// Event listeners para os botões de dificuldade (removidos - agora implementados no index.html)
+// function setupDifficultyEventListeners() { ... }
 
 // Função para aplicar os efeitos da árvore de habilidades ao GAME_CONFIG
 function applySkillTreeEffects(gameConfig, skillTree) {
@@ -764,7 +651,7 @@ function onReady() {
     renderTowerOptions();
     
     // Configurar event listeners da dificuldade
-    setupDifficultyEventListeners();
+    // setupDifficultyEventListeners(); // Removido - agora implementado no index.html
     
     // Garantir que as habilidades especiais sejam verificadas na inicialização
     setTimeout(() => {
@@ -1289,12 +1176,33 @@ function salvarMaiorOnda(onda) {
     const key = 'maiorOndaAtingida';
     const atual = parseInt(localStorage.getItem(key) || '1');
     if (onda > atual) localStorage.setItem(key, onda);
+    
+    // Salvar progresso por dificuldade
+    const selectedDifficulty = localStorage.getItem('selectedDifficulty') || 'normal';
+    console.log('Salvando progresso para dificuldade:', selectedDifficulty, 'onda:', onda);
+    
+    // Salvar diretamente no localStorage
+    const progressKey = `progress_${selectedDifficulty}`;
+    localStorage.setItem(progressKey, onda.toString());
+    console.log('Progresso salvo:', progressKey, '=', onda);
 }
 
 // Controlar visibilidade do botão Continuar no menu inicial
 function adicionarBotaoContinuarMenu() {
-    const key = 'maiorOndaAtingida';
-    const maiorOnda = parseInt(localStorage.getItem(key) || '1');
+    const difficulties = ['easy', 'normal', 'hard'];
+    let maxProgress = 0;
+    let maxDifficulty = '';
+    
+    // Verificar progresso de todas as dificuldades
+    difficulties.forEach(diff => {
+        const progressKey = `progress_${diff}`;
+        const progress = parseInt(localStorage.getItem(progressKey) || '0');
+        if (progress > maxProgress) {
+            maxProgress = progress;
+            maxDifficulty = diff;
+        }
+    });
+    
     const btn = document.getElementById('btnContinue');
     
     if (btn) {
@@ -1302,9 +1210,9 @@ function adicionarBotaoContinuarMenu() {
         const continueText = btn.querySelector('.continue-text');
         const continueWave = btn.querySelector('.continue-wave');
         
-        if (maiorOnda > 1) {
+        if (maxProgress > 0) {
             if (continueText) continueText.textContent = 'Continuar';
-            if (continueWave) continueWave.textContent = `(onda ${maiorOnda})`;
+            if (continueWave) continueWave.textContent = `(onda ${maxProgress})`;
             btn.style.display = 'flex';
         } else {
             btn.style.display = 'none';
@@ -1337,10 +1245,20 @@ function adicionarBotaoContinuarGameOver() {
 
 // Função para iniciar o modo continuar
 function iniciarModoContinuar() {
-    const key = 'maiorOndaAtingida';
-    const maiorOnda = parseInt(localStorage.getItem(key) || '1');
+    const selectedDifficulty = localStorage.getItem('selectedDifficulty') || 'normal';
+    const progressKey = `progress_${selectedDifficulty}`;
+    const maiorOnda = parseInt(localStorage.getItem(progressKey) || '1');
     
-    if (maiorOnda <= 1) return;
+    console.log('Iniciando modo continuar para dificuldade:', selectedDifficulty);
+    console.log('Progresso carregado:', progressKey, '=', maiorOnda);
+    
+    if (maiorOnda <= 1) {
+        console.log('Nenhum progresso encontrado, iniciando novo jogo');
+        iniciarNovoJogo();
+        return;
+    }
+    
+    console.log('Progresso válido encontrado, continuando da onda:', maiorOnda);
     
 
     
@@ -1386,35 +1304,21 @@ function iniciarModoContinuar() {
         return newGameState;
     }
     
-    gameSystem.restart(getInitialGameStateContinuar, () => {
-        // Usar uma versão customizada que não reseta o wave
+    // Função customizada para inicializar o modo continuar (não reseta wave)
+    function initializeContinuarMode() {
+        console.log('Inicializando modo continuar - wave atual:', gameSystem.gameState.wave);
+        
         const savedConfig = localStorage.getItem('arqueiroConfig');
         const waveDelaySeconds = savedConfig ? JSON.parse(savedConfig).waveDelaySeconds || 5 : 5;
         gameSystem.gameState.nextWaveTimer = waveDelaySeconds;
         gameSystem.gameState.waveInProgress = false;
         gameSystem.gameState.allEnemiesSpawned = false;
         
-        // ATUALIZAR A VARIÁVEL GLOBAL gameState
-        gameState = gameSystem.gameState;
-        
-        // Atualizar referências nos sistemas
-        uiSystem.setGameState(gameState);
-        renderSystem.gameState = gameState;
-        
-        // Garantir que o sistema de torres esteja funcionando
-        if (gameSystem.reinitializeTowers) {
-            gameSystem.reinitializeTowers();
-        }
-        
-        // Recarregar configurações e torres
-        reloadConfigs();
-        renderTowerOptions();
-        
-        // Atualizar UI
-        uiSystem.updateUI();
-        
-        
-    });
+        console.log('Modo continuar inicializado - próxima onda será:', gameSystem.gameState.wave);
+    }
+    
+    console.log('Chamando gameSystem.restart para modo continuar...');
+    gameSystem.restart(getInitialGameStateContinuar, initializeContinuarMode);
     
     // Esconder menu se estiver visível
     const menu = document.getElementById('mainMenu');
@@ -1426,10 +1330,13 @@ function iniciarModoContinuar() {
 
 // Função para iniciar um novo jogo (diferente do modo continuar)
 function iniciarNovoJogo() {
-
+    console.log('=== INICIANDO NOVO JOGO ===');
     
     // Usar função getInitialGameState para criar estado completamente novo
+    console.log('Chamando gameSystem.restart para novo jogo...');
     gameSystem.restart(getInitialGameState, () => {
+        console.log('Callback do restart executado - novo jogo');
+        
         // Inicializar primeira onda normalmente
         gameSystem.initializeFirstWave();
         
@@ -1452,7 +1359,7 @@ function iniciarNovoJogo() {
         // Atualizar UI
         uiSystem.updateUI();
         
-        
+        console.log('Novo jogo configurado com sucesso. Wave atual:', gameState.wave);
     });
     
     // Esconder menu se estiver visível

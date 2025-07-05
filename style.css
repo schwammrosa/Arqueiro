@@ -2011,6 +2011,7 @@ a.painel-lateral-btn:active {
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.3s ease;
+    position: relative;
 }
 
 .difficulty-btn:hover {
@@ -2035,6 +2036,18 @@ a.painel-lateral-btn:active {
     font-size: 14px;
     color: #aaa;
     text-align: center;
+    margin-bottom: 8px;
+}
+
+.difficulty-progress {
+    font-size: 16px;
+    font-weight: bold;
+    color: #4fdfff;
+    background: rgba(79, 223, 255, 0.1);
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(79, 223, 255, 0.3);
+    margin-top: 5px;
 }
 
 /* Estilos específicos para cada dificuldade */

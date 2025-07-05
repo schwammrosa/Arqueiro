@@ -208,6 +208,14 @@ export class GameSystem {
 
     // Restart do jogo
     restart(getInitialGameState, initializeFirstWave) {
+        console.log('GameSystem.restart chamado');
+        
+        // Parar game loop atual se estiver rodando
+        if (this.isRunning) {
+            console.log('Parando game loop atual');
+            this.stopGameLoop();
+        }
+        
         this.gameState = getInitialGameState();
         
         // ATUALIZAR VARIÁVEL GLOBAL gameState
@@ -247,6 +255,8 @@ export class GameSystem {
         setTimeout(() => {
             this.updateSpecialSkillsVisibility();
         }, 100);
+        
+        console.log('GameSystem.restart concluído');
     }
 
     // Limpar referências órfãs
@@ -826,20 +836,25 @@ export class GameSystem {
             
             if (currentWave > savedMaxWave) {
                 localStorage.setItem(key, currentWave.toString());
-    
-                
-                // Atualizar botão "Continuar" imediatamente
-                if (typeof window.adicionarBotaoContinuarMenu === 'function') {
-                    window.adicionarBotaoContinuarMenu();
-                }
-                
-                // Adicionar botão "Continuar" na tela de game over
-                if (typeof window.adicionarBotaoContinuarGameOver === 'function') {
-                    window.adicionarBotaoContinuarGameOver();
-                }
+            }
+            
+            // Salvar progresso por dificuldade
+            const selectedDifficulty = localStorage.getItem('selectedDifficulty') || 'normal';
+            const progressKey = `progress_${selectedDifficulty}`;
+            localStorage.setItem(progressKey, currentWave.toString());
+            console.log('Progresso salvo no GameSystem:', progressKey, '=', currentWave);
+            
+            // Atualizar botão "Continuar" imediatamente
+            if (typeof window.adicionarBotaoContinuarMenu === 'function') {
+                window.adicionarBotaoContinuarMenu();
+            }
+            
+            // Adicionar botão "Continuar" na tela de game over
+            if (typeof window.adicionarBotaoContinuarGameOver === 'function') {
+                window.adicionarBotaoContinuarGameOver();
             }
         } catch (error) {
-            // Erro ao salvar maior onda
+            console.log('Erro ao salvar progresso:', error);
         }
     }
 } 

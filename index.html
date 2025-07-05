@@ -196,24 +196,21 @@
     </div>
 
     <!-- Modal de Seleção de Dificuldade -->
-    <div id="difficultyModal" class="main-menu-modal" style="display:none;">
-        <div class="main-menu-modal-content">
-            <h2>Selecione a Dificuldade</h2>
-            <div class="difficulty-options">
-                <button id="btnEasy" class="difficulty-btn" onclick="selectDifficulty('easy')">
-                    <span class="difficulty-icon">🟢</span>
-                    <span class="difficulty-name">Fácil</span>
-                    <span class="difficulty-desc">Mais vida, mais ouro, inimigos mais fracos</span>
+    <div id="difficultyModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 99999; display: none; justify-content: center; align-items: center;">
+        <div style="background: #1e293b; padding: 40px; border-radius: 20px; max-width: 500px; width: 90%; color: white; text-align: center;">
+            <h2 id="difficultyModalTitle" style="margin-bottom: 30px; color: #4fdfff;">Selecione a Dificuldade</h2>
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <button id="btnEasy" onclick="selectDifficulty('easy')" style="padding: 15px; border: 2px solid #00ff00; background: rgba(0, 255, 0, 0.1); border-radius: 10px; color: white; cursor: pointer; font-size: 16px;">
+                    🟢 Fácil - Mais vida, mais ouro, inimigos mais fracos
+                    <div id="progressEasy" style="display: none; margin-top: 5px; color: #4fdfff;"></div>
                 </button>
-                <button id="btnNormal" class="difficulty-btn" onclick="selectDifficulty('normal')">
-                    <span class="difficulty-icon">🟡</span>
-                    <span class="difficulty-name">Normal</span>
-                    <span class="difficulty-desc">Configurações balanceadas</span>
+                <button id="btnNormal" onclick="selectDifficulty('normal')" style="padding: 15px; border: 2px solid #ffff00; background: rgba(255, 255, 0, 0.1); border-radius: 10px; color: white; cursor: pointer; font-size: 16px;">
+                    🟡 Normal - Configurações balanceadas
+                    <div id="progressNormal" style="display: none; margin-top: 5px; color: #4fdfff;"></div>
                 </button>
-                <button id="btnHard" class="difficulty-btn" onclick="selectDifficulty('hard')">
-                    <span class="difficulty-icon">🔴</span>
-                    <span class="difficulty-name">Difícil</span>
-                    <span class="difficulty-desc">Menos vida, menos ouro, inimigos mais fortes</span>
+                <button id="btnHard" onclick="selectDifficulty('hard')" style="padding: 15px; border: 2px solid #ff0000; background: rgba(255, 0, 0, 0.1); border-radius: 10px; color: white; cursor: pointer; font-size: 16px;">
+                    🔴 Difícil - Menos vida, menos ouro, inimigos mais fortes
+                    <div id="progressHard" style="display: none; margin-top: 5px; color: #4fdfff;"></div>
                 </button>
             </div>
         </div>
@@ -1040,14 +1037,66 @@
 
     <script>
 
-    // Função para selecionar dificuldade
-    function selectDifficulty(difficulty) {
+    // Funções globais para o sistema de dificuldade
+    window.saveProgress = function(difficulty, wave) {
+        const progressKey = `progress_${difficulty}`;
+        localStorage.setItem(progressKey, wave.toString());
+        console.log(`Progresso salvo: ${difficulty} - Onda ${wave}`);
+    };
+
+    window.loadProgress = function(difficulty) {
+        const progressKey = `progress_${difficulty}`;
+        const progress = localStorage.getItem(progressKey);
+        return progress ? parseInt(progress) : 0;
+    };
+
+    window.showDifficultyModal = function(isContinue = false) {
+        console.log('showDifficultyModal chamada com isContinue:', isContinue);
+        const modal = document.getElementById('difficultyModal');
+        const title = document.getElementById('difficultyModalTitle');
+        
+        if (!modal) {
+            console.log('Modal não encontrado!');
+            return;
+        }
+        
+        if (isContinue) {
+            title.textContent = 'Continuar Jogo';
+            
+            // Mostrar progresso de cada dificuldade
+            const difficulties = ['easy', 'normal', 'hard'];
+            difficulties.forEach(diff => {
+                const progressElement = document.getElementById(`progress${diff.charAt(0).toUpperCase() + diff.slice(1)}`);
+                const progress = window.loadProgress(diff);
+                
+                if (progress > 0) {
+                    progressElement.textContent = `Onda ${progress}`;
+                    progressElement.style.display = 'block';
+                } else {
+                    progressElement.style.display = 'none';
+                }
+            });
+        } else {
+            title.textContent = 'Selecione a Dificuldade';
+            
+            // Esconder progresso para novo jogo
+            ['Easy', 'Normal', 'Hard'].forEach(diff => {
+                const progressElement = document.getElementById(`progress${diff}`);
+                progressElement.style.display = 'none';
+            });
+        }
+        
+        modal.style.setProperty('display', 'flex', 'important');
+        console.log('Modal exibido com sucesso');
+    };
+
+    window.selectDifficulty = function(difficulty) {
         console.log('Dificuldade selecionada:', difficulty);
         
         // Esconder modal de dificuldade
         const difficultyModal = document.getElementById('difficultyModal');
         if (difficultyModal) {
-            difficultyModal.style.setProperty('display', 'none', 'important');
+            difficultyModal.style.display = 'none';
         }
         
         // Esconder menu principal
@@ -1055,6 +1104,10 @@
         if (mainMenu) {
             mainMenu.style.display = 'none';
         }
+        
+        // Verificar se é para continuar ou novo jogo
+        const isContinue = document.getElementById('difficultyModalTitle').textContent === 'Continuar Jogo';
+        console.log('É para continuar?', isContinue);
         
         // Aplicar configurações de dificuldade
         const PRESETS = {
@@ -1118,6 +1171,7 @@
         if (preset) {
             // Salvar a dificuldade selecionada
             localStorage.setItem('selectedDifficulty', difficulty);
+            console.log('Dificuldade salva:', difficulty);
             
             // Salvar configurações
             const currentConfig = JSON.parse(localStorage.getItem('arqueiroConfig') || '{}');
@@ -1129,11 +1183,32 @@
         
         // Iniciar o jogo
         document.body.classList.add('game-running');
-        if (typeof window.iniciarNovoJogo !== 'undefined') {
-            window.iniciarNovoJogo();
+        
+        if (isContinue) {
+            // Continuar jogo com progresso salvo
+            console.log('Iniciando modo continuar para dificuldade:', difficulty);
+            if (typeof window.iniciarModoContinuar !== 'undefined') {
+                console.log('Chamando iniciarModoContinuar...');
+                window.iniciarModoContinuar();
+            } else {
+                console.log('Função iniciarModoContinuar não encontrada');
+                // Fallback: iniciar novo jogo
+                if (typeof window.iniciarNovoJogo !== 'undefined') {
+                    window.iniciarNovoJogo();
+                }
+            }
         } else {
-            console.log('Função iniciarNovoJogo não encontrada');
+            // Novo jogo
+            console.log('Iniciando novo jogo para dificuldade:', difficulty);
+            if (typeof window.iniciarNovoJogo !== 'undefined') {
+                console.log('Chamando iniciarNovoJogo...');
+                window.iniciarNovoJogo();
+            } else {
+                console.log('Função iniciarNovoJogo não encontrada');
+            }
         }
+        
+
     }
 
     // Menu inicial
@@ -1149,44 +1224,64 @@
 
 
 
-        // Ao clicar em Jogar, mostrar modal de seleção de dificuldade
+                // Ao clicar em Jogar, mostrar modal de seleção de dificuldade
         btnPlay.onclick = function() {
             console.log('Botão Jogar clicado');
             
-                    // Verificar se o modal de dificuldade existe
-        const difficultyModal = document.getElementById('difficultyModal');
-        if (difficultyModal) {
-            console.log('Modal de dificuldade encontrado, mostrando...');
-            difficultyModal.style.setProperty('display', 'flex', 'important');
-        } else {
-                console.log('Modal de dificuldade não encontrado, usando fallback');
-                // Fallback: iniciar jogo diretamente
-                document.body.classList.add('game-running');
-                if (typeof window.iniciarNovoJogo !== 'undefined') {
-                    window.iniciarNovoJogo();
-                } else {
-                    menu.style.display = 'none';
-                    if (typeof window.gameSystem !== 'undefined' && window.gameSystem && !window.gameSystem.isRunning) {
-                        window.gameSystem.startGameLoop();
-                    } else if (typeof gameSystem !== 'undefined' && gameSystem && !gameSystem.isRunning) {
-                        gameSystem.startGameLoop();
+            const difficultyModal = document.getElementById('difficultyModal');
+            const title = document.getElementById('difficultyModalTitle');
+            
+            if (difficultyModal) {
+                // Resetar título para "Selecione a Dificuldade"
+                title.textContent = 'Selecione a Dificuldade';
+                
+                // Esconder progresso para novo jogo
+                ['Easy', 'Normal', 'Hard'].forEach(diff => {
+                    const progressElement = document.getElementById(`progress${diff}`);
+                    if (progressElement) {
+                        progressElement.style.display = 'none';
                     }
-                }
+                });
+                
+                console.log('Mostrando modal...');
+                difficultyModal.style.display = 'flex';
+                console.log('Modal exibido!');
+            } else {
+                console.log('Modal não encontrado!');
             }
         };
         
-        // Ao clicar em Continuar, esconde o menu e inicia o modo continuar
+        // Ao clicar em Continuar, mostrar modal com progresso de cada dificuldade
         btnContinue.onclick = function() {
-            // Verificar se há uma dificuldade salva
-            const savedDifficulty = localStorage.getItem('selectedDifficulty');
-            if (savedDifficulty) {
-                console.log('Continuando com dificuldade:', savedDifficulty);
-                // Aplicar a dificuldade salva antes de continuar
-                selectDifficulty(savedDifficulty);
+            console.log('Botão Continuar clicado');
+            
+            const difficultyModal = document.getElementById('difficultyModal');
+            const title = document.getElementById('difficultyModalTitle');
+            
+            if (difficultyModal) {
+                // Mudar título para "Continuar Jogo"
+                title.textContent = 'Continuar Jogo';
+                
+                // Mostrar progresso de cada dificuldade
+                const difficulties = ['easy', 'normal', 'hard'];
+                difficulties.forEach(diff => {
+                    const progressElement = document.getElementById(`progress${diff.charAt(0).toUpperCase() + diff.slice(1)}`);
+                    const progressKey = `progress_${diff}`;
+                    const progress = parseInt(localStorage.getItem(progressKey) || '0');
+                    
+                    if (progress > 0) {
+                        progressElement.textContent = `Onda ${progress}`;
+                        progressElement.style.display = 'block';
+                    } else {
+                        progressElement.style.display = 'none';
+                    }
+                });
+                
+                // Mostrar modal
+                difficultyModal.style.display = 'flex';
+                console.log('Modal de continuar exibido!');
             } else {
-                // Se não há dificuldade salva, usar normal como padrão
-                console.log('Nenhuma dificuldade salva, usando normal como padrão');
-                selectDifficulty('normal');
+                console.log('Modal não encontrado!');
             }
         };
         
