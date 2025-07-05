@@ -175,6 +175,66 @@ const PATH_TEMPLATES = {
 // Estado atual das configurações
 let currentConfig = { ...DEFAULT_GAME_CONFIG };
 
+// Sistema de presets
+const PRESETS = {
+    easy: {
+        name: 'Fácil',
+        config: {
+            initialHealth: 50,
+            initialGold: 150,
+            waveDelaySeconds: 8,
+            upgradeBaseCost: 50,
+            sellPercentage: 75,
+            enemyBaseHealth: 30,
+            enemyHealthIncrease: 8,
+            enemySpeed: 0.3,
+            enemyHealthMultiplier: 1.1,
+            enemySpeedMultiplier: 1.05,
+            enemiesPerWave: 5,
+            enemiesIncrease: 2,
+            goldMultiplier: 1.5
+        }
+    },
+    medium: {
+        name: 'Médio',
+        config: {
+            initialHealth: 20,
+            initialGold: 100,
+            waveDelaySeconds: 5,
+            upgradeBaseCost: 75,
+            sellPercentage: 50,
+            enemyBaseHealth: 50,
+            enemyHealthIncrease: 15,
+            enemySpeed: 0.5,
+            enemyHealthMultiplier: 1.25,
+            enemySpeedMultiplier: 1.15,
+            enemiesPerWave: 8,
+            enemiesIncrease: 3,
+            goldMultiplier: 1
+        }
+    },
+    hard: {
+        name: 'Difícil',
+        config: {
+            initialHealth: 10,
+            initialGold: 75,
+            waveDelaySeconds: 3,
+            upgradeBaseCost: 100,
+            sellPercentage: 25,
+            enemyBaseHealth: 80,
+            enemyHealthIncrease: 25,
+            enemySpeed: 0.8,
+            enemyHealthMultiplier: 1.4,
+            enemySpeedMultiplier: 1.25,
+            enemiesPerWave: 12,
+            enemiesIncrease: 4,
+            goldMultiplier: 0.8
+        }
+    }
+};
+
+let currentPreset = 'medium';
+
 // Grid do caminho
 let pathGrid = [];
 const GRID_WIDTH = 20;
@@ -206,7 +266,6 @@ function updateGlobalSkillPointsConfig() {
 document.addEventListener('DOMContentLoaded', () => {
     loadConfig();
     createPathGrid();
-    createPathTemplates();
     setupPathEditor(); // Mover para antes de updatePathDisplay
     setupEventListeners();
     updatePathDisplay(); // Mover para depois de setupPathEditor
@@ -350,24 +409,28 @@ function applyConfigToFields() {
     el = document.getElementById('normalSpeedMultiplier'); if (el) el.value = enemyTypes.normal.speedMultiplier;
     el = document.getElementById('normalRewardMultiplier'); if (el) el.value = enemyTypes.normal.rewardMultiplier;
     el = document.getElementById('normalSpawnChance'); if (el) el.value = enemyTypes.normal.spawnChance;
+    el = document.getElementById('normalScoreMultiplier'); if (el) el.value = enemyTypes.normal.scoreMultiplier || 1;
     
     // Rápido
     el = document.getElementById('fastHealthMultiplier'); if (el) el.value = enemyTypes.fast.healthMultiplier;
     el = document.getElementById('fastSpeedMultiplier'); if (el) el.value = enemyTypes.fast.speedMultiplier;
     el = document.getElementById('fastRewardMultiplier'); if (el) el.value = enemyTypes.fast.rewardMultiplier;
     el = document.getElementById('fastSpawnChance'); if (el) el.value = enemyTypes.fast.spawnChance;
+    el = document.getElementById('fastScoreMultiplier'); if (el) el.value = enemyTypes.fast.scoreMultiplier || 0.8;
     
     // Tanque
     el = document.getElementById('tankHealthMultiplier'); if (el) el.value = enemyTypes.tank.healthMultiplier;
     el = document.getElementById('tankSpeedMultiplier'); if (el) el.value = enemyTypes.tank.speedMultiplier;
     el = document.getElementById('tankRewardMultiplier'); if (el) el.value = enemyTypes.tank.rewardMultiplier;
     el = document.getElementById('tankSpawnChance'); if (el) el.value = enemyTypes.tank.spawnChance;
+    el = document.getElementById('tankScoreMultiplier'); if (el) el.value = enemyTypes.tank.scoreMultiplier || 2.5;
     
     // Elite
     el = document.getElementById('eliteHealthMultiplier'); if (el) el.value = enemyTypes.elite.healthMultiplier;
     el = document.getElementById('eliteSpeedMultiplier'); if (el) el.value = enemyTypes.elite.speedMultiplier;
     el = document.getElementById('eliteRewardMultiplier'); if (el) el.value = enemyTypes.elite.rewardMultiplier;
     el = document.getElementById('eliteSpawnChance'); if (el) el.value = enemyTypes.elite.spawnChance;
+    el = document.getElementById('eliteScoreMultiplier'); if (el) el.value = enemyTypes.elite.scoreMultiplier || 5;
 
     // Canhão - parâmetros especiais
     if (towerConfig.cannon) {
@@ -394,6 +457,14 @@ function applyConfigToFields() {
         el = document.getElementById('specialColor'); if (el) el.value = towerConfig.special.color || '#8e44ad';
         el = document.getElementById('specialEffect'); if (el) el.value = towerConfig.special.effect || '';
     }
+    
+    // Configurações de habilidades especiais
+    el = document.getElementById('arrowRainCooldownConfig'); if (el) el.value = currentConfig.arrowRainCooldown || 25;
+    el = document.getElementById('arrowRainDamageConfig'); if (el) el.value = currentConfig.arrowRainDamage || 40;
+    el = document.getElementById('arrowRainRadiusConfig'); if (el) el.value = currentConfig.arrowRainRadius || 90;
+    el = document.getElementById('iceStormCooldownConfig'); if (el) el.value = currentConfig.iceStormCooldown || 30;
+    el = document.getElementById('iceStormDurationConfig'); if (el) el.value = currentConfig.iceStormDuration || 2;
+    el = document.getElementById('iceStormDamageConfig'); if (el) el.value = currentConfig.iceStormDamage || 0;
 }
 
 // Coletar configurações dos campos do formulário
@@ -432,6 +503,7 @@ function collectConfigFromFields() {
                 speedMultiplier: parseFloat(document.getElementById('normalSpeedMultiplier').value),
                 rewardMultiplier: parseFloat(document.getElementById('normalRewardMultiplier').value),
                 spawnChance: parseInt(document.getElementById('normalSpawnChance').value),
+                scoreMultiplier: parseFloat(document.getElementById('normalScoreMultiplier').value),
                 color: '#dc3545'
             },
             fast: {
@@ -440,6 +512,7 @@ function collectConfigFromFields() {
                 speedMultiplier: parseFloat(document.getElementById('fastSpeedMultiplier').value),
                 rewardMultiplier: parseFloat(document.getElementById('fastRewardMultiplier').value),
                 spawnChance: parseInt(document.getElementById('fastSpawnChance').value),
+                scoreMultiplier: parseFloat(document.getElementById('fastScoreMultiplier').value),
                 color: '#ffc107'
             },
             tank: {
@@ -448,6 +521,7 @@ function collectConfigFromFields() {
                 speedMultiplier: parseFloat(document.getElementById('tankSpeedMultiplier').value),
                 rewardMultiplier: parseFloat(document.getElementById('tankRewardMultiplier').value),
                 spawnChance: parseInt(document.getElementById('tankSpawnChance').value),
+                scoreMultiplier: parseFloat(document.getElementById('tankScoreMultiplier').value),
                 color: '#6c757d'
             },
             elite: {
@@ -456,6 +530,7 @@ function collectConfigFromFields() {
                 speedMultiplier: parseFloat(document.getElementById('eliteSpeedMultiplier').value),
                 rewardMultiplier: parseFloat(document.getElementById('eliteRewardMultiplier').value),
                 spawnChance: parseInt(document.getElementById('eliteSpawnChance').value),
+                scoreMultiplier: parseFloat(document.getElementById('eliteScoreMultiplier').value),
                 color: '#dc3545'
             }
         },
@@ -516,6 +591,11 @@ function collectConfigFromFields() {
         
         // Caminho dos inimigos
         enemyPath: getPathFromGrid(),
+        
+        // Configurações de habilidades especiais
+        arrowRainCooldown: parseInt(document.getElementById('arrowRainCooldownConfig').value),
+        arrowRainDamage: parseInt(document.getElementById('arrowRainDamageConfig').value),
+        arrowRainRadius: parseInt(document.getElementById('arrowRainRadiusConfig').value),
         iceStormCooldown: parseInt(document.getElementById('iceStormCooldownConfig').value),
         iceStormDuration: parseFloat(document.getElementById('iceStormDurationConfig').value),
         iceStormDamage: parseInt(document.getElementById('iceStormDamageConfig').value)
@@ -528,6 +608,12 @@ function collectConfigFromFields() {
 function createPathGrid() {
     const pathGridElement = document.getElementById('pathGrid');
     if (!pathGridElement) return;
+    
+    // Verificar se o grid já foi criado
+    if (pathGridElement.children.length > 0) {
+        return; // Já existe, não criar novamente
+    }
+    
     pathGridElement.innerHTML = '';
     
     for (let y = 0; y < GRID_HEIGHT; y++) {
@@ -554,6 +640,12 @@ function createPathGrid() {
 function createPathTemplates() {
     const pathSection = document.querySelector('.path-config');
     if (!pathSection) return;
+    
+    // Verificar se os templates já existem
+    if (pathSection.querySelector('.path-templates')) {
+        return; // Já existem, não criar novamente
+    }
+    
     const templatesDiv = document.createElement('div');
     templatesDiv.className = 'path-templates';
     templatesDiv.innerHTML = `
@@ -595,6 +687,11 @@ function createPathTemplates() {
 function setupPathEditor() {
     const pathSection = document.querySelector('.path-config');
     if (!pathSection) return;
+    
+    // Verificar se os controles já existem
+    if (pathSection.querySelector('.path-editor-controls')) {
+        return; // Já existem, não criar novamente
+    }
     
     // Adicionar controles do editor
     const editorControls = document.createElement('div');
@@ -870,6 +967,28 @@ function setupEventListeners() {
     // Importar configurações
     const importConfigBtn = document.getElementById('importConfig');
     if (importConfigBtn) importConfigBtn.addEventListener('click', showImportModal);
+    
+    // Botões de presets
+    const presetEasyBtn = document.getElementById('presetEasy');
+    if (presetEasyBtn) presetEasyBtn.addEventListener('click', () => applyPreset('easy'));
+    
+    const presetMediumBtn = document.getElementById('presetMedium');
+    if (presetMediumBtn) presetMediumBtn.addEventListener('click', () => applyPreset('medium'));
+    
+    const presetHardBtn = document.getElementById('presetHard');
+    if (presetHardBtn) presetHardBtn.addEventListener('click', () => applyPreset('hard'));
+    
+    const presetCustomBtn = document.getElementById('presetCustom');
+    if (presetCustomBtn) presetCustomBtn.addEventListener('click', () => applyPreset('custom'));
+    
+    // Detectar mudanças nos campos para marcar como personalizado
+    document.addEventListener('input', (e) => {
+        if (e.target.type === 'number' && e.target.id !== 'globalSkillPointsInput') {
+            if (currentPreset !== 'custom') {
+                setPresetActive('custom');
+            }
+        }
+    });
     
     const confirmImportBtn = document.getElementById('confirmImport');
     if (confirmImportBtn) confirmImportBtn.addEventListener('click', importConfig);
@@ -1170,5 +1289,79 @@ function repositionNotifications() {
         notification.style.top = `${20 + (index * 80)}px`;
     });
 }
+
+// Funções de preset
+function applyPreset(presetName) {
+    if (presetName === 'custom') {
+        setPresetActive('custom');
+        return;
+    }
+    
+    const preset = PRESETS[presetName];
+    if (!preset) return;
+    
+    // Aplicar configurações do preset
+    Object.keys(preset.config).forEach(key => {
+        const input = document.getElementById(key);
+        if (input) {
+            input.value = preset.config[key];
+        }
+    });
+    
+    // Marcar preset como ativo
+    setPresetActive(presetName);
+    currentPreset = presetName;
+    
+    showNotification(`Preset "${preset.name}" aplicado com sucesso!`, 'success');
+}
+
+function setPresetActive(presetName) {
+    // Remover classe active de todos os botões
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Adicionar classe active no botão selecionado
+    const activeBtn = document.getElementById(`preset${presetName.charAt(0).toUpperCase() + presetName.slice(1)}`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
+    
+    currentPreset = presetName;
+}
+
+function detectCurrentPreset() {
+    // Verificar se os valores atuais correspondem a algum preset
+    for (const [presetName, preset] of Object.entries(PRESETS)) {
+        let matches = true;
+        
+        for (const [key, value] of Object.entries(preset.config)) {
+            const input = document.getElementById(key);
+            if (input && parseFloat(input.value) !== value) {
+                matches = false;
+                break;
+            }
+        }
+        
+        if (matches) {
+            setPresetActive(presetName);
+            return;
+        }
+    }
+    
+    // Se não corresponde a nenhum preset, marcar como personalizado
+    setPresetActive('custom');
+}
+
+// Inicializar quando a página carregar
+document.addEventListener('DOMContentLoaded', () => {
+    loadConfig();
+    createPathGrid();
+    createPathTemplates();
+    setupPathEditor();
+    setupEventListeners();
+    updateGlobalSkillPointsConfig();
+    detectCurrentPreset();
+});
 
 // As animações agora estão definidas no config-style.css 

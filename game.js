@@ -1171,9 +1171,13 @@ function adicionarBotaoContinuarMenu() {
     const btn = document.getElementById('btnContinue');
     
     if (btn) {
-        // Atualizar texto do botão com a onda
+        // Atualizar os elementos span separados
+        const continueText = btn.querySelector('.continue-text');
+        const continueWave = btn.querySelector('.continue-wave');
+        
         if (maiorOnda > 1) {
-            btn.innerHTML = `Continuar<br><span class="onda-info">(Onda ${maiorOnda})</span>`;
+            if (continueText) continueText.textContent = 'Continuar';
+            if (continueWave) continueWave.textContent = `(onda ${maiorOnda})`;
             btn.style.display = 'flex';
         } else {
             btn.style.display = 'none';

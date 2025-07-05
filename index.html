@@ -16,8 +16,10 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tower Defense</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Legado da Fortaleza</title>
     <link rel="icon" type="image/x-icon" href="assets/imagen/favicon.ico">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="skill-tree.css">
@@ -60,7 +62,8 @@
                     <span id="gameSpeed" class="value">1x</span>
             </div>
         </div>
-            <!-- Barra de controles -->
+        
+        <!-- Barra de controles -->
             <div class="horizontal-controls">
                 <button id="start-wave" class="control-btn" title="Iniciar próxima onda">
                     <span class="btn-icon">▶️</span>
@@ -153,6 +156,11 @@
         </div>
     </div>
     
+    <!-- Botão flutuante para esconder/mostrar controles -->
+    <button id="toggleControls" class="toggle-controls-btn" title="Esconder/Mostrar controles">
+        <span class="toggle-icon">🔽</span>
+    </button>
+    
     <script src="game.js" type="module"></script>
     <script src="config.js" type="module"></script>
 
@@ -173,12 +181,15 @@
 
     <div id="mainMenu" class="main-menu-overlay">
         <div class="main-menu-content">
-            <h1 class="main-menu-title">Tower Defense</h1>
+            <h1 class="main-menu-title">Legado da Fortaleza</h1>
             <p style="color: #4fdfff; text-align: center; margin-bottom: 20px; font-size: 1.1em;">
                 Modo Infinito - Sobreviva o máximo de ondas possível!
             </p>
             <button id="btnPlay" class="main-menu-btn">Jogar</button>
-            <button id="btnContinue" class="main-menu-btn btn-continue" style="display: none;">Continuar</button>
+            <button id="btnContinue" class="main-menu-btn btn-continue" style="display: none;">
+                <span class="continue-text">Continuar</span>
+                <span class="continue-wave">(onda 1)</span>
+            </button>
             <button id="btnMenuConfig" class="main-menu-btn">Configurações</button>
             <button id="btnMenuCredits" class="main-menu-btn">Créditos</button>
         </div>
@@ -188,7 +199,12 @@
         <div class="main-menu-modal-content">
             <span id="closeCreditsModal" class="main-menu-close">&times;</span>
             <h2>Créditos</h2>
-            <p>Desenvolvido por [Seu Nome ou Equipe].<br>Inspirado em clássicos do gênero Tower Defense.<br><br>Projeto open-source para fins de estudo e diversão.</p>
+            <p><strong>Desenvolvido por:</strong> Robson Schwamm Rosa<br>
+            <strong>Nome do Jogo:</strong> Legado da Fortaleza<br>
+            <strong>Tecnologias utilizadas:</strong> JavaScript, HTML5 Canvas, CSS3<br>
+            <strong>Design e Programação:</strong> Robson Schwamm Rosa<br>
+            <strong>Inspiração:</strong> Jogos clássicos de Tower Defense<br>
+            <strong>Finalidade:</strong> Projeto independente para estudo, aprendizado e diversão</p>
         </div>
     </div>
 
@@ -230,6 +246,7 @@
         overflow-x: auto !important;
         overflow-y: hidden !important;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+        transition: all 0.4s ease !important;
     }
     
     .control-btn {
@@ -360,6 +377,74 @@
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
     }
     
+    /* Botão toggle flutuante para esconder/mostrar controles */
+    .toggle-controls-btn {
+        position: fixed !important;
+        top: 50% !important;
+        right: 20px !important;
+        transform: translateY(-50%) !important;
+        width: 40px !important;
+        height: 40px !important;
+        background: linear-gradient(135deg, #1f2937, #111827) !important;
+        border: 2px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 50% !important;
+        color: #ffffff !important;
+        cursor: pointer !important;
+        font-size: 12px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: all 0.3s ease !important;
+        z-index: 1000 !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4) !important;
+        backdrop-filter: blur(10px) !important;
+    }
+    
+    .toggle-controls-btn:hover {
+        background: linear-gradient(135deg, #374151, #1f2937) !important;
+        border-color: rgba(255, 255, 255, 0.4) !important;
+        transform: translateY(-50%) scale(1.1) !important;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5) !important;
+    }
+    
+    .toggle-controls-btn:active {
+        transform: translateY(-50%) scale(0.95) !important;
+    }
+    
+    .toggle-icon {
+        transition: transform 0.3s ease !important;
+        font-size: 10px !important;
+    }
+    
+    /* Quando os controles estão escondidos */
+    .controls-hidden .horizontal-controls {
+        height: 0 !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        transform: scaleY(0) !important;
+        transform-origin: top !important;
+    }
+    
+    .controls-hidden .toggle-controls-btn {
+        opacity: 0.8 !important;
+    }
+    
+    .controls-hidden .toggle-icon {
+        transform: rotate(180deg) !important;
+    }
+    
+    /* Top panel - estrutura principal */
+    .top-panel {
+        position: relative !important;
+        background: linear-gradient(135deg, #1f2937 0%, #374151 100%) !important;
+        border-bottom: 2px solid rgba(79, 172, 254, 0.3) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+    }
+    
     /* Controlar menu principal */
     #mainMenu {
         position: fixed !important;
@@ -372,6 +457,8 @@
         align-items: center !important;
         justify-content: center !important;
         background: linear-gradient(135deg, #181c24 80%, #4fdfff 100%) !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
     
     /* Esconder o menu quando o jogo está rodando */
@@ -644,6 +731,30 @@
             inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
     }
     
+    /* Botão Continuar com duas linhas */
+    .btn-continue {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 4px !important;
+        padding: 16px 30px !important;
+    }
+    
+    .continue-text {
+        font-size: 1.2em !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1px !important;
+    }
+    
+    .continue-wave {
+        font-size: 0.9em !important;
+        font-weight: 400 !important;
+        text-transform: none !important;
+        letter-spacing: 0.5px !important;
+        opacity: 0.8 !important;
+    }
+    
     .main-menu-btn::before {
         content: '' !important;
         position: absolute !important;
@@ -712,24 +823,195 @@
             padding: 16px 25px !important;
             font-size: 1.1em !important;
         }
+        
+        .continue-text {
+            font-size: 1.1em !important;
+        }
+        
+        .continue-wave {
+            font-size: 0.85em !important;
+        }
     }
     
     @media (max-width: 480px) {
+        /* Menu full screen no celular */
         .main-menu-content {
-            padding: 30px 20px !important;
-            max-width: 300px !important;
-            margin: 20px !important;
+            padding: 40px 30px !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            height: 100vh !important;
+            margin: 0 !important;
+            border: none !important;
+            border-radius: 0 !important;
+            background: rgba(30, 41, 59, 1) !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
         }
         
         .main-menu-title {
-            font-size: 2em !important;
+            font-size: 2.5em !important;
+            margin-bottom: 20px !important;
         }
         
         .main-menu-btn {
-            padding: 14px 20px !important;
+            padding: 16px 20px !important;
+            font-size: 1.1em !important;
+            margin: 8px 0 !important;
+            width: 100% !important;
+            max-width: 280px !important;
+        }
+        
+        .continue-text {
+            font-size: 1.1em !important;
+        }
+        
+        .continue-wave {
+            font-size: 0.85em !important;
+        }
+        
+        /* Botão toggle responsivo para celular */
+        .toggle-controls-btn {
+            right: 10px !important;
+            width: 35px !important;
+            height: 35px !important;
+            font-size: 10px !important;
+        }
+        
+        /* Menu fullscreen no celular */
+        #mainMenu {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        /* Garantir que o body e html não tenham margens no celular */
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow-x: hidden !important;
+            width: 100% !important;
+            height: 100% !important;
+            box-sizing: border-box !important;
+        }
+        
+        * {
+            box-sizing: border-box !important;
+        }
+    }
+    
+    /* Estilos para modal de créditos */
+    .main-menu-modal {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        background: rgba(0, 0, 0, 0.8) !important;
+        justify-content: center !important;
+        align-items: center !important;
+        z-index: 10000 !important;
+        backdrop-filter: blur(10px) !important;
+        display: none !important;
+    }
+    
+    .main-menu-modal.show {
+        display: flex !important;
+    }
+    
+    .main-menu-modal-content {
+        background: linear-gradient(135deg, #1e293b, #334155) !important;
+        padding: 40px !important;
+        border-radius: 20px !important;
+        max-width: 600px !important;
+        width: 90% !important;
+        max-height: 80vh !important;
+        overflow-y: auto !important;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5) !important;
+        border: 2px solid rgba(99, 102, 241, 0.3) !important;
+        animation: modalSlideIn 0.3s ease-out !important;
+        color: white !important;
+    }
+    
+    .main-menu-modal-content h2 {
+        margin-top: 0 !important;
+        margin-bottom: 20px !important;
+        color: #4fdfff !important;
+        font-size: 2em !important;
+        text-align: center !important;
+        font-weight: 700 !important;
+    }
+    
+    .main-menu-modal-content p {
+        line-height: 1.8 !important;
+        font-size: 1.1em !important;
+        margin-bottom: 15px !important;
+        color: #e2e8f0 !important;
+    }
+    
+    .main-menu-modal-content strong {
+        color: #4fdfff !important;
+    }
+    
+    .main-menu-close {
+        position: absolute !important;
+        top: 15px !important;
+        right: 25px !important;
+        font-size: 30px !important;
+        color: #64748b !important;
+        cursor: pointer !important;
+        transition: color 0.3s ease !important;
+    }
+    
+    .main-menu-close:hover {
+        color: #ef4444 !important;
+    }
+    
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-50px) scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    
+    /* Responsividade para modal de créditos */
+    @media (max-width: 768px) {
+        .main-menu-modal-content {
+            padding: 30px !important;
+            max-width: 95% !important;
+        }
+        
+        .main-menu-modal-content h2 {
+            font-size: 1.8em !important;
+        }
+        
+        .main-menu-modal-content p {
             font-size: 1em !important;
         }
     }
+    
+    @media (max-width: 480px) {
+        .main-menu-modal-content {
+            padding: 25px !important;
+            max-width: 98% !important;
+            max-height: 85vh !important;
+        }
+        
+        .main-menu-modal-content h2 {
+            font-size: 1.6em !important;
+        }
+        
+        .main-menu-modal-content p {
+            font-size: 0.95em !important;
+        }
+    }
+    
     </style>
 
     <script>
@@ -791,24 +1073,72 @@
             window.location.href = 'config.html';
         };
         // Créditos: mostra modal
-        btnCredits.onclick = function() {
-            creditsModal.style.display = 'flex';
-        };
-        closeCreditsModal.onclick = function() {
-            creditsModal.style.display = 'none';
-        };
-        // Fechar modal ao clicar fora
-        creditsModal.onclick = function(e) {
-            if (e.target === creditsModal) creditsModal.style.display = 'none';
-        };
+        if (btnCredits && creditsModal && closeCreditsModal) {
+            // Garantir que o modal sempre inicie oculto
+            creditsModal.classList.remove('show');
+            
+            btnCredits.onclick = function() {
+                creditsModal.classList.add('show');
+            };
+            closeCreditsModal.onclick = function() {
+                creditsModal.classList.remove('show');
+            };
+            // Fechar modal ao clicar fora
+            creditsModal.onclick = function(e) {
+                if (e.target === creditsModal) creditsModal.classList.remove('show');
+            };
+        }
         
         // Botão Voltar ao Menu
         const btnBackToMenu = document.getElementById('btnBackToMenu');
         if (btnBackToMenu) {
-                         btnBackToMenu.onclick = function() {
-                 window.returnToMenu(true);
-             };
+            btnBackToMenu.onclick = function() {
+                returnToMenu(true);
+            };
         }
+        
+        // Função para voltar ao menu principal
+        window.returnToMenu = function(saveGame = false) {
+            // Pausar o jogo se estiver rodando
+            if (typeof window.gameSystem !== 'undefined' && window.gameSystem) {
+                try {
+                    // Tentar diferentes métodos de pausa
+                    if (typeof window.gameSystem.pauseGame === 'function') {
+                        window.gameSystem.pauseGame();
+                    } else if (typeof window.gameSystem.pause === 'function') {
+                        window.gameSystem.pause();
+                    } else if (typeof window.gameSystem.stopGameLoop === 'function') {
+                        window.gameSystem.stopGameLoop();
+                    }
+                    console.log('Jogo pausado com sucesso!');
+                } catch (error) {
+                    console.log('Erro ao pausar jogo:', error);
+                }
+            }
+            
+            // Mostrar o menu principal
+            const mainMenu = document.getElementById('mainMenu');
+            if (mainMenu) {
+                mainMenu.style.display = 'flex';
+                document.body.classList.remove('game-running');
+            }
+            
+            // Salvar o jogo se solicitado
+            if (saveGame && typeof window.gameSystem !== 'undefined' && window.gameSystem) {
+                try {
+                    if (typeof window.gameSystem.saveGame === 'function') {
+                        window.gameSystem.saveGame();
+                        console.log('Jogo salvo com sucesso!');
+                    } else {
+                        console.log('Função saveGame não disponível');
+                    }
+                } catch (error) {
+                    console.log('Erro ao salvar jogo:', error);
+                }
+            }
+            
+            console.log('Retornando ao menu principal...');
+        };
     });
 
     // Script para garantir que o menu principal apareça ao carregar
@@ -844,6 +1174,27 @@
                 window.setupSpecialSkillEventListeners();
             }
         }, 500);
+    });
+
+    // Funcionalidade do botão toggle de controles
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtn = document.getElementById('toggleControls');
+        const topPanel = document.querySelector('.top-panel');
+        let controlsHidden = false;
+
+        if (toggleBtn && topPanel) {
+            toggleBtn.addEventListener('click', function() {
+                controlsHidden = !controlsHidden;
+                
+                if (controlsHidden) {
+                    topPanel.classList.add('controls-hidden');
+                    toggleBtn.title = 'Mostrar controles';
+                } else {
+                    topPanel.classList.remove('controls-hidden');
+                    toggleBtn.title = 'Esconder controles';
+                }
+            });
+        }
     });
 
     </script>

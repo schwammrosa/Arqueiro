@@ -1,7 +1,7 @@
 {
-  "name": "arqueiro-tower-defense",
+  "name": "legado-da-fortaleza",
   "version": "1.0.0",
-  "description": "Jogo Tower Defense com múltiplas torres, árvore de habilidades e sistema de progressão",
+  "description": "Legado da Fortaleza - Jogo Tower Defense com múltiplas torres, árvore de habilidades e sistema de progressão",
   "main": "index.html",
   "scripts": {
     "dev": "python -m http.server 8000",
@@ -14,11 +14,11 @@
     "html5",
     "canvas"
   ],
-  "author": "Arqueiro Team",
+  "author": "Legado da Fortaleza Team",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/seu-usuario/arqueiro-tower-defense.git"
+    "url": "https://github.com/seu-usuario/legado-da-fortaleza.git"
   },
   "engines": {
     "node": ">=14.0.0"

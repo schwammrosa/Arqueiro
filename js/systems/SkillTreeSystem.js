@@ -1,6 +1,6 @@
 // Sistema da Árvore de Habilidades
 // ---------------------------------
-// Estrutura dos upgrades globais do jogo Tower Defense
+// Estrutura dos upgrades globais do jogo Legado da Fortaleza
 
 export const SKILL_TREE = [
     // VIDA (coluna 1)

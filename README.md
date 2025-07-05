@@ -1,10 +1,10 @@
-# 🏹 Arqueiro Tower Defense
+# 🏹 Legado da Fortaleza
 
 Um jogo Tower Defense completo e moderno desenvolvido em JavaScript vanilla com HTML5 Canvas. O projeto conta com sistema de torres múltiplas, árvore de habilidades, configurações customizáveis e modo infinito.
 
 ## 🎮 Sobre o Jogo
 
-**Arqueiro Tower Defense** é um jogo de defesa de torres onde você deve proteger sua base de ondas infinitas de inimigos. Construa torres estratégicamente, evolua suas habilidades e sobreviva o máximo de ondas possível!
+**Legado da Fortaleza** é um jogo de defesa de torres onde você deve proteger sua base de ondas infinitas de inimigos. Construa torres estratégicamente, evolua suas habilidades e sobreviva o máximo de ondas possível!
 
 ### 🌟 Características Principais
 
@@ -23,8 +23,8 @@ Um jogo Tower Defense completo e moderno desenvolvido em JavaScript vanilla com 
 
 1. **Clone o repositório**:
 ```bash
-git clone https://github.com/seu-usuario/arqueiro-tower-defense.git
-cd arqueiro-tower-defense
+git clone https://github.com/seu-usuario/legado-da-fortaleza.git
+cd legado-da-fortaleza
 ```
 
 2. **Execute o servidor local**:
@@ -186,7 +186,7 @@ O jogo foi otimizado para diferentes dispositivos:
 
 ### Estrutura do Projeto
 ```
-Arqueiro/
+Legado da Fortaleza/
 ├── index.html              # Página principal
 ├── game.js                 # Lógica principal do jogo
 ├── config.js              # Sistema de configuração
@@ -386,7 +386,7 @@ Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalh
 
 ## 🎮 Créditos
 
-- **Desenvolvido por**: Arqueiro Team
+- **Desenvolvido por**: Legado da Fortaleza Team
 - **Inspirado em**: Clássicos do gênero Tower Defense
 - **Finalidade**: Projeto open-source para estudo e diversão
 
@@ -408,4 +408,4 @@ Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalh
 
 ---
 
-**Divirta-se jogando Arqueiro Tower Defense!** 🏹✨ 
+**Divirta-se jogando Legado da Fortaleza!** 🏹✨ 
