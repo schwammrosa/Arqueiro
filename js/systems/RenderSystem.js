@@ -175,11 +175,59 @@ export class RenderSystem {
         this.ctx.restore();
     }
     
+    // Desenhar preview da torre selecionada
+    drawTowerPreview(mouseX, mouseY, towerType) {
+        if (!window.TOWER_TYPES || !window.TOWER_TYPES[towerType]) return;
+        
+        const tower = window.TOWER_TYPES[towerType];
+        const gridSize = this.GAME_CONFIG.gridSize;
+        
+        // Calcular posição do grid
+        const gridX = Math.floor(mouseX / gridSize);
+        const gridY = Math.floor(mouseY / gridSize);
+        const centerX = gridX * gridSize + gridSize / 2;
+        const centerY = gridY * gridSize + gridSize / 2;
+        
+        this.ctx.save();
+        
+        // Desenhar área da torre com transparência
+        this.ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+        this.ctx.fillRect(
+            centerX - gridSize / 2,
+            centerY - gridSize / 2,
+            gridSize,
+            gridSize
+        );
+        
+        // Borda da área
+        this.ctx.strokeStyle = '#00ff00';
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(
+            centerX - gridSize / 2,
+            centerY - gridSize / 2,
+            gridSize,
+            gridSize
+        );
+        
+        // Ícone da torre
+        this.ctx.font = '20px Arial';
+        this.ctx.fillStyle = 'rgba(0, 255, 0, 0.8)';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText(tower.icon || '🏰', centerX, centerY + 5);
+        
+        this.ctx.restore();
+    }
+    
     // Desenhar efeitos visuais
     drawVisualEffects(gameState) {
         if (!gameState.visualEffects) return;
         
         const currentTime = Date.now();
+        
+        // Desenhar preview da torre selecionada
+        if (gameState.selectedTower && gameState.selectedTowerType && gameState.mouseX !== undefined && gameState.mouseY !== undefined) {
+            this.drawTowerPreview(gameState.mouseX, gameState.mouseY, gameState.selectedTowerType);
+        }
         
         for (let i = gameState.visualEffects.length - 1; i >= 0; i--) {
             const effect = gameState.visualEffects[i];

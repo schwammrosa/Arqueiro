@@ -485,15 +485,29 @@ const enemyPath = loadEnemyPath();
 // Inicializar sistema de renderização
 const renderSystem = new RenderSystem(ctx, GAME_CONFIG, enemyPath);
 
+// Garantir que o gameState seja a mesma referência
+renderSystem.gameState = gameState;
+
 // Inicializar sistema de interface do usuário
 const uiSystem = new UISystem(gameState);
-    window.uiSystem = uiSystem; // Disponibilizar para testes
+window.uiSystem = uiSystem; // Disponibilizar para testes
+
+// Garantir que o gameState seja a mesma referência
+gameState = uiSystem.gameState;
 
 // Inicializar sistema principal do jogo
 const gameSystem = new GameSystem(gameState, GAME_CONFIG, enemyPath, Enemy, chooseEnemyType, calculateEnemyStats, DamageNumber, uiSystem, renderSystem);
 
+// Garantir que o gameState seja a mesma referência
+gameState = gameSystem.gameState;
+
 // Inicializar botões das habilidades especiais
-gameSystem.updateSpecialSkillsVisibility(); // Controlar visibilidade primeiro
+gameSystem.updateSpecialSkillsVisibility();
+
+// Demonstrar nova fórmula de upgrade (para debug)
+console.log('🎮 Nova Fórmula de Upgrade Implementada!');
+console.log('💡 Exemplo para torre de 50 ouro com 50% de upgrade:');
+Tower.demonstrateUpgradeFormula(50, 50); // Controlar visibilidade primeiro
 gameSystem.updateSpecialSkillUI('arrowRain');
 gameSystem.updateSpecialSkillUI('iceStorm');
 gameSystem.updateSpeedUI();
@@ -613,9 +627,20 @@ function renderTowerOptions() {
         `;
         btn.addEventListener('click', () => {
             if (btn.classList.contains('disabled') || btn.classList.contains('locked')) return;
-            gameState.selectedTower = key;
-            document.querySelectorAll('.footer-tower-bar .tower-btn').forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
+            
+            // Se a torre já está selecionada, desselecionar
+            if (gameState.selectedTower === key) {
+                gameState.selectedTower = null;
+                gameState.selectedTowerType = null;
+                gameState.mouseX = undefined;
+                gameState.mouseY = undefined;
+                btn.classList.remove('selected');
+            } else {
+                // Selecionar nova torre
+                gameState.selectedTower = key;
+                document.querySelectorAll('.footer-tower-bar .tower-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+            }
         });
         
         // Verificar se o jogador tem ouro suficiente
@@ -734,8 +759,8 @@ canvas.addEventListener('click', (e) => {
             // Deduzir ouro
             gameState.gold -= cost;
             
-            // Limpar seleção
-            gameState.selectedTower = null;
+            // MANTER a torre selecionada para facilitar a colocação de múltiplas torres
+            // gameState.selectedTower = null; // Removido - manter seleção
             
             // Atualizar UI
             uiSystem.updateUI();
@@ -745,6 +770,21 @@ canvas.addEventListener('click', (e) => {
         } else {
             uiSystem.showNotification('Ouro insuficiente!', 'error');
         }
+    } else if (gameState.selectedTower) {
+        // Se tem torre selecionada mas não pode colocar aqui, mostrar feedback
+        uiSystem.showNotification('Não é possível colocar torre nesta posição!', 'error');
+    }
+});
+
+// Adicionar tecla ESC para desselecionar torre
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && gameState.selectedTower) {
+        gameState.selectedTower = null;
+        gameState.selectedTowerType = null;
+        gameState.mouseX = undefined;
+        gameState.mouseY = undefined;
+        document.querySelectorAll('.footer-tower-bar .tower-btn').forEach(b => b.classList.remove('selected'));
+        uiSystem.showNotification('Torre desselecionada!', 'info');
     }
 });
 
@@ -988,7 +1028,7 @@ window.renderGame = function() {
 gameSystem.initializeFirstWave();
 uiSystem.updateUI();
 // Não iniciar o game loop automaticamente - será iniciado quando clicar em "Jogar"
-// gameSystem.startGameLoop();
+gameSystem.startGameLoop();
 
 window.arrowRainSelecting = arrowRainSelecting;
 window.arrowRainPreview = arrowRainPreview;
@@ -1035,9 +1075,23 @@ canvas.addEventListener('mousemove', (e) => {
     const scaleY = canvas.height / rect.height;
     const mouseX = (e.clientX - rect.left) * scaleX;
     const mouseY = (e.clientY - rect.top) * scaleY;
+    
+    // Atualizar posição do mouse para preview da torre
+    if (gameState.selectedTower) {
+        gameState.mouseX = mouseX;
+        gameState.mouseY = mouseY;
+        gameState.selectedTowerType = gameState.selectedTower;
+    }
     // Procurar torre sob o mouse
     const tower = renderSystem.getTowerAtPosition(mouseX, mouseY, gameState);
+    
+    // Resetar hover de todas as torres
+    gameState.towers.forEach(t => t.isHovered = false);
+    
     if (tower) {
+        // Definir hover para a torre atual
+        tower.isHovered = true;
+        
         showInfoTooltip(
             `<b>${tower.name} (Nível ${tower.level})</b><br>` +
             `Dano: ${tower.damage}<br>` +
@@ -1069,7 +1123,11 @@ canvas.addEventListener('mousemove', (e) => {
     }
     hideInfoTooltip();
 });
-canvas.addEventListener('mouseleave', hideInfoTooltip);
+canvas.addEventListener('mouseleave', () => {
+    hideInfoTooltip();
+    // Limpar hover de todas as torres quando o mouse sai do canvas
+    gameState.towers.forEach(t => t.isHovered = false);
+});
 
 // --- Tempestade de Gelo ---
 const ICE_STORM_BASE_DURATION = 3; // segundos

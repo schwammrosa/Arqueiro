@@ -17,6 +17,7 @@ export class Tower {
         this.showNotification = showNotification;
         this.level = 1;
         this.isSelected = false;
+        this.isHovered = false; // Nova propriedade para hover
         this.totalCost = 0;
         this.activeProjectiles = []; // Array para rastrear projéteis ativos
         this.setBaseStats();
@@ -270,8 +271,31 @@ export class Tower {
     
     getUpgradeCost() {
         const savedConfig = localStorage.getItem('arqueiroConfig');
-        const baseCost = savedConfig ? JSON.parse(savedConfig).upgradeBaseCost || 50 : 50;
-        return baseCost * this.level;
+        const upgradePercentage = savedConfig ? JSON.parse(savedConfig).upgradePercentage || 50 : 50;
+        
+        // Nova fórmula: porcentagem do valor da torre somada progressivamente
+        // Exemplo: 50% do valor da torre para cada upgrade
+        // Nível 1: 50% do custo base
+        // Nível 2: 50% do custo base + 50% do custo base = 100% do custo base
+        // Nível 3: 50% do custo base + 50% do custo base + 50% do custo base = 150% do custo base
+        const baseCost = this.cost;
+        const upgradeCost = Math.floor(baseCost * (upgradePercentage / 100) * this.level);
+        
+        return upgradeCost;
+    }
+    
+    // Função para demonstrar a nova fórmula de upgrade (para debug)
+    static demonstrateUpgradeFormula(baseCost, upgradePercentage, maxLevel = 5) {
+        console.log(`📊 Demonstração da Nova Fórmula de Upgrade:`);
+        console.log(`💰 Custo base da torre: ${baseCost} ouro`);
+        console.log(`📈 Porcentagem de upgrade: ${upgradePercentage}%`);
+        console.log(`\n📋 Custos por nível:`);
+        
+        for (let level = 1; level <= maxLevel; level++) {
+            const upgradeCost = Math.floor(baseCost * (upgradePercentage / 100) * level);
+            const totalCost = Math.floor(baseCost * (upgradePercentage / 100) * (level * (level + 1)) / 2);
+            console.log(`Nível ${level}: ${upgradeCost} ouro (Total acumulado: ${totalCost} ouro)`);
+        }
     }
     
     upgrade() {
@@ -384,7 +408,7 @@ export class Tower {
                 this.y + this.gameConfig.gridSize / 2 - 5
             );
         }
-        if (this.isSelected) {
+        if (this.isSelected || this.isHovered) {
             // Mostrar alcance da torre
             this.ctx.strokeStyle = this.color;
             this.ctx.lineWidth = 2;

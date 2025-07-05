@@ -29,6 +29,7 @@ const DEFAULT_CONFIG = {
     gridSize: 40,
     waveDelay: 3000,
     upgradeBaseCost: 50,
+    upgradePercentage: 50, // Porcentagem do valor da torre para upgrade
     sellPercentage: 50,
     pointsPerKill: 8,           // Reduzido de 10 para 8 (compensar multiplicadores)
     waveBonusMultiplier: 40,    // Reduzido de 50 para 40 (temos bônus exponencial)
@@ -279,8 +280,9 @@ const PRESETS = {
             initialHealth: 50,
             initialGold: 150,
             waveDelaySeconds: 8,
-            upgradeBaseCost: 50,
-            sellPercentage: 75,
+                            upgradeBaseCost: 50,
+                upgradePercentage: 50,
+                sellPercentage: 75,
             enemyBaseHealth: 30,
             enemyHealthIncrease: 8,
             enemySpeed: 0.3,
@@ -297,8 +299,9 @@ const PRESETS = {
             initialHealth: 20,
             initialGold: 100,
             waveDelaySeconds: 5,
-            upgradeBaseCost: 75,
-            sellPercentage: 50,
+                            upgradeBaseCost: 75,
+                upgradePercentage: 50,
+                sellPercentage: 50,
             enemyBaseHealth: 50,
             enemyHealthIncrease: 15,
             enemySpeed: 0.5,
@@ -315,8 +318,9 @@ const PRESETS = {
             initialHealth: 10,
             initialGold: 75,
             waveDelaySeconds: 3,
-            upgradeBaseCost: 100,
-            sellPercentage: 25,
+                            upgradeBaseCost: 100,
+                upgradePercentage: 50,
+                sellPercentage: 25,
             enemyBaseHealth: 80,
             enemyHealthIncrease: 25,
             enemySpeed: 0.8,
@@ -440,7 +444,8 @@ function applyConfigToFields() {
     el = document.getElementById('initialGold'); if (el) el.value = currentConfig.initialGold;
     el = document.getElementById('gridSize'); if (el) el.value = currentConfig.gridSize;
     // waveDelay removido, agora usado waveDelaySeconds
-    el = document.getElementById('upgradeBaseCost'); if (el) el.value = currentConfig.upgradeBaseCost || 50;
+            el = document.getElementById('upgradeBaseCost'); if (el) el.value = currentConfig.upgradeBaseCost || 50;
+        el = document.getElementById('upgradePercentage'); if (el) el.value = currentConfig.upgradePercentage || 50;
     el = document.getElementById('sellPercentage'); if (el) el.value = currentConfig.sellPercentage || 50;
     el = document.getElementById('pointsPerKill'); if (el) el.value = currentConfig.pointsPerKill || 8;
     el = document.getElementById('waveBonusMultiplier'); if (el) el.value = currentConfig.waveBonusMultiplier || 40;
@@ -591,6 +596,7 @@ function collectConfigFromFields() {
         gridSize: getElementValue('gridSize', 40),
         waveDelaySeconds: getElementValue('waveDelaySeconds', 5),
         upgradeBaseCost: getElementValue('upgradeBaseCost', 75),
+        upgradePercentage: getElementValue('upgradePercentage', 50),
         sellPercentage: getElementValue('sellPercentage', 70),
         pointsPerKill: getElementValue('pointsPerKill', 10),
         waveBonusMultiplier: getElementValue('waveBonusMultiplier', 100),

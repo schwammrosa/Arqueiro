@@ -46,7 +46,7 @@ export class UISystem {
         }
     }
 
-    showNotification(message, type = 'info') {
+    showNotification(message, type = 'info', duration = 3000) {
         // Criar elemento de notificação
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
@@ -89,17 +89,15 @@ export class UISystem {
         // Adicionar ao DOM
         document.body.appendChild(notification);
         
-        // Remover após 4 segundos
+        // Remover após o tempo especificado
         setTimeout(() => {
             notification.style.animation = 'slideOutUp 0.4s ease';
             setTimeout(() => {
                 if (notification.parentNode) {
                     notification.parentNode.removeChild(notification);
-                    // Reposicionar notificações restantes
-                    this.repositionNotifications();
                 }
             }, 400);
-        }, 4000);
+        }, duration);
     }
 
     repositionNotifications() {

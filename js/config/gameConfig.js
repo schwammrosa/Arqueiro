@@ -6,6 +6,7 @@ export const DEFAULT_GAME_CONFIG = {
     gridSize: 40,
     waveDelay: 3000,
     upgradeBaseCost: 75,
+    upgradePercentage: 50, // Porcentagem do valor da torre para upgrade
     sellPercentage: 50,
     pointsPerKill: 8,           // Reduzido de 10 para 8 (compensar multiplicadores)
     waveBonusMultiplier: 40,    // Reduzido de 50 para 40 (temos bônus exponencial)
