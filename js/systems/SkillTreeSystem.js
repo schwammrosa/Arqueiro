@@ -29,7 +29,7 @@ export const SKILL_TREE = [
 
 export const SKILL_ICONS = {
     vida: '❤️', cura: '💚', defesa: '🛡️',
-    dano: '⚔️', dano_arq: '🏹', vel_arq: '💨', dano_can: '💣', alc_can: '💥', dano_mag: '🔮', cong_mag: '❄️', dano_tes: '⚡', enc_tes: '🔗',
+    dano: '⚔️', dano_arq: '🏹', vel_arq: '💨', dano_can: '🚀', alc_can: '💥', dano_mag: '🔮', cong_mag: '❄️', dano_tes: '⚡', enc_tes: '🔗',
     esp: '✨', chuva: '🏹', gelo: '❄️', ouro: '��', torre: '🌟'
 };
 

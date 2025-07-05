@@ -58,7 +58,7 @@ const SKILL_TREE = [
 
 const SKILL_ICONS = {
     vida: '❤️', cura: '💚', defesa: '🛡️',
-    dano: '⚔️', dano_arq: '🏹', vel_arq: '💨', dano_can: '💣', alc_can: '💥', dano_mag: '🔮', cong_mag: '❄️', dano_tes: '⚡', enc_tes: '🔗',
+    dano: '⚔️', dano_arq: '🏹', vel_arq: '💨', dano_can: '🚀', alc_can: '💥', dano_mag: '🔮', cong_mag: '❄️', dano_tes: '⚡', enc_tes: '🔗',
     esp: '✨', chuva: '🏹', gelo: '❄️', ouro: '💰', torre: '🌟'
 };
 
@@ -519,32 +519,52 @@ function isMobile() {
     return window.innerWidth <= 480;
 }
 
-// Função modificada para mostrar informações da torre (desabilitada no mobile)
+// Função para mostrar informações da torre
 function showTowerInfo(tower) {
-    // Não mostrar informações da torre no mobile
-    if (isMobile()) {
-        return;
-    }
     
     if (tower.applyBonuses) tower.applyBonuses();
     gameState.towers.forEach(t => t.isSelected = false);
     tower.isSelected = true;
-    document.getElementById('towerInfoTitle').textContent = `${tower.name} - Nível ${tower.level}`;
+    
+    // Atualizar informações da torre
+    document.getElementById('towerInfoTitle').textContent = tower.name;
     document.getElementById('towerLevel').textContent = tower.level;
     document.getElementById('towerDamage').textContent = tower.damage;
     document.getElementById('towerRange').textContent = tower.range;
-    const fireRateMs = Math.round(tower.fireRate * (1000 / 60));
-    document.getElementById('towerFireRate').textContent = `${fireRateMs}ms`;
+    
+    // Converter taxa de tiro para segundos
+    const fireRateSeconds = (tower.fireRate / 60).toFixed(1);
+    document.getElementById('towerFireRate').textContent = `${fireRateSeconds}s`;
+    
+    // Mostrar ícone da torre
+    const towerIcon = TOWER_TYPES[tower.type]?.icon || '🏰';
+    document.getElementById('towerIconDisplay').textContent = towerIcon;
+    
+    // Calcular custos
     const upgradeCost = tower.getUpgradeCost();
     const sellValue = Math.floor(tower.totalCost * ((localStorage.getItem('arqueiroConfig') ? JSON.parse(localStorage.getItem('arqueiroConfig')).sellPercentage : 50) / 100));
     document.getElementById('upgradeCost').textContent = upgradeCost;
     document.getElementById('sellValue').textContent = sellValue;
+    
+    // Configurar botões
     const upgradeBtn = document.getElementById('upgradeTower');
     const sellBtn = document.getElementById('sellTower');
     upgradeBtn.disabled = gameState.gold < upgradeCost;
     sellBtn.disabled = false;
+    
+    // Armazenar referência da torre e mostrar modal
     gameState.selectedTowerForInfo = tower;
-    document.getElementById('towerInfoPanel').style.display = 'flex';
+    const modal = document.getElementById('towerInfoPanel');
+    modal.style.display = 'flex';
+    
+    // Adicionar evento para fechar ao clicar fora (removendo listeners anteriores)
+    const handleOutsideClick = function(e) {
+        if (e.target === modal) {
+            hideTowerInfo();
+            modal.removeEventListener('click', handleOutsideClick);
+        }
+    };
+    modal.addEventListener('click', handleOutsideClick);
 }
 
 // Fechar painel de informações da torre
@@ -554,6 +574,11 @@ function closeTowerInfo() {
     // Desselecionar todas as torres
     gameState.towers.forEach(t => t.isSelected = false);
     gameState.selectedTowerForInfo = null;
+}
+
+// Alias para closeTowerInfo para melhor semântica
+function hideTowerInfo() {
+    closeTowerInfo();
 }
 
 function updateUI() {

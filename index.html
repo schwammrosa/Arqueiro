@@ -105,30 +105,44 @@
         <!-- Painel de informações da torre -->
         <div class="tower-info-panel" id="towerInfoPanel" style="display: none;">
             <div class="tower-info-content">
-                <h3 id="towerInfoTitle">Informações da Torre</h3>
-                <div class="tower-stats">
-                    <div class="stat">
-                        <span class="label">Nível:</span>
-                        <span id="towerLevel">1</span>
+                <div class="tower-header">
+                    <div class="tower-icon-display" id="towerIconDisplay">🏹</div>
+                    <div class="tower-title">
+                        <h3 id="towerInfoTitle">Arqueiro</h3>
+                        <span class="tower-level">Nível <span id="towerLevel">1</span></span>
                     </div>
-                    <div class="stat">
-                        <span class="label">Dano:</span>
-                        <span id="towerDamage">15</span>
+                    <button id="closeTowerInfo" class="close-tower-btn">×</button>
+                </div>
+                
+                <div class="tower-stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-icon">⚔️</span>
+                        <span class="stat-label">Dano</span>
+                        <span class="stat-value" id="towerDamage">15</span>
                     </div>
-                    <div class="stat">
-                        <span class="label">Alcance:</span>
-                        <span id="towerRange">120</span>
+                    <div class="stat-item">
+                        <span class="stat-icon">🎯</span>
+                        <span class="stat-label">Alcance</span>
+                        <span class="stat-value" id="towerRange">120</span>
                     </div>
-                    <div class="stat">
-                        <span class="label">Taxa de Tiro:</span>
-                        <span id="towerFireRate">1000ms</span>
+                    <div class="stat-item">
+                        <span class="stat-icon">⚡</span>
+                        <span class="stat-label">Velocidade</span>
+                        <span class="stat-value" id="towerFireRate">1.0s</span>
                     </div>
                 </div>
+                
                 <div class="tower-actions">
-                    <button id="upgradeTower" class="btn btn-success">⬆️ Evoluir (<span id="upgradeCost">50</span>)</button>
-                    <button id="sellTower" class="btn btn-danger">💰 Vender (<span id="sellValue">25</span>)</button>
-                    <button id="closeTowerInfo" class="btn btn-secondary">❌ Fechar</button>
-                </div>
+                    <button id="upgradeTower" class="action-btn upgrade-btn">
+                        <span class="btn-icon">⬆️</span>
+                        <span class="btn-text">Evoluir</span>
+                        <span class="btn-cost" id="upgradeCost">50</span>
+                    </button>
+                    <button id="sellTower" class="action-btn sell-btn">
+                        <span class="btn-icon">💰</span>
+                        <span class="btn-text">Vender</span>
+                        <span class="btn-cost" id="sellValue">25</span>
+                    </button>
                 </div>
             </div>
         </div>

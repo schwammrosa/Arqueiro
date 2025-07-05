@@ -59,7 +59,7 @@ http://localhost:8000
 - **Taxa de Tiro**: 1000ms
 - **Especialidade**: Dano consistente e bom alcance
 
-### Torre Canhão 💣
+### Torre Canhão 🚀
 - **Custo**: 75 ouro
 - **Alcance**: 100 pixels
 - **Dano**: 25 (área)

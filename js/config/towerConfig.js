@@ -16,7 +16,7 @@ export const DEFAULT_TOWER_TYPES = {
         damage: 25,
         fireRate: 1500,
         color: '#e74a3b',
-        icon: '💣'
+        icon: '🚀'
     },
     magic: {
         name: 'Mágica',
