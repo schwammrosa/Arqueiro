@@ -144,33 +144,129 @@ const PATH_TEMPLATES = {
         name: 'Zigzag',
         description: 'Caminho em ziguezague',
         path: [
-            {x: 0, y: 3}, {x: 1, y: 3}, {x: 2, y: 3}, {x: 3, y: 3}, {x: 4, y: 3},
-            {x: 5, y: 5}, {x: 6, y: 5}, {x: 7, y: 5}, {x: 8, y: 5}, {x: 9, y: 5},
-            {x: 10, y: 7}, {x: 11, y: 7}, {x: 12, y: 7}, {x: 13, y: 7}, {x: 14, y: 7},
-            {x: 15, y: 9}, {x: 16, y: 9}, {x: 17, y: 9}, {x: 18, y: 9}, {x: 19, y: 9}
+            // Primeira seção horizontal
+            {x: 0, y: 2}, {x: 1, y: 2}, {x: 2, y: 2}, {x: 3, y: 2}, {x: 4, y: 2},
+            // Descida
+            {x: 4, y: 3}, {x: 4, y: 4}, {x: 4, y: 5}, {x: 4, y: 6},
+            // Segunda seção horizontal
+            {x: 5, y: 6}, {x: 6, y: 6}, {x: 7, y: 6}, {x: 8, y: 6}, {x: 9, y: 6},
+            // Subida
+            {x: 9, y: 5}, {x: 9, y: 4}, {x: 9, y: 3}, {x: 9, y: 2},
+            // Terceira seção horizontal
+            {x: 10, y: 2}, {x: 11, y: 2}, {x: 12, y: 2}, {x: 13, y: 2}, {x: 14, y: 2},
+            // Descida final
+            {x: 14, y: 3}, {x: 14, y: 4}, {x: 14, y: 5}, {x: 14, y: 6},
+            // Final
+            {x: 15, y: 6}, {x: 16, y: 6}, {x: 17, y: 6}, {x: 18, y: 6}, {x: 19, y: 6}
         ]
     },
     spiral: {
         name: 'Espiral',
         description: 'Caminho em espiral',
         path: [
-            {x: 0, y: 7}, {x: 1, y: 7}, {x: 2, y: 7}, {x: 3, y: 7}, {x: 4, y: 7},
-            {x: 5, y: 7}, {x: 6, y: 7}, {x: 7, y: 7}, {x: 8, y: 7}, {x: 9, y: 7},
-            {x: 10, y: 7}, {x: 11, y: 7}, {x: 12, y: 7}, {x: 13, y: 7}, {x: 14, y: 7},
-            {x: 15, y: 7}, {x: 16, y: 7}, {x: 17, y: 7}, {x: 18, y: 7}, {x: 19, y: 7}
+            // Entrada pela esquerda
+            {x: 0, y: 7}, {x: 1, y: 7}, {x: 2, y: 7},
+            // Primeira volta - subir
+            {x: 2, y: 6}, {x: 2, y: 5}, {x: 2, y: 4}, {x: 2, y: 3},
+            // Direita
+            {x: 3, y: 3}, {x: 4, y: 3}, {x: 5, y: 3}, {x: 6, y: 3}, {x: 7, y: 3}, {x: 8, y: 3},
+            // Descer
+            {x: 8, y: 4}, {x: 8, y: 5}, {x: 8, y: 6}, {x: 8, y: 7}, {x: 8, y: 8}, {x: 8, y: 9},
+            // Esquerda
+            {x: 7, y: 9}, {x: 6, y: 9}, {x: 5, y: 9}, {x: 4, y: 9},
+            // Subir (espiral interna)
+            {x: 4, y: 8}, {x: 4, y: 7}, {x: 4, y: 6},
+            // Direita (espiral interna)
+            {x: 5, y: 6}, {x: 6, y: 6},
+            // Centro e saída
+            {x: 6, y: 7}, {x: 7, y: 7}, {x: 8, y: 7}, {x: 9, y: 7}, {x: 10, y: 7}, {x: 11, y: 7},
+            {x: 12, y: 7}, {x: 13, y: 7}, {x: 14, y: 7}, {x: 15, y: 7}, {x: 16, y: 7},
+            {x: 17, y: 7}, {x: 18, y: 7}, {x: 19, y: 7}
         ]
     },
     maze: {
         name: 'Labirinto',
         description: 'Caminho complexo tipo labirinto',
         path: [
-            {x: 0, y: 3}, {x: 1, y: 3}, {x: 2, y: 3}, {x: 3, y: 3}, {x: 4, y: 3},
-            {x: 5, y: 3}, {x: 6, y: 3}, {x: 7, y: 3}, {x: 8, y: 3}, {x: 9, y: 3},
-            {x: 10, y: 3}, {x: 11, y: 3}, {x: 12, y: 3}, {x: 13, y: 3}, {x: 14, y: 3},
-            {x: 15, y: 3}, {x: 16, y: 3}, {x: 17, y: 3}, {x: 18, y: 3}, {x: 19, y: 3}
+            // Entrada
+            {x: 0, y: 12}, {x: 1, y: 12}, {x: 2, y: 12},
+            // Subir
+            {x: 2, y: 11}, {x: 2, y: 10}, {x: 2, y: 9}, {x: 2, y: 8},
+            // Direita
+            {x: 3, y: 8}, {x: 4, y: 8}, {x: 5, y: 8}, {x: 6, y: 8},
+            // Descer
+            {x: 6, y: 9}, {x: 6, y: 10}, {x: 6, y: 11}, {x: 6, y: 12},
+            // Direita
+            {x: 7, y: 12}, {x: 8, y: 12}, {x: 9, y: 12}, {x: 10, y: 12},
+            // Subir
+            {x: 10, y: 11}, {x: 10, y: 10}, {x: 10, y: 9}, {x: 10, y: 8}, {x: 10, y: 7},
+            {x: 10, y: 6}, {x: 10, y: 5}, {x: 10, y: 4},
+            // Direita
+            {x: 11, y: 4}, {x: 12, y: 4}, {x: 13, y: 4}, {x: 14, y: 4},
+            // Descer
+            {x: 14, y: 5}, {x: 14, y: 6}, {x: 14, y: 7}, {x: 14, y: 8},
+            // Direita final
+            {x: 15, y: 8}, {x: 16, y: 8}, {x: 17, y: 8}, {x: 18, y: 8}, {x: 19, y: 8}
+        ]
+    },
+    ucurve: {
+        name: 'Curva U',
+        description: 'Caminho simples em formato de U',
+        path: [
+            // Entrada pela esquerda
+            {x: 0, y: 10}, {x: 1, y: 10}, {x: 2, y: 10}, {x: 3, y: 10},
+            // Subir
+            {x: 3, y: 9}, {x: 3, y: 8}, {x: 3, y: 7}, {x: 3, y: 6}, {x: 3, y: 5}, {x: 3, y: 4},
+            // Direita (parte superior do U)
+            {x: 4, y: 4}, {x: 5, y: 4}, {x: 6, y: 4}, {x: 7, y: 4}, {x: 8, y: 4}, {x: 9, y: 4},
+            {x: 10, y: 4}, {x: 11, y: 4}, {x: 12, y: 4}, {x: 13, y: 4}, {x: 14, y: 4}, {x: 15, y: 4}, {x: 16, y: 4},
+            // Descer
+            {x: 16, y: 5}, {x: 16, y: 6}, {x: 16, y: 7}, {x: 16, y: 8}, {x: 16, y: 9}, {x: 16, y: 10},
+            // Saída pela direita
+            {x: 17, y: 10}, {x: 18, y: 10}, {x: 19, y: 10}
         ]
     }
 };
+
+// Função para testar todos os templates
+function testAllTemplates() {
+    console.log('🧪 Testando todos os templates de caminho...');
+    
+    Object.keys(PATH_TEMPLATES).forEach(templateName => {
+        const template = PATH_TEMPLATES[templateName];
+        console.log(`\n📋 Template: ${template.name} (${templateName})`);
+        console.log(`📝 Descrição: ${template.description}`);
+        console.log(`📊 Pontos: ${template.path.length}`);
+        
+        // Verificar pontos válidos
+        let validPoints = 0;
+        let invalidPoints = 0;
+        
+        template.path.forEach(point => {
+            if (point.x >= 0 && point.x < GRID_WIDTH && point.y >= 0 && point.y < GRID_HEIGHT) {
+                validPoints++;
+            } else {
+                invalidPoints++;
+                console.warn(`❌ Ponto inválido: (${point.x}, ${point.y})`);
+            }
+        });
+        
+        console.log(`✅ Pontos válidos: ${validPoints}`);
+        if (invalidPoints > 0) {
+            console.warn(`❌ Pontos inválidos: ${invalidPoints}`);
+        }
+        
+        // Validar conectividade do caminho
+        const validation = validateTemplatePath(template.path);
+        if (validation.valid) {
+            console.log(`🔗 Conectividade: ✅ Válida`);
+        } else {
+            console.error(`🔗 Conectividade: ❌ ${validation.error}`);
+        }
+    });
+    
+    console.log('\n🎯 Teste de templates concluído!');
+}
 
 // Estado atual das configurações
 let currentConfig = { ...DEFAULT_GAME_CONFIG };
@@ -264,12 +360,21 @@ function updateGlobalSkillPointsConfig() {
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
+
+    
     loadConfig();
     createPathGrid();
+    createPathTemplates(); // Criar templates antes do editor
     setupPathEditor(); // Mover para antes de updatePathDisplay
     setupEventListeners();
     updatePathDisplay(); // Mover para depois de setupPathEditor
     updateGlobalSkillPointsConfig();
+    detectCurrentPreset();
+    
+    // Testar templates (apenas em modo debug)
+    if (window.location.search.includes('debug=true')) {
+        testAllTemplates();
+    }
     // Salvamento automático dos pontos de upgrade globais
     const skillPointsInput = document.getElementById('globalSkillPointsInput');
     if (skillPointsInput) {
@@ -334,7 +439,7 @@ function applyConfigToFields() {
     el = document.getElementById('initialHealth'); if (el) el.value = currentConfig.initialHealth;
     el = document.getElementById('initialGold'); if (el) el.value = currentConfig.initialGold;
     el = document.getElementById('gridSize'); if (el) el.value = currentConfig.gridSize;
-    el = document.getElementById('waveDelay'); if (el) el.value = currentConfig.waveDelay;
+    // waveDelay removido, agora usado waveDelaySeconds
     el = document.getElementById('upgradeBaseCost'); if (el) el.value = currentConfig.upgradeBaseCost || 50;
     el = document.getElementById('sellPercentage'); if (el) el.value = currentConfig.sellPercentage || 50;
     el = document.getElementById('pointsPerKill'); if (el) el.value = currentConfig.pointsPerKill || 8;
@@ -467,70 +572,79 @@ function applyConfigToFields() {
     el = document.getElementById('iceStormDamageConfig'); if (el) el.value = currentConfig.iceStormDamage || 0;
 }
 
+// Função auxiliar para obter valor de elemento com segurança
+function getElementValue(id, defaultValue = 0, isFloat = false) {
+    const element = document.getElementById(id);
+    if (!element) {
+        console.warn(`Elemento com ID '${id}' não encontrado. Usando valor padrão: ${defaultValue}`);
+        return defaultValue;
+    }
+    return isFloat ? parseFloat(element.value) : parseInt(element.value);
+}
+
 // Coletar configurações dos campos do formulário
 function collectConfigFromFields() {
     const config = {
         // Configurações gerais
-        initialHealth: parseInt(document.getElementById('initialHealth').value),
-        initialGold: parseInt(document.getElementById('initialGold').value),
-        gridSize: parseInt(document.getElementById('gridSize').value),
-        waveDelay: parseInt(document.getElementById('waveDelay').value),
-        upgradeBaseCost: parseInt(document.getElementById('upgradeBaseCost').value),
-        sellPercentage: parseInt(document.getElementById('sellPercentage').value),
-        pointsPerKill: parseInt(document.getElementById('pointsPerKill').value),
-        waveBonusMultiplier: parseInt(document.getElementById('waveBonusMultiplier').value),
-        upgradeBonusMultiplier: parseInt(document.getElementById('upgradeBonusMultiplier').value),
-        waveDelaySeconds: parseInt(document.getElementById('waveDelaySeconds').value),
+        initialHealth: getElementValue('initialHealth', 20),
+        initialGold: getElementValue('initialGold', 75),
+        gridSize: getElementValue('gridSize', 40),
+        waveDelaySeconds: getElementValue('waveDelaySeconds', 5),
+        upgradeBaseCost: getElementValue('upgradeBaseCost', 75),
+        sellPercentage: getElementValue('sellPercentage', 70),
+        pointsPerKill: getElementValue('pointsPerKill', 10),
+        waveBonusMultiplier: getElementValue('waveBonusMultiplier', 100),
+        upgradeBonusMultiplier: getElementValue('upgradeBonusMultiplier', 25),
     
-        goldMultiplier: parseFloat(document.getElementById('goldMultiplier').value),
-        enemyHealthMultiplier: parseFloat(document.getElementById('enemyHealthMultiplier').value),
-        enemySpeedMultiplier: parseFloat(document.getElementById('enemySpeedMultiplier').value),
-        enemySpawnRate: parseInt(document.getElementById('enemySpawnRate').value),
+        goldMultiplier: getElementValue('goldMultiplier', 1.0, true),
+        enemyHealthMultiplier: getElementValue('enemyHealthMultiplier', 1.0, true),
+        enemySpeedMultiplier: getElementValue('enemySpeedMultiplier', 1.0, true),
+        enemySpawnRate: getElementValue('enemySpawnRate', 1000),
         
         // Configurações visuais
-        canvasWidth: parseInt(document.getElementById('canvasWidth').value),
-        canvasHeight: parseInt(document.getElementById('canvasHeight').value),
-        projectileSpeed: parseFloat(document.getElementById('projectileSpeed').value),
-        projectileSize: parseInt(document.getElementById('projectileSize').value),
-        damageNumberLifetime: parseInt(document.getElementById('damageNumberLifetime').value),
-        damageNumberSpeed: parseFloat(document.getElementById('damageNumberSpeed').value),
+        canvasWidth: getElementValue('canvasWidth', 800),
+        canvasHeight: getElementValue('canvasHeight', 600),
+        projectileSpeed: getElementValue('projectileSpeed', 300, true),
+        projectileSize: getElementValue('projectileSize', 6),
+        damageNumberLifetime: getElementValue('damageNumberLifetime', 1000),
+        damageNumberSpeed: getElementValue('damageNumberSpeed', 50, true),
         
         // Configurações de tipos especiais de inimigos
         enemyTypes: {
             normal: {
                 name: 'Normal',
-                healthMultiplier: parseFloat(document.getElementById('normalHealthMultiplier').value),
-                speedMultiplier: parseFloat(document.getElementById('normalSpeedMultiplier').value),
-                rewardMultiplier: parseFloat(document.getElementById('normalRewardMultiplier').value),
-                spawnChance: parseInt(document.getElementById('normalSpawnChance').value),
-                scoreMultiplier: parseFloat(document.getElementById('normalScoreMultiplier').value),
+                healthMultiplier: getElementValue('normalHealthMultiplier', 1.0, true),
+                speedMultiplier: getElementValue('normalSpeedMultiplier', 1.0, true),
+                rewardMultiplier: getElementValue('normalRewardMultiplier', 1.0, true),
+                spawnChance: getElementValue('normalSpawnChance', 70),
+                scoreMultiplier: getElementValue('normalScoreMultiplier', 1.0, true),
                 color: '#dc3545'
             },
             fast: {
                 name: 'Rápido',
-                healthMultiplier: parseFloat(document.getElementById('fastHealthMultiplier').value),
-                speedMultiplier: parseFloat(document.getElementById('fastSpeedMultiplier').value),
-                rewardMultiplier: parseFloat(document.getElementById('fastRewardMultiplier').value),
-                spawnChance: parseInt(document.getElementById('fastSpawnChance').value),
-                scoreMultiplier: parseFloat(document.getElementById('fastScoreMultiplier').value),
+                healthMultiplier: getElementValue('fastHealthMultiplier', 0.7, true),
+                speedMultiplier: getElementValue('fastSpeedMultiplier', 1.8, true),
+                rewardMultiplier: getElementValue('fastRewardMultiplier', 1.2, true),
+                spawnChance: getElementValue('fastSpawnChance', 20),
+                scoreMultiplier: getElementValue('fastScoreMultiplier', 1.2, true),
                 color: '#ffc107'
             },
             tank: {
                 name: 'Tanque',
-                healthMultiplier: parseFloat(document.getElementById('tankHealthMultiplier').value),
-                speedMultiplier: parseFloat(document.getElementById('tankSpeedMultiplier').value),
-                rewardMultiplier: parseFloat(document.getElementById('tankRewardMultiplier').value),
-                spawnChance: parseInt(document.getElementById('tankSpawnChance').value),
-                scoreMultiplier: parseFloat(document.getElementById('tankScoreMultiplier').value),
+                healthMultiplier: getElementValue('tankHealthMultiplier', 2.5, true),
+                speedMultiplier: getElementValue('tankSpeedMultiplier', 0.6, true),
+                rewardMultiplier: getElementValue('tankRewardMultiplier', 1.8, true),
+                spawnChance: getElementValue('tankSpawnChance', 8),
+                scoreMultiplier: getElementValue('tankScoreMultiplier', 1.8, true),
                 color: '#6c757d'
             },
             elite: {
                 name: 'Elite',
-                healthMultiplier: parseFloat(document.getElementById('eliteHealthMultiplier').value),
-                speedMultiplier: parseFloat(document.getElementById('eliteSpeedMultiplier').value),
-                rewardMultiplier: parseFloat(document.getElementById('eliteRewardMultiplier').value),
-                spawnChance: parseInt(document.getElementById('eliteSpawnChance').value),
-                scoreMultiplier: parseFloat(document.getElementById('eliteScoreMultiplier').value),
+                healthMultiplier: getElementValue('eliteHealthMultiplier', 5.0, true),
+                speedMultiplier: getElementValue('eliteSpeedMultiplier', 0.8, true),
+                rewardMultiplier: getElementValue('eliteRewardMultiplier', 3.0, true),
+                spawnChance: getElementValue('eliteSpawnChance', 2),
+                scoreMultiplier: getElementValue('eliteScoreMultiplier', 3.0, true),
                 color: '#dc3545'
             }
         },
@@ -538,54 +652,54 @@ function collectConfigFromFields() {
         // Configurações das torres
         towers: {
             archer: {
-                cost: parseInt(document.getElementById('archerCost').value),
-                range: parseInt(document.getElementById('archerRange').value),
-                damage: parseInt(document.getElementById('archerDamage').value),
-                fireRate: parseInt(document.getElementById('archerFireRate').value),
-                upgradeDamage: parseFloat(document.getElementById('archerUpgradeDamage').value),
-                upgradeRange: parseFloat(document.getElementById('archerUpgradeRange').value),
-                upgradeSpeed: parseFloat(document.getElementById('archerUpgradeSpeed').value)
+                cost: getElementValue('archerCost', 50),
+                range: getElementValue('archerRange', 120),
+                damage: getElementValue('archerDamage', 15),
+                fireRate: getElementValue('archerFireRate', 1000),
+                upgradeDamage: getElementValue('archerUpgradeDamage', 30, true),
+                upgradeRange: getElementValue('archerUpgradeRange', 10, true),
+                upgradeSpeed: getElementValue('archerUpgradeSpeed', -10, true)
             },
             cannon: {
-                cost: parseInt(document.getElementById('cannonCost').value),
-                range: parseInt(document.getElementById('cannonRange').value),
-                damage: parseInt(document.getElementById('cannonDamage').value),
-                fireRate: parseInt(document.getElementById('cannonFireRate').value),
-                upgradeDamage: parseFloat(document.getElementById('cannonUpgradeDamage').value),
-                upgradeRange: parseFloat(document.getElementById('cannonUpgradeRange').value),
-                upgradeSpeed: parseFloat(document.getElementById('cannonUpgradeSpeed').value),
-                areaRadius: parseInt(document.getElementById('cannonAreaRadius').value),
-                areaDamageMultiplier: parseInt(document.getElementById('cannonAreaDamageMultiplier').value)
+                cost: getElementValue('cannonCost', 75),
+                range: getElementValue('cannonRange', 100),
+                damage: getElementValue('cannonDamage', 25),
+                fireRate: getElementValue('cannonFireRate', 1500),
+                upgradeDamage: getElementValue('cannonUpgradeDamage', 35, true),
+                upgradeRange: getElementValue('cannonUpgradeRange', 15, true),
+                upgradeSpeed: getElementValue('cannonUpgradeSpeed', -15, true),
+                areaRadius: getElementValue('cannonAreaRadius', 50),
+                areaDamageMultiplier: getElementValue('cannonAreaDamageMultiplier', 80)
             },
             magic: {
-                cost: parseInt(document.getElementById('magicCost').value),
-                range: parseInt(document.getElementById('magicRange').value),
-                damage: parseInt(document.getElementById('magicDamage').value),
-                fireRate: parseInt(document.getElementById('magicFireRate').value),
-                upgradeDamage: parseFloat(document.getElementById('magicUpgradeDamage').value),
-                upgradeRange: parseFloat(document.getElementById('magicUpgradeRange').value),
-                upgradeSpeed: parseFloat(document.getElementById('magicUpgradeSpeed').value),
-                slowEffect: parseInt(document.getElementById('magicSlowEffect').value),
-                freezeDuration: parseFloat(document.getElementById('magicFreezeDuration').value)
+                cost: getElementValue('magicCost', 95),
+                range: getElementValue('magicRange', 140),
+                damage: getElementValue('magicDamage', 20),
+                fireRate: getElementValue('magicFireRate', 1000),
+                upgradeDamage: getElementValue('magicUpgradeDamage', 25, true),
+                upgradeRange: getElementValue('magicUpgradeRange', 20, true),
+                upgradeSpeed: getElementValue('magicUpgradeSpeed', -5, true),
+                slowEffect: getElementValue('magicSlowEffect', 70),
+                freezeDuration: getElementValue('magicFreezeDuration', 2.0, true)
             },
             tesla: {
-                cost: parseInt(document.getElementById('teslaCost').value),
-                range: parseInt(document.getElementById('teslaRange').value),
-                damage: parseInt(document.getElementById('teslaDamage').value),
-                fireRate: parseInt(document.getElementById('teslaFireRate').value),
-                upgradeDamage: parseFloat(document.getElementById('teslaUpgradeDamage').value),
-                upgradeRange: parseFloat(document.getElementById('teslaUpgradeRange').value),
-                upgradeSpeed: parseFloat(document.getElementById('teslaUpgradeSpeed').value),
-                chainMax: parseInt(document.getElementById('teslaChainMax').value),
-                chainRadius: parseFloat(document.getElementById('teslaChainRadius').value)
+                cost: getElementValue('teslaCost', 95),
+                range: getElementValue('teslaRange', 120),
+                damage: getElementValue('teslaDamage', 20),
+                fireRate: getElementValue('teslaFireRate', 1000),
+                upgradeDamage: getElementValue('teslaUpgradeDamage', 30, true),
+                upgradeRange: getElementValue('teslaUpgradeRange', 12, true),
+                upgradeSpeed: getElementValue('teslaUpgradeSpeed', -8, true),
+                chainMax: getElementValue('teslaChainMax', 3),
+                chainRadius: getElementValue('teslaChainRadius', 80, true)
             },
             special: {
-                cost: parseInt(document.getElementById('specialCost').value),
-                range: parseInt(document.getElementById('specialRange').value),
-                damage: parseInt(document.getElementById('specialDamage').value),
-                fireRate: parseInt(document.getElementById('specialFireRate').value),
-                color: document.getElementById('specialColor').value,
-                effect: document.getElementById('specialEffect').value
+                cost: getElementValue('specialCost', 300),
+                range: getElementValue('specialRange', 200),
+                damage: getElementValue('specialDamage', 40),
+                fireRate: getElementValue('specialFireRate', 500),
+                color: document.getElementById('specialColor')?.value || '#ffd700',
+                effect: document.getElementById('specialEffect')?.value || 'global'
             }
         },
         
@@ -593,12 +707,12 @@ function collectConfigFromFields() {
         enemyPath: getPathFromGrid(),
         
         // Configurações de habilidades especiais
-        arrowRainCooldown: parseInt(document.getElementById('arrowRainCooldownConfig').value),
-        arrowRainDamage: parseInt(document.getElementById('arrowRainDamageConfig').value),
-        arrowRainRadius: parseInt(document.getElementById('arrowRainRadiusConfig').value),
-        iceStormCooldown: parseInt(document.getElementById('iceStormCooldownConfig').value),
-        iceStormDuration: parseFloat(document.getElementById('iceStormDurationConfig').value),
-        iceStormDamage: parseInt(document.getElementById('iceStormDamageConfig').value)
+        arrowRainCooldown: getElementValue('arrowRainCooldownConfig', 30),
+        arrowRainDamage: getElementValue('arrowRainDamageConfig', 30),
+        arrowRainRadius: getElementValue('arrowRainRadiusConfig', 100),
+        iceStormCooldown: getElementValue('iceStormCooldownConfig', 45),
+        iceStormDuration: getElementValue('iceStormDurationConfig', 3.0, true),
+        iceStormDamage: getElementValue('iceStormDamageConfig', 15)
     };
     
     return config;
@@ -667,6 +781,10 @@ function createPathTemplates() {
                 <span class="template-name">Labirinto</span>
                 <span class="template-desc">Caminho complexo</span>
             </button>
+            <button class="template-btn" data-template="ucurve">
+                <span class="template-name">Curva U</span>
+                <span class="template-desc">Caminho em U</span>
+            </button>
         </div>
     `;
     
@@ -675,12 +793,16 @@ function createPathTemplates() {
     pathSection.insertBefore(templatesDiv, controls);
     
     // Adicionar event listeners para templates
-    document.querySelectorAll('.template-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+    templatesDiv.querySelectorAll('.template-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
             const template = btn.dataset.template;
+            console.log(`🎯 Aplicando template: ${template}`);
             applyPathTemplate(template);
         });
     });
+    
+    console.log('✅ Templates de caminho criados e configurados!');
 }
 
 // Configurar editor de caminho
@@ -767,10 +889,22 @@ function handleCellMouseUp() {
 
 // Aplicar template de caminho
 function applyPathTemplate(templateName) {
-    if (confirm(`Aplicar template "${PATH_TEMPLATES[templateName].name}"?`)) {
-        const template = PATH_TEMPLATES[templateName];
-        applyPathToGrid(template.path);
-        showNotification(`Template "${template.name}" aplicado!`, 'success');
+    // Verificar se o template existe
+    if (!PATH_TEMPLATES[templateName]) {
+        showNotification(`Template "${templateName}" não encontrado!`, 'error');
+        return;
+    }
+    
+    const template = PATH_TEMPLATES[templateName];
+    if (confirm(`Aplicar template "${template.name}"?\n\n${template.description}`)) {
+        try {
+            applyPathToGrid(template.path);
+            showNotification(`Template "${template.name}" aplicado com sucesso!`, 'success');
+            console.log(`Template ${templateName} aplicado: ${template.path.length} células`);
+        } catch (error) {
+            console.error('Erro ao aplicar template:', error);
+            showNotification(`Erro ao aplicar template: ${error.message}`, 'error');
+        }
     }
 }
 
@@ -939,12 +1073,23 @@ function applyPathToGrid(path) {
     // Limpar grid
     pathGrid = Array(GRID_HEIGHT).fill().map(() => Array(GRID_WIDTH).fill(false));
     
-    // Aplicar caminho
+    // Validar e aplicar caminho
+    let validPoints = 0;
+    let invalidPoints = 0;
+    
     path.forEach(point => {
         if (point.x >= 0 && point.x < GRID_WIDTH && point.y >= 0 && point.y < GRID_HEIGHT) {
             pathGrid[point.y][point.x] = true;
+            validPoints++;
+        } else {
+            invalidPoints++;
+            console.warn(`Ponto inválido no caminho: (${point.x}, ${point.y})`);
         }
     });
+    
+    if (invalidPoints > 0) {
+        console.warn(`${invalidPoints} pontos inválidos ignorados, ${validPoints} pontos aplicados`);
+    }
     
     updatePathDisplay();
     updatePathStats();
@@ -1353,15 +1498,36 @@ function detectCurrentPreset() {
     setPresetActive('custom');
 }
 
-// Inicializar quando a página carregar
-document.addEventListener('DOMContentLoaded', () => {
-    loadConfig();
-    createPathGrid();
-    createPathTemplates();
-    setupPathEditor();
-    setupEventListeners();
-    updateGlobalSkillPointsConfig();
-    detectCurrentPreset();
-});
+// Função para validar se um caminho é contínuo
+function validateTemplatePath(path) {
+    if (path.length < 2) {
+        return { valid: false, error: 'Caminho muito curto' };
+    }
+    
+    // Verificar se todos os pontos são adjacentes
+    for (let i = 1; i < path.length; i++) {
+        const current = path[i];
+        const previous = path[i - 1];
+        
+        const dx = Math.abs(current.x - previous.x);
+        const dy = Math.abs(current.y - previous.y);
+        
+        // Pontos devem ser adjacentes (máximo 1 célula de distância em uma direção)
+        if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
+            continue; // Válido
+        } else {
+            return { 
+                valid: false, 
+                error: `Caminho desconectado entre pontos ${i-1} e ${i}: (${previous.x},${previous.y}) -> (${current.x},${current.y})` 
+            };
+        }
+    }
+    
+    return { valid: true };
+}
+
+// Comentário removido - inicialização já feita acima
+
+// Funções auxiliares de segurança foram implementadas para lidar com elementos ausentes
 
 // As animações agora estão definidas no config-style.css 
