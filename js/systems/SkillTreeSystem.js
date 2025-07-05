@@ -180,6 +180,16 @@ function renderSkillTreeColumn(branch, containerId, skillTree, skillPoints) {
                     if (document.getElementById('globalSkillPoints')) document.getElementById('globalSkillPoints').textContent = updatedPoints;
                     // Re-renderizar árvore com estado atualizado
                     initSkillTreePanel('skill-tree-multi-panel', updatedSkillTree, updatedPoints);
+                    
+                    // DISPARAR EVENTO PARA NOTIFICAR MUDANÇA NA SKILL TREE
+                    console.log('🔄 Disparando evento skillTreeChanged para nó:', node.id);
+                    document.dispatchEvent(new CustomEvent('skillTreeChanged', { 
+                        detail: { 
+                            nodeId: node.id, 
+                            newLevel: newSkillTree[node.id],
+                            skillTree: updatedSkillTree 
+                        } 
+                    }));
                 };
             } else {
                 nodeDiv.style.cursor = 'default';

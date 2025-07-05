@@ -36,6 +36,9 @@ export class GameSystem {
         
         // Configurar detecção de visibilidade da página
         this.setupVisibilityDetection();
+        
+        // Contador para verificação periódica das habilidades especiais
+        this.skillCheckFrameCounter = 0;
     }
 
     // Inicializar primeira onda
@@ -128,6 +131,9 @@ export class GameSystem {
         `;
         
         document.getElementById('gameOver').style.display = 'flex';
+        
+        // Salvar maior onda atingida para sistema de continuar
+        this.saveMaxWaveReached(this.gameState.wave);
         
         // Recompensa por sobrevivência (baseada em marcos de ondas)
         const UPGRADE_POINTS_KEY = 'arqueiroUpgradePoints';
@@ -236,6 +242,11 @@ export class GameSystem {
         
         // Resetar outros cooldowns/habilidades especiais aqui se necessário
         this.uiSystem.updateUI();
+        
+        // Verificar habilidades especiais após reiniciar
+        setTimeout(() => {
+            this.updateSpecialSkillsVisibility();
+        }, 100);
     }
 
     // Limpar referências órfãs
@@ -482,6 +493,13 @@ export class GameSystem {
         this.cleanupOrphanedReferences();
         this.uiSystem.updateUI();
         
+        // Verificar habilidades especiais periodicamente (a cada 60 frames ≈ 1 segundo)
+        this.skillCheckFrameCounter++;
+        if (this.skillCheckFrameCounter >= 60) {
+            this.updateSpecialSkillsVisibility();
+            this.skillCheckFrameCounter = 0;
+        }
+        
         // Desenhar efeitos visuais
         this.renderSystem.drawVisualEffects(this.gameState);
         
@@ -694,7 +712,7 @@ export class GameSystem {
             const btn = document.getElementById('btnArrowRain');
             if (btn) {
                 const skill = this.specialSkills.arrowRain;
-                const locked = !this.isSpecialSkillUnlocked();
+                const locked = !this.isSpecialSkillUnlocked('arrowRain');
                 const cooldownText = !locked && !skill.ready ? 
                     `<span style='color:#d84315;font-weight:bold;'>${Math.ceil(remainingTime)}s</span>` : '';
                 
@@ -711,7 +729,7 @@ export class GameSystem {
             const btn = document.getElementById('btnIceStorm');
             if (btn) {
                 const skill = this.specialSkills.iceStorm;
-                const locked = !this.isSpecialSkillUnlocked();
+                const locked = !this.isSpecialSkillUnlocked('iceStorm');
                 const cooldownText = !locked && !skill.ready ? 
                     `<span style='color:#d84315;font-weight:bold;'>${Math.ceil(remainingTime)}s</span>` : '';
                 
@@ -727,19 +745,63 @@ export class GameSystem {
         }
     }
     
-    isSpecialSkillUnlocked() {
-        // Verificar se o nó 'esp' da árvore de habilidades está desbloqueado
-        if (typeof loadSkillTree === 'function') {
-            const skillTree = loadSkillTree();
-            return (skillTree['esp'] || 0) > 0;
+    // Verificar se habilidades especiais estão desbloqueadas
+    isSpecialSkillUnlocked(skillName = 'arrowRain') {
+        try {
+            // Acessar localStorage diretamente para ler a skill tree
+            const saved = localStorage.getItem('arqueiroSkillTree');
+            if (!saved) return false;
+            
+            const skillTree = JSON.parse(saved);
+            
+            // Chuva de Flechas: precisa do nó 'esp' desbloqueado
+            if (skillName === 'arrowRain') {
+                return (skillTree['esp'] || 0) > 0;
+            }
+            
+            // Tempestade de Gelo: precisa do nó 'gelo' desbloqueado  
+            if (skillName === 'iceStorm') {
+                return (skillTree['gelo'] || 0) > 0;
+            }
+        } catch (error) {
+            console.error('Erro ao verificar habilidades especiais:', error);
+            return false;
         }
         return false;
+    }
+    
+    // Atualizar visibilidade dos botões das habilidades especiais
+    updateSpecialSkillsVisibility() {
+        const arrowBtn = document.getElementById('btnArrowRain');
+        const iceBtn = document.getElementById('btnIceStorm');
+        
+        if (arrowBtn) {
+            const arrowUnlocked = this.isSpecialSkillUnlocked('arrowRain');
+            arrowBtn.style.display = arrowUnlocked ? 'flex' : 'none';
+            
+            if (arrowUnlocked) {
+                console.log('✅ Chuva de Flechas desbloqueada e visível');
+            } else {
+                console.log('🔒 Chuva de Flechas bloqueada');
+            }
+        }
+        
+        if (iceBtn) {
+            const iceUnlocked = this.isSpecialSkillUnlocked('iceStorm');
+            iceBtn.style.display = iceUnlocked ? 'flex' : 'none';
+            
+            if (iceUnlocked) {
+                console.log('✅ Tempestade de Gelo desbloqueada e visível');
+            } else {
+                console.log('🔒 Tempestade de Gelo bloqueada');
+            }
+        }
     }
     
     // Usar habilidade especial
     useSpecialSkill(skillName) {
         const skill = this.specialSkills[skillName];
-        if (!skill || !skill.ready || !this.isSpecialSkillUnlocked()) {
+        if (!skill || !skill.ready || !this.isSpecialSkillUnlocked(skillName)) {
             return false;
         }
         
@@ -748,5 +810,30 @@ export class GameSystem {
         this.updateSpecialSkillUI(skillName);
         
         return true;
+    }
+    
+    // Salvar maior onda atingida para sistema de continuar
+    saveMaxWaveReached(currentWave) {
+        try {
+            const key = 'maiorOndaAtingida';
+            const savedMaxWave = parseInt(localStorage.getItem(key) || '1');
+            
+            if (currentWave > savedMaxWave) {
+                localStorage.setItem(key, currentWave.toString());
+                console.log(`[CONTINUAR] Nova maior onda salva: ${currentWave}`);
+                
+                // Atualizar botão "Continuar" imediatamente
+                if (typeof window.adicionarBotaoContinuarMenu === 'function') {
+                    window.adicionarBotaoContinuarMenu();
+                }
+                
+                // Adicionar botão "Continuar" na tela de game over
+                if (typeof window.adicionarBotaoContinuarGameOver === 'function') {
+                    window.adicionarBotaoContinuarGameOver();
+                }
+            }
+        } catch (error) {
+            console.error('Erro ao salvar maior onda:', error);
+        }
     }
 } 

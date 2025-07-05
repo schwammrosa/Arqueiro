@@ -412,11 +412,13 @@ const renderSystem = new RenderSystem(ctx, GAME_CONFIG, enemyPath);
 
 // Inicializar sistema de interface do usuário
 const uiSystem = new UISystem(gameState);
+    window.uiSystem = uiSystem; // Disponibilizar para testes
 
 // Inicializar sistema principal do jogo
 const gameSystem = new GameSystem(gameState, GAME_CONFIG, enemyPath, Enemy, chooseEnemyType, calculateEnemyStats, DamageNumber, uiSystem, renderSystem);
 
 // Inicializar botões das habilidades especiais
+gameSystem.updateSpecialSkillsVisibility(); // Controlar visibilidade primeiro
 gameSystem.updateSpecialSkillUI('arrowRain');
 gameSystem.updateSpecialSkillUI('iceStorm');
 gameSystem.updateSpeedUI();
@@ -578,6 +580,13 @@ function onReady() {
     adjustCanvasSize();
     renderTowerOptions();
     
+    // Garantir que as habilidades especiais sejam verificadas na inicialização
+    setTimeout(() => {
+        if (window.gameSystem) {
+            window.gameSystem.updateSpecialSkillsVisibility();
+        }
+    }, 100);
+    
     console.log('🎮 Jogo inicializado com canvas:', GAME_CONFIG.canvasWidth, 'x', GAME_CONFIG.canvasHeight);
 }
 
@@ -657,8 +666,22 @@ document.getElementById('pause').addEventListener('click', () => {
 });
 
 document.getElementById('restart').addEventListener('click', () => {
-    gameSystem.restart(getInitialGameState, () => gameSystem.initializeFirstWave());
-    uiSystem.setGameState(gameSystem.gameState);
+    // Em vez de reiniciar diretamente, voltar ao menu principal
+    document.getElementById('gameOver').style.display = 'none';
+    
+    // Voltar ao menu principal
+    if (typeof window.showMainMenu === 'function') {
+        window.showMainMenu();
+    } else {
+        // Fallback se a função não existir
+        const menu = document.getElementById('mainMenu');
+        if (menu) {
+            menu.style.display = 'flex';
+            document.body.classList.remove('game-running');
+        }
+    }
+    
+    console.log('🏠 Game Over - Voltando ao menu principal');
 });
 
 // Event listeners do painel de informações da torre
@@ -954,27 +977,48 @@ function updateSkillTreeAndConfig() {
 // Função para atualizar árvore e efeitos após upgrade
 function onSkillTreeUpgrade() {
     skillTree = loadSkillTree();
-    console.log('[DEBUG] skillTree após upgrade:', skillTree);
+    console.log('🔄 [DEBUG] skillTree após upgrade:', skillTree);
     updateSkillTreeAndConfig();
     
     // Atualizar botões das habilidades especiais
     if (gameSystem) {
+        console.log('🎯 Verificando habilidades especiais após upgrade...');
+        gameSystem.updateSpecialSkillsVisibility(); // Verificar se devem ser desbloqueadas
         gameSystem.updateSpecialSkillUI('arrowRain');
         gameSystem.updateSpecialSkillUI('iceStorm');
+        
+        // Verificar estado atual
+        const arrowUnlocked = gameSystem.isSpecialSkillUnlocked('arrowRain');
+        const iceUnlocked = gameSystem.isSpecialSkillUnlocked('iceStorm');
+        console.log('🏹 Chuva de Flechas desbloqueada:', arrowUnlocked);
+        console.log('❄️ Tempestade de Gelo desbloqueada:', iceUnlocked);
     }
     
     // Recarregar GAME_CONFIG e skillTree do localStorage antes de atualizar o menu de torres
     const updatedSkillTree = loadSkillTree();
     applySkillTreeEffects(GAME_CONFIG, updatedSkillTree);
-    console.log('[DEBUG] GAME_CONFIG.specialTowerUnlocked:', GAME_CONFIG.specialTowerUnlocked);
+    console.log('🔧 [DEBUG] GAME_CONFIG.specialTowerUnlocked:', GAME_CONFIG.specialTowerUnlocked);
     renderTowerOptions(); // Atualiza o menu de torres ao desbloquear habilidades
-    console.log('[DEBUG] renderTowerOptions chamado após upgrade');
+    console.log('🏗️ [DEBUG] renderTowerOptions chamado após upgrade');
 }
 
-document.addEventListener('skillTreeChanged', () => {
+document.addEventListener('skillTreeChanged', (event) => {
+    console.log('🔔 EVENTO skillTreeChanged RECEBIDO no game.js!');
+    console.log('   Detalhes do evento:', event.detail);
+    
     if (gameSystem) {
+        console.log('🎯 Atualizando habilidades especiais via evento...');
+        gameSystem.updateSpecialSkillsVisibility(); // Verificar se devem ser desbloqueadas
         gameSystem.updateSpecialSkillUI('arrowRain');
         gameSystem.updateSpecialSkillUI('iceStorm');
+        
+        // Log do estado atual
+        const arrowUnlocked = gameSystem.isSpecialSkillUnlocked('arrowRain');
+        const iceUnlocked = gameSystem.isSpecialSkillUnlocked('iceStorm');
+        console.log('🏹 Chuva de Flechas agora:', arrowUnlocked ? 'DESBLOQUEADA' : 'bloqueada');
+        console.log('❄️ Tempestade de Gelo agora:', iceUnlocked ? 'DESBLOQUEADA' : 'bloqueada');
+    } else {
+        console.log('❌ gameSystem não encontrado no evento skillTreeChanged');
     }
 });
 
@@ -1022,7 +1066,7 @@ function adicionarBotaoContinuarMenu() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', adicionarBotaoContinuarMenu);
+// A inicialização do botão "Continuar" agora é feita via index.html com setTimeout
 
 // Adicionar botão Continuar na tela de game over
 function adicionarBotaoContinuarGameOver() {
@@ -1135,8 +1179,49 @@ function iniciarModoContinuar() {
     uiSystem.showNotification(`Continuando do nível ${maiorOnda} com ${ouro} ouro!`, 'info');
 }
 
+// Função para iniciar um novo jogo (diferente do modo continuar)
+function iniciarNovoJogo() {
+    console.log('[DEBUG] Iniciando novo jogo...');
+    
+    // Usar função getInitialGameState para criar estado completamente novo
+    gameSystem.restart(getInitialGameState, () => {
+        // Inicializar primeira onda normalmente
+        gameSystem.initializeFirstWave();
+        
+        // ATUALIZAR A VARIÁVEL GLOBAL gameState
+        gameState = gameSystem.gameState;
+        
+        // Atualizar referências nos sistemas
+        uiSystem.setGameState(gameState);
+        renderSystem.gameState = gameState;
+        
+        // Garantir que o sistema de torres esteja funcionando
+        if (gameSystem.reinitializeTowers) {
+            gameSystem.reinitializeTowers();
+        }
+        
+        // Recarregar configurações e torres
+        reloadConfigs();
+        renderTowerOptions();
+        
+        // Atualizar UI
+        uiSystem.updateUI();
+        
+        console.log('[DEBUG] Novo jogo inicializado. gameState:', gameState);
+        console.log('[DEBUG] Torres disponíveis:', TOWER_TYPES);
+    });
+    
+    // Esconder menu se estiver visível
+    const menu = document.getElementById('mainMenu');
+    if (menu) menu.style.display = 'none';
+    
+    // Notificar o jogador
+    uiSystem.showNotification('Novo jogo iniciado!', 'success');
+}
+
 // Expor função para o escopo global
 window.iniciarModoContinuar = iniciarModoContinuar;
+window.iniciarNovoJogo = iniciarNovoJogo;
 window.adicionarBotaoContinuarMenu = adicionarBotaoContinuarMenu;
 
 // Função de debug para modal de game over
@@ -1586,7 +1671,7 @@ window.debugCanvas = function() {
 
 // Função de debug para testar layout das habilidades especiais
 window.debugSpecialSkills = function() {
-    const skillsBar = document.getElementById('specialSkillsFixedBar');
+    const skillsBar = document.getElementById('specialSkillsFixedBar') || document.querySelector('.skills-container');
     const arrowBtn = document.getElementById('btnArrowRain');
     const iceBtn = document.getElementById('btnIceStorm');
     
@@ -1644,3 +1729,339 @@ window.toggleIceStorm = function() {
     iceBtn.style.display = isVisible ? 'none' : 'flex';
     console.log(`❄️ Tempestade de Gelo: ${isVisible ? 'Oculta' : 'Visível'}`);
 };
+
+// Função de teste rápido para verificar se o jogo está funcionando
+window.testGameStatus = function() {
+    console.log('🎮 TESTE DE STATUS DO JOGO');
+    console.log('========================');
+    
+    const tests = {
+        canvas: document.getElementById('gameCanvas') !== null,
+        gameSystem: typeof window.gameSystem !== 'undefined',
+        gameState: typeof gameState !== 'undefined',
+        uiSystem: typeof window.uiSystem !== 'undefined',
+        gameConfig: typeof GAME_CONFIG !== 'undefined',
+        towers: typeof Tower !== 'undefined',
+        enemies: typeof Enemy !== 'undefined',
+        projectiles: typeof Projectile !== 'undefined'
+    };
+    
+    console.log('📋 Componentes do Jogo:');
+    Object.entries(tests).forEach(([component, status]) => {
+        console.log(`   ${status ? '✅' : '❌'} ${component}: ${status ? 'OK' : 'ERRO'}`);
+    });
+    
+    // Testar CSS
+    const cssTests = {
+        variaveisCSS: getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() !== '',
+        fonteCarregada: getComputedStyle(document.body).fontFamily.includes('system') || getComputedStyle(document.body).fontFamily.includes('Segoe'),
+        painelLateral: document.querySelector('.painel-lateral-btn') !== null,
+        barresTorres: document.querySelector('.footer-tower-bar') !== null
+    };
+    
+    console.log('🎨 Estilos e Interface:');
+    Object.entries(cssTests).forEach(([test, status]) => {
+        console.log(`   ${status ? '✅' : '❌'} ${test}: ${status ? 'OK' : 'ERRO'}`);
+    });
+    
+    // Verificar se há erros no console
+    const hasErrors = Object.values(tests).includes(false) || Object.values(cssTests).includes(false);
+    
+    if (hasErrors) {
+        console.log('⚠️ PROBLEMAS DETECTADOS!');
+        console.log('Verifique os elementos marcados com ❌');
+    } else {
+        console.log('✅ TUDO FUNCIONANDO CORRETAMENTE!');
+        console.log('O jogo está pronto para uso.');
+    }
+    
+    return {
+        componentes: tests,
+        estilos: cssTests,
+        status: hasErrors ? 'COM_PROBLEMAS' : 'OK'
+    };
+};
+
+// Função para corrigir problemas comuns
+window.fixCommonIssues = function() {
+    console.log('🔧 CORRIGINDO PROBLEMAS COMUNS...');
+    
+    // Recarregar configurações
+    if (typeof loadGameConfig === 'function') {
+        GAME_CONFIG = loadGameConfig();
+        console.log('✅ Configurações recarregadas');
+    }
+    
+    // Ajustar canvas
+    if (typeof adjustCanvasSize === 'function') {
+        adjustCanvasSize();
+        console.log('✅ Canvas ajustado');
+    }
+    
+    // Verificar se elementos UI existem
+    const requiredElements = ['gameCanvas', 'specialSkillsFixedBar', 'btnArrowRain', 'btnIceStorm'];
+    requiredElements.forEach(id => {
+        const element = document.getElementById(id);
+        if (!element) {
+            console.log(`❌ Elemento ${id} não encontrado`);
+        } else {
+            console.log(`✅ Elemento ${id} encontrado`);
+        }
+    });
+    
+    console.log('🔧 Correções concluídas');
+    
+    // Testar novamente
+    setTimeout(() => {
+        testGameStatus();
+    }, 100);
+};
+
+// Executar teste automaticamente ao carregar
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        console.log('🚀 Executando teste automático de status...');
+        testGameStatus();
+    }, 2000);
+}); 
+
+// Função para testar o novo layout das habilidades especiais
+window.testNewLayout = function() {
+    console.log('🎯 TESTE DO NOVO LAYOUT');
+    console.log('=====================');
+    
+    const canvas = document.getElementById('gameCanvas');
+    const leftPanel = document.querySelector('.ui-panel');
+    const skillsBar = document.getElementById('specialSkillsFixedBar') || document.querySelector('.skills-container');
+    const arrowBtn = document.getElementById('btnArrowRain');
+    const iceBtn = document.getElementById('btnIceStorm');
+    const towerBar = document.querySelector('.footer-tower-bar');
+    
+    console.log('📍 POSICIONAMENTO DOS ELEMENTOS:');
+    
+    if (canvas) {
+        const canvasRect = canvas.getBoundingClientRect();
+        console.log(`🎮 Canvas: ${canvasRect.left}px da esquerda, ${canvasRect.top}px do topo`);
+        console.log(`   Tamanho: ${canvasRect.width}x${canvasRect.height}px`);
+    }
+    
+    if (leftPanel) {
+        const panelRect = leftPanel.getBoundingClientRect();
+        console.log(`📋 Painel Lateral: ${panelRect.left}px da esquerda, largura: ${panelRect.width}px`);
+    }
+    
+    if (skillsBar) {
+        const skillsRect = skillsBar.getBoundingClientRect();
+        console.log(`⚡ Container Habilidades: ${skillsRect.bottom}px do fundo da tela`);
+        console.log(`   Display: ${getComputedStyle(skillsBar).display}`);
+        console.log(`   Justify-content: ${getComputedStyle(skillsBar).justifyContent}`);
+    }
+    
+    if (arrowBtn) {
+        const arrowRect = arrowBtn.getBoundingClientRect();
+        console.log(`🏹 Chuva de Flechas: ${arrowRect.left}px da esquerda, ${arrowRect.bottom}px do fundo`);
+        console.log(`   Visível: ${arrowBtn.style.display !== 'none'}`);
+    }
+    
+    if (iceBtn) {
+        const iceRect = iceBtn.getBoundingClientRect();
+        console.log(`❄️ Tempestade de Gelo: ${iceRect.left}px da esquerda, ${iceRect.bottom}px do fundo`);
+        console.log(`   Visível: ${iceBtn.style.display !== 'none'}`);
+    }
+    
+    if (towerBar) {
+        const towerRect = towerBar.getBoundingClientRect();
+        console.log(`🏗️ Barra de Torres: ${towerRect.bottom}px do fundo da tela`);
+    }
+    
+    // Verificar sobreposição
+    console.log('🔍 VERIFICAÇÃO DE SOBREPOSIÇÕES:');
+    
+    if (canvas && leftPanel) {
+        const canvasRect = canvas.getBoundingClientRect();
+        const panelRect = leftPanel.getBoundingClientRect();
+        const overlap = panelRect.right > canvasRect.left;
+        console.log(`   Painel vs Canvas: ${overlap ? '❌ SOBREPONDO' : '✅ OK'}`);
+    }
+    
+    if (skillsBar && towerBar) {
+        const skillsRect = skillsBar.getBoundingClientRect();
+        const towerRect = towerBar.getBoundingClientRect();
+        const overlap = skillsRect.bottom > towerRect.top;
+        console.log(`   Habilidades vs Torres: ${overlap ? '❌ SOBREPONDO' : '✅ OK'}`);
+    }
+    
+    // Teste responsivo
+    console.log(`📱 INFORMAÇÕES RESPONSIVAS:`);
+    console.log(`   Largura da tela: ${window.innerWidth}px`);
+    console.log(`   Altura da tela: ${window.innerHeight}px`);
+    console.log(`   Dispositivo: ${window.innerWidth <= 480 ? 'Mobile' : window.innerWidth <= 768 ? 'Tablet' : 'Desktop'}`);
+    
+    return {
+        canvasLeft: canvas ? canvas.getBoundingClientRect().left : 0,
+        panelWidth: leftPanel ? leftPanel.getBoundingClientRect().width : 0,
+        skillsPosition: skillsBar ? skillsBar.getBoundingClientRect().bottom : 0,
+        towerPosition: towerBar ? towerBar.getBoundingClientRect().top : 0
+    };
+};
+
+// Função para forçar mostrar ambas habilidades para teste
+window.showBothSkills = function() {
+    const arrowBtn = document.getElementById('btnArrowRain');
+    const iceBtn = document.getElementById('btnIceStorm');
+    
+    if (arrowBtn) arrowBtn.style.display = 'flex';
+    if (iceBtn) iceBtn.style.display = 'flex';
+    
+    console.log('✅ Ambas as habilidades especiais estão visíveis para teste');
+    
+    // Testar layout após 100ms
+    setTimeout(testNewLayout, 100);
+};
+
+// Função para ajustar layout se necessário
+window.fixLayout = function() {
+    console.log('🔧 Aplicando correções de layout...');
+    
+    const canvas = document.getElementById('gameCanvas');
+    const leftPanel = document.querySelector('.ui-panel');
+    
+    if (canvas && leftPanel) {
+        const panelWidth = leftPanel.getBoundingClientRect().width;
+        canvas.style.marginLeft = `${panelWidth}px`;
+        console.log(`✅ Canvas ajustado: margin-left = ${panelWidth}px`);
+    }
+    
+    const skillsBar = document.getElementById('specialSkillsFixedBar') || document.querySelector('.skills-container');
+    if (skillsBar) {
+        skillsBar.style.display = 'flex';
+        skillsBar.style.justifyContent = 'space-between';
+        console.log('✅ Container de habilidades reconfigurado');
+    }
+    
+    setTimeout(testNewLayout, 100);
+};
+
+// Função para testar sistema de velocidade
+window.testSpeedSystem = function() {
+    console.log('⚡ TESTE DO SISTEMA DE VELOCIDADE');
+    console.log('==================================');
+    
+    const tests = {
+        gameSystem: typeof window.gameSystem !== 'undefined',
+        speedButton: document.getElementById('speedButton') !== null,
+        speedDisplay: document.getElementById('gameSpeed') !== null,
+        speedMethod: typeof window.gameSystem?.toggleGameSpeed === 'function',
+        currentSpeed: window.gameSystem?.gameSpeed || 1
+    };
+    
+    console.log('📋 Componentes do Sistema de Velocidade:');
+    Object.entries(tests).forEach(([component, status]) => {
+        console.log(`   ${status ? '✅' : '❌'} ${component}: ${status ? 'OK' : 'ERRO'}`);
+    });
+    
+    // Testar velocidades disponíveis
+    if (window.gameSystem) {
+        console.log('🎮 Velocidades Disponíveis:');
+        const speeds = [1, 2, 4, 8];
+        speeds.forEach(speed => {
+            console.log(`   ${speed}x - ${window.gameSystem.gameSpeed === speed ? '✅ ATIVA' : '⚪ Disponível'}`);
+        });
+        
+        console.log(`🔄 Velocidade Atual: ${window.gameSystem.gameSpeed}x`);
+    }
+    
+    // Testar botão de velocidade
+    const speedBtn = document.getElementById('speedButton');
+    if (speedBtn) {
+        const btnText = speedBtn.querySelector('.btn-text');
+        console.log(`🎯 Botão de Velocidade: ${btnText ? btnText.textContent : 'Texto não encontrado'}`);
+    }
+    
+    return tests;
+};
+
+// Função para testar habilidades especiais
+window.testSpecialSkills = function() {
+    console.log('🏹 TESTE DAS HABILIDADES ESPECIAIS');
+    console.log('===================================');
+    
+    const arrowBtn = document.getElementById('btnArrowRain');
+    const iceBtn = document.getElementById('btnIceStorm');
+    
+    console.log('📋 Status das Habilidades:');
+    
+    if (arrowBtn) {
+        const arrowRect = arrowBtn.getBoundingClientRect();
+        console.log(`🏹 Chuva de Flechas:`);
+        console.log(`   Visível: ${arrowBtn.style.display !== 'none'}`);
+        console.log(`   Posição: ${arrowRect.left}px, ${arrowRect.top}px`);
+        console.log(`   Tamanho: ${arrowRect.width}x${arrowRect.height}px`);
+        console.log(`   Habilitada: ${!arrowBtn.disabled}`);
+    }
+    
+    if (iceBtn) {
+        const iceRect = iceBtn.getBoundingClientRect();
+        console.log(`❄️ Tempestade de Gelo:`);
+        console.log(`   Visível: ${iceBtn.style.display !== 'none'}`);
+        console.log(`   Posição: ${iceRect.left}px, ${iceRect.top}px`);
+        console.log(`   Tamanho: ${iceRect.width}x${iceRect.height}px`);
+        console.log(`   Habilitada: ${!iceBtn.disabled}`);
+    }
+    
+    // Testar cooldowns
+    if (window.gameSystem && window.gameSystem.specialSkills) {
+        console.log('⏱️ Cooldowns:');
+        console.log(`   Arrow Rain: ${window.gameSystem.specialSkills.arrowRain.cooldown}s`);
+        console.log(`   Ice Storm: ${window.gameSystem.specialSkills.iceStorm.cooldown}s`);
+    }
+    
+    return {
+        arrowRain: arrowBtn !== null,
+        iceStorm: iceBtn !== null,
+        systemIntegration: window.gameSystem?.specialSkills !== undefined
+    };
+};
+
+// Função para testar o botão de voltar ao menu
+window.testMenuButton = function() {
+    console.log('🏠 TESTE DO BOTÃO MENU PRINCIPAL');
+    console.log('=================================');
+    
+    const menuBtn = document.getElementById('btnBackToMenu');
+    const tests = {
+        buttonExists: menuBtn !== null,
+        buttonVisible: menuBtn && menuBtn.offsetWidth > 0,
+        buttonEnabled: menuBtn && !menuBtn.disabled,
+        hasClickEvent: menuBtn && typeof menuBtn.onclick === 'function',
+        returnFunction: typeof window.returnToMenu === 'function'
+    };
+    
+    console.log('📋 Status do Botão Menu:');
+    Object.entries(tests).forEach(([test, status]) => {
+        console.log(`   ${status ? '✅' : '❌'} ${test}: ${status ? 'OK' : 'ERRO'}`);
+    });
+    
+    if (menuBtn) {
+        const btnRect = menuBtn.getBoundingClientRect();
+        console.log('📐 Posição do Botão:');
+        console.log(`   Left: ${btnRect.left}px`);
+        console.log(`   Top: ${btnRect.top}px`);
+        console.log(`   Width: ${btnRect.width}px`);
+        console.log(`   Height: ${btnRect.height}px`);
+        
+        const styles = window.getComputedStyle(menuBtn);
+        console.log('🎨 Estilos do Botão:');
+        console.log(`   Background: ${styles.background}`);
+        console.log(`   Color: ${styles.color}`);
+        console.log(`   Display: ${styles.display}`);
+    }
+    
+    // Testar função returnToMenu
+    if (typeof window.returnToMenu === 'function') {
+        console.log('🧪 Função returnToMenu disponível');
+        console.log('   Para testar: window.returnToMenu(false)');
+    }
+    
+    return tests;
+}; 
