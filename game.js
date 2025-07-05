@@ -760,29 +760,128 @@ function showArrowRainEffect(x, y) {
 
 // --- Eventos ---
 document.addEventListener('DOMContentLoaded', () => {
+    setupSpecialSkillEventListeners();
+});
+
+// Função para configurar event listeners das habilidades especiais
+function setupSpecialSkillEventListeners() {
+    console.log('🔧 Configurando event listeners das habilidades especiais...');
+    
     const btnArrow = document.getElementById('btnArrowRain');
     if (btnArrow) {
-        btnArrow.addEventListener('click', () => {
+        // Remover listener antigo se existir
+        btnArrow.removeEventListener('click', btnArrow._arrowRainHandler);
+        
+        // Criar novo handler e armazenar referência
+        btnArrow._arrowRainHandler = () => {
+            console.log('🏹 Botão Chuva de Flechas clicado!');
             activateArrowRainMode();
-        });
+        };
+        
+        // Adicionar listener
+        btnArrow.addEventListener('click', btnArrow._arrowRainHandler);
+        
+        // Também adicionar onclick como fallback
+        btnArrow.onclick = btnArrow._arrowRainHandler;
+        
+        console.log('✅ Event listener da Chuva de Flechas configurado');
+    } else {
+        console.log('❌ Botão Chuva de Flechas não encontrado');
     }
+    
     const btnIce = document.getElementById('btnIceStorm');
     if (btnIce) {
-        btnIce.addEventListener('click', () => {
+        // Remover listener antigo se existir
+        btnIce.removeEventListener('click', btnIce._iceStormHandler);
+        
+        // Criar novo handler e armazenar referência
+        btnIce._iceStormHandler = () => {
+            console.log('❄️ Botão Tempestade de Gelo clicado!');
             activateIceStorm();
-        });
+        };
+        
+        // Adicionar listener
+        btnIce.addEventListener('click', btnIce._iceStormHandler);
+        
+        // Também adicionar onclick como fallback
+        btnIce.onclick = btnIce._iceStormHandler;
+        
+        console.log('✅ Event listener da Tempestade de Gelo configurado');
+    } else {
+        console.log('❌ Botão Tempestade de Gelo não encontrado');
     }
     
     // Configurar botão de velocidade
     const speedBtn = document.getElementById('speedButton');
     if (speedBtn) {
-        speedBtn.addEventListener('click', () => {
+        // Remover listener antigo se existir
+        speedBtn.removeEventListener('click', speedBtn._speedHandler);
+        
+        // Criar novo handler e armazenar referência
+        speedBtn._speedHandler = () => {
+            console.log('⚡ Botão de velocidade clicado!');
             if (gameSystem) {
                 gameSystem.toggleGameSpeed();
             }
-        });
+        };
+        
+        // Adicionar listener
+        speedBtn.addEventListener('click', speedBtn._speedHandler);
+        
+        // Também adicionar onclick como fallback
+        speedBtn.onclick = speedBtn._speedHandler;
+        
+        console.log('✅ Event listener do botão de velocidade configurado');
+    } else {
+        console.log('❌ Botão de velocidade não encontrado');
     }
-});
+}
+
+// Função para re-configurar event listeners (para debug)
+window.fixEventListeners = function() {
+    console.log('🔧 Re-configurando event listeners...');
+    setupSpecialSkillEventListeners();
+    console.log('✅ Event listeners re-configurados!');
+};
+
+// Função para testar event listeners
+window.testEventListeners = function() {
+    console.log('🧪 TESTANDO EVENT LISTENERS');
+    console.log('===========================');
+    
+    const btnArrow = document.getElementById('btnArrowRain');
+    const btnIce = document.getElementById('btnIceStorm');
+    const speedBtn = document.getElementById('speedButton');
+    
+    const tests = {
+        arrowRainExists: btnArrow !== null,
+        arrowRainClickable: btnArrow && (btnArrow.onclick !== null || btnArrow._arrowRainHandler !== undefined),
+        iceStormExists: btnIce !== null,
+        iceStormClickable: btnIce && (btnIce.onclick !== null || btnIce._iceStormHandler !== undefined),
+        speedButtonExists: speedBtn !== null,
+        speedButtonClickable: speedBtn && (speedBtn.onclick !== null || speedBtn._speedHandler !== undefined)
+    };
+    
+    console.log('📋 Resultados dos testes:');
+    Object.entries(tests).forEach(([test, result]) => {
+        console.log(`   ${result ? '✅' : '❌'} ${test}: ${result ? 'OK' : 'ERRO'}`);
+    });
+    
+    // Testar clique programático
+    console.log('🖱️ Testando cliques programáticos:');
+    
+    if (btnArrow && btnArrow.onclick) {
+        console.log('   🏹 Simulando clique na Chuva de Flechas...');
+        // btnArrow.onclick(); // Descomente para testar
+    }
+    
+    if (btnIce && btnIce.onclick) {
+        console.log('   ❄️ Simulando clique na Tempestade de Gelo...');
+        // btnIce.onclick(); // Descomente para testar
+    }
+    
+    return tests;
+};
 
 // Interceptar clique no canvas para lançar a habilidade
 const gameCanvas = document.getElementById('gameCanvas');

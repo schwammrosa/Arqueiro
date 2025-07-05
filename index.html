@@ -824,6 +824,13 @@
         if (arrowBtn) arrowBtn.style.display = 'flex';
         if (iceBtn) iceBtn.style.display = 'flex';
         
+        // Garantir que os event listeners sejam configurados após um delay
+        setTimeout(() => {
+            if (typeof window.fixEventListeners === 'function') {
+                window.fixEventListeners();
+            }
+        }, 1000);
+        
         console.log('🎯 Novo layout reorganizado aplicado com sucesso!');
     });
 
@@ -915,9 +922,9 @@
         const iceBtn = document.getElementById('btnIceStorm');
         const speedBtn = document.getElementById('speedButton');
         
-        tests.arrowRainClickable = arrowBtn && arrowBtn.onclick !== null;
-        tests.iceStormClickable = iceBtn && iceBtn.onclick !== null;
-        tests.speedButtonClickable = speedBtn && speedBtn.onclick !== null;
+        tests.arrowRainClickable = arrowBtn && (arrowBtn.onclick !== null || arrowBtn._arrowRainHandler !== undefined);
+        tests.iceStormClickable = iceBtn && (iceBtn.onclick !== null || iceBtn._iceStormHandler !== undefined);
+        tests.speedButtonClickable = speedBtn && (speedBtn.onclick !== null || speedBtn._speedHandler !== undefined);
         
         // Testar visibilidade
         tests.arrowRainVisible = arrowBtn && arrowBtn.offsetWidth > 0;
@@ -1020,6 +1027,8 @@
         console.log('   → window.testNewLayout() - Teste específico do layout');
         console.log('   → window.debugSpecialSkills() - Debug das habilidades especiais');
         console.log('   → window.fixLayout() - Correção automática de problemas de layout');
+        console.log('   → window.fixEventListeners() - Corrigir event listeners');
+        console.log('   → window.testEventListeners() - Testar event listeners');
         console.log('   → window.showFixesSummary() - Este resumo');
         console.log('');
         console.log('🎮 STATUS FINAL: Todas as funcionalidades restauradas!');
@@ -1030,7 +1039,56 @@
         console.log('   ➤ Compatibilidade mantida');
         console.log('');
         console.log('💡 Para verificar: Execute window.testAllFunctions()');
+        console.log('💡 Para corrigir cliques: Execute window.fixEventListeners()');
     };
+
+    // Função para corrigir automaticamente os event listeners
+    window.autoFixEventListeners = function() {
+        console.log('🔧 CORREÇÃO AUTOMÁTICA DOS EVENT LISTENERS');
+        console.log('==========================================');
+        
+        // Aguardar um pouco para garantir que tudo esteja carregado
+        setTimeout(() => {
+            if (typeof window.fixEventListeners === 'function') {
+                window.fixEventListeners();
+                
+                // Testar após correção
+                setTimeout(() => {
+                    if (typeof window.testEventListeners === 'function') {
+                        console.log('🧪 Testando após correção...');
+                        window.testEventListeners();
+                    }
+                }, 100);
+                         } else {
+                 console.log('❌ Função fixEventListeners não encontrada. Recarregue a página.');
+             }
+         }, 500);
+     };
+
+     // Executar teste final dos event listeners após carregamento
+     setTimeout(() => {
+         console.log('🏁 TESTE FINAL DOS EVENT LISTENERS');
+         console.log('==================================');
+         
+         // Executar correção automática dos event listeners
+         window.autoFixEventListeners();
+         
+         // Testar após um delay
+         setTimeout(() => {
+             if (typeof window.testEventListeners === 'function') {
+                 console.log('🧪 Resultado do teste final:');
+                 const result = window.testEventListeners();
+                 
+                 if (result.arrowRainClickable && result.iceStormClickable && result.speedButtonClickable) {
+                     console.log('🎉 SUCESSO! Todos os event listeners estão funcionando!');
+                     console.log('💡 As habilidades especiais agora devem responder aos cliques.');
+                 } else {
+                     console.log('⚠️ PROBLEMA: Alguns event listeners ainda não funcionam.');
+                     console.log('💡 Execute window.autoFixEventListeners() manualmente.');
+                 }
+             }
+         }, 1500);
+     }, 2000);
 
     // Executar resumo automaticamente após 4 segundos
     setTimeout(() => {

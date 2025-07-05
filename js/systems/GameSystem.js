@@ -796,6 +796,13 @@ export class GameSystem {
                 console.log('🔒 Tempestade de Gelo bloqueada');
             }
         }
+        
+        // Garantir que os event listeners estejam funcionando
+        setTimeout(() => {
+            if (typeof window.fixEventListeners === 'function') {
+                window.fixEventListeners();
+            }
+        }, 100);
     }
     
     // Usar habilidade especial
