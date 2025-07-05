@@ -345,19 +345,53 @@ function adjustCanvasSize() {
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
     
-    // Calcular fator de escala para dispositivos móveis
+    // 🎯 CALCULAR ALTURA DISPONÍVEL DINAMICAMENTE
+    let usedHeight = 0;
+    
+    // Calcular altura usada pelos elementos
+    const topPanel = document.querySelector('.top-panel');
+    const horizontalControls = document.querySelector('.horizontal-controls');
+    const skillsBar = document.getElementById('specialSkillsFixedBar') || document.querySelector('.skills-container');
+    const towerBar = document.querySelector('.footer-tower-bar');
+    
+    if (topPanel) {
+        usedHeight += topPanel.getBoundingClientRect().height;
+    }
+    
+    if (horizontalControls) {
+        usedHeight += horizontalControls.getBoundingClientRect().height + 20; // 20px margin
+    }
+    
+    if (skillsBar && skillsBar.offsetWidth > 0) {
+        usedHeight += skillsBar.getBoundingClientRect().height + 20; // 20px margin
+    }
+    
+    if (towerBar && towerBar.offsetWidth > 0) {
+        usedHeight += towerBar.getBoundingClientRect().height + 20; // 20px margin
+    }
+    
+    // Adicionar margem de segurança
+    const safetyMargin = screenWidth <= 480 ? 40 : screenWidth <= 768 ? 30 : 20;
+    usedHeight += safetyMargin;
+    
+    // Calcular altura disponível real
+    const availableHeight = Math.max(200, screenHeight - usedHeight);
+    
+    // Calcular fator de escala considerando ambas as dimensões
     let scale = 1;
     
     if (screenWidth <= 480) {
-        // Celular - ajustar para caber na tela com margem
+        // Celular - ajustar para caber na tela
         const availableWidth = screenWidth * 0.95;
-        const availableHeight = (screenHeight - 200) * 0.8; // Espaço para UI
-        scale = Math.min(availableWidth / baseWidth, availableHeight / baseHeight);
+        scale = Math.min(availableWidth / baseWidth, availableHeight / baseHeight, 0.8);
     } else if (screenWidth <= 768) {
         // Tablet - escala moderada
         const availableWidth = screenWidth * 0.9;
-        const availableHeight = (screenHeight - 150) * 0.85;
-        scale = Math.min(availableWidth / baseWidth, availableHeight / baseHeight);
+        scale = Math.min(availableWidth / baseWidth, availableHeight / baseHeight, 0.9);
+    } else {
+        // Desktop - verificar se precisa escalar
+        const availableWidth = screenWidth - 300; // Espaço para painel lateral
+        scale = Math.min(availableWidth / baseWidth, availableHeight / baseHeight, 1.0);
     }
     
     // Aplicar dimensões configuradas (não fixas!)
@@ -365,19 +399,44 @@ function adjustCanvasSize() {
     canvas.height = baseHeight;
     
     // Aplicar escala CSS para responsividade
-    if (scale < 1) {
-        canvas.style.width = (baseWidth * scale) + 'px';
-        canvas.style.height = (baseHeight * scale) + 'px';
-    } else {
-        canvas.style.width = baseWidth + 'px';
-        canvas.style.height = baseHeight + 'px';
-    }
+    const finalWidth = Math.floor(baseWidth * scale);
+    const finalHeight = Math.floor(baseHeight * scale);
     
-    console.log(`Canvas ajustado: ${baseWidth}x${baseHeight} (configurado), exibindo como ${canvas.style.width} x ${canvas.style.height} (escala: ${scale.toFixed(2)})`);
+    canvas.style.width = finalWidth + 'px';
+    canvas.style.height = finalHeight + 'px';
+    
+    // Log para debug
+    console.log(`📐 Canvas ajustado responsivamente:`);
+    console.log(`   Tela: ${screenWidth}x${screenHeight}px`);
+    console.log(`   Altura usada por UI: ${usedHeight}px`);
+    console.log(`   Altura disponível: ${availableHeight}px`);
+    console.log(`   Canvas configurado: ${baseWidth}x${baseHeight}px`);
+    console.log(`   Canvas exibido: ${finalWidth}x${finalHeight}px`);
+    console.log(`   Escala aplicada: ${scale.toFixed(3)}x`);
+    
+    // Força reposicionamento se necessário
+    if (screenWidth <= 768) {
+        canvas.style.margin = '0 auto';
+        canvas.style.display = 'block';
+    }
 }
 
 // Ajustar canvas ao carregar e redimensionar
-window.addEventListener('resize', adjustCanvasSize);
+window.addEventListener('resize', () => {
+    console.log('🔄 Redimensionamento detectado, reajustando canvas...');
+    adjustCanvasSize();
+    
+    // Aguardar um pouco e verificar se está tudo OK
+    setTimeout(() => {
+        if (typeof window.testVerticalResponsiveness === 'function') {
+            const result = window.testVerticalResponsiveness();
+            if (result.canvasCutOff > 0) {
+                console.log('⚠️ Detectado problema após redimensionamento, aplicando correção...');
+                window.forceResponsiveAdjustment();
+            }
+        }
+    }, 200);
+});
 window.addEventListener('orientationchange', () => {
     setTimeout(adjustCanvasSize, 100);
 });

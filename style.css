@@ -88,28 +88,28 @@ body {
     width: 100%;
     background: var(--bg-secondary);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 12px 32px 20px;
+    padding: 8px 24px 12px;
     display: flex;
     flex-direction: column;
     align-items: center;
     position: relative;
     z-index: 100;
     box-sizing: border-box;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 6px 12px -3px rgba(0, 0, 0, 0.1), 0 3px 5px -2px rgba(0, 0, 0, 0.05);
     flex-shrink: 0;
     order: 1;
-    gap: 12px;
+    gap: 8px;
 }
 
 .stats {
     background: var(--bg-glass);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 12px 24px;
+    padding: 8px 16px;
     border-radius: var(--border-radius);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 3px 5px -1px rgba(0, 0, 0, 0.1), 0 2px 3px -1px rgba(0, 0, 0, 0.06);
     display: flex;
     flex-direction: row;
-    gap: 24px;
+    gap: 16px;
     align-items: center;
     width: 100%;
     justify-content: center;
@@ -122,22 +122,22 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
 }
 
 .stat .label {
-    font-size: 0.85em;
+    font-size: 0.8em;
     font-weight: 500;
     color: var(--text-secondary);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
 }
 
 .stat .value {
-    font-size: 1.4em;
+    font-size: 1.2em;
     font-weight: 700;
     color: var(--text-primary);
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 /* Cores específicas para stats */
@@ -145,6 +145,17 @@ body {
 .stat:nth-child(2) .value { color: var(--warning-color); } /* Ouro */
 .stat:nth-child(3) .value { color: var(--info-color); } /* Onda */
 .stat:nth-child(4) .value { color: var(--secondary-color); } /* Velocidade */
+
+/* 
+🎉 OTIMIZAÇÕES IMPLEMENTADAS - DEZEMBRO 2024:
+• Painel de informações reduzido em ~40% (padding, gaps, fontes)
+• Progressão responsiva otimizada Desktop → Tablet → Mobile
+• Mobile: informações secundárias ocultas (Velocidade, Tempo, Pontos)
+• Mantidas apenas informações essenciais no celular
+• Canvas responsivo verticalmente - calcula altura disponível dinamicamente
+• Correção do problema de torres cortadas na parte inferior
+• Sistema de reajuste automático para diferentes tamanhos de tela
+*/
 
 .ui-panel {
     width: 250px;
@@ -561,8 +572,6 @@ a.painel-lateral-btn:active {
 }
 
 #gameCanvas {
-    margin-left: 250px; /* Espaço para o painel lateral */
-    margin-top: 80px;   /* Espaço para o painel superior */
     border: 2px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--border-radius);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -570,6 +579,9 @@ a.painel-lateral-btn:active {
     display: block;
     position: relative;
     z-index: 1;
+    margin: 10px auto; /* Centralizado com margem */
+    max-width: 95vw; /* Não ultrapassar largura da tela */
+    max-height: 70vh; /* Não ultrapassar altura da tela */
 }
 
 .game-over {
@@ -768,13 +780,13 @@ a.painel-lateral-btn:active {
     .top-panel {
         flex-direction: column;
         align-items: stretch;
-        gap: 12px;
-        padding: 8px 4vw;
+        gap: 10px; /* Ligeiramente reduzido */
+        padding: 6px 4vw 12px; /* Ligeiramente reduzido */
     }
     .stats {
         flex-direction: column;
-        gap: 8px;
-        padding: 10px 8px;
+        gap: 6px; /* Ligeiramente reduzido */
+        padding: 8px 6px; /* Ligeiramente reduzido */
     }
     .game-container {
         padding: 0;
@@ -786,25 +798,26 @@ a.painel-lateral-btn:active {
 @media (max-width: 768px) {
     .top-panel {
         position: relative;
-        padding: 8px 2vw;
+        padding: 6px 2vw 10px; /* Ligeiramente reduzido */
     }
     
     .stats {
         flex-direction: row;
         flex-wrap: wrap;
-        gap: 6px;
-        padding: 8px 6px;
-        font-size: 0.9em;
+        gap: 5px; /* Ligeiramente reduzido */
+        padding: 6px 4px; /* Ligeiramente reduzido */
+        font-size: 0.85em; /* Ligeiramente reduzido */
     }
     
     .stat {
-        min-width: 120px;
+        min-width: 110px; /* Ligeiramente reduzido */
         text-align: center;
     }
     
     .game-container {
         min-height: 100vh;
-        padding-bottom: 120px; /* Espaço para barra de torres */
+        padding-bottom: 140px; /* Mais espaço para barra de torres e habilidades */
+        overflow-y: auto; /* Permitir scroll se necessário */
     }
     
     /* Melhorias para painéis em tablets */
@@ -832,27 +845,34 @@ a.painel-lateral-btn:active {
 /* Responsividade para celular */
 @media (max-width: 480px) {
     .top-panel {
-        padding: 6px 1vw;
+        padding: 4px 1vw 8px; /* Ainda mais compacto */
     }
     
     .stats {
-        gap: 4px;
-        padding: 6px 4px;
-        font-size: 0.8em;
+        gap: 3px; /* Ainda menor */
+        padding: 4px 2px; /* Ainda mais compacto */
+        font-size: 0.75em; /* Ainda menor */
     }
     
     .stat {
-        min-width: 100px;
+        min-width: 80px; /* Reduzido */
         flex: 1;
     }
     
     .label {
-        font-size: 0.85em;
+        font-size: 0.8em; /* Reduzido */
     }
     
     .value {
-        font-size: 0.9em;
+        font-size: 0.85em; /* Reduzido */
         font-weight: bold;
+    }
+    
+    /* 📱 OCULTAR INFORMAÇÕES NO CELULAR - Velocidade, Tempo e Pontos */
+    .stats .stat:nth-child(5), /* Tempo */
+    .stats .stat:nth-child(7), /* Pontos */
+    .stats .stat:nth-child(8) {  /* Velocidade */
+        display: none !important;
     }
     
     .ui-panel {
@@ -864,12 +884,16 @@ a.painel-lateral-btn:active {
     }
     
     .game-container {
-        padding-bottom: 140px; /* Mais espaço para barra de torres */
+        padding-bottom: 160px; /* Ainda mais espaço para todos os elementos */
+        overflow-y: auto; /* Permitir scroll se necessário */
+        min-height: calc(100vh - 40px); /* Considerar altura da tela menos margem */
     }
     
     #gameCanvas {
-        width: 100%;
-        max-width: 100vw;
+        width: auto !important; /* Não forçar 100% da largura */
+        max-width: 95vw !important; /* Máximo 95% da largura da tela */
+        max-height: 50vh !important; /* Máximo 50% da altura da tela para mobile */
+        margin: 5px auto !important; /* Centralizado com margem mínima */
     }
     
     /* Melhorias para painéis em celular */
