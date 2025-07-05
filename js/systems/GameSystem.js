@@ -419,7 +419,7 @@ export class GameSystem {
 
         // Renderização (sempre usa deltaTime normal, não acelerado)
         this.renderSystem.ctx.clearRect(0, 0, this.GAME_CONFIG.canvasWidth, this.GAME_CONFIG.canvasHeight);
-        this.renderSystem.drawGrid();
+        this.renderSystem.drawBackground();
         this.renderSystem.drawPath();
         
         // Atualizar e desenhar entidades (com velocidade acelerada)

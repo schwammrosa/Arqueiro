@@ -1,14 +1,52 @@
 // Sistema de Renderização
+import { imageManager } from './ImageManager.js';
+
 export class RenderSystem {
     constructor(ctx, GAME_CONFIG, enemyPath) {
         this.ctx = ctx;
         this.GAME_CONFIG = GAME_CONFIG;
         this.enemyPath = enemyPath;
+        this.imageManager = imageManager;
+        this.imagesInitialized = false;
+        
+        // Inicializar imagens padrão
+        this.initializeImages();
     }
 
-    // Desenhar grid do jogo
+    // Inicializar imagens do jogo
+    async initializeImages() {
+        try {
+            await this.imageManager.initializeDefault(this.GAME_CONFIG.gridSize);
+            this.imagesInitialized = true;
+        } catch (error) {
+            console.error('Erro ao inicializar imagens:', error);
+            this.imagesInitialized = false;
+        }
+    }
+
+    // Desenhar fundo do jogo com texturas
+    drawBackground() {
+        if (!this.imagesInitialized) {
+            // Fallback para fundo simples se imagens não carregaram
+            this.ctx.fillStyle = '#4a7c59';
+            this.ctx.fillRect(0, 0, this.GAME_CONFIG.canvasWidth, this.GAME_CONFIG.canvasHeight);
+            return;
+        }
+
+        // Desenhar fundo com texturas
+        this.imageManager.createBackgroundPattern(
+            this.ctx,
+            this.GAME_CONFIG.canvasWidth,
+            this.GAME_CONFIG.canvasHeight,
+            this.GAME_CONFIG.gridSize,
+            this.enemyPath
+        );
+    }
+
+    // Desenhar grid do jogo (opcional, mais sutil)
     drawGrid() {
-        this.ctx.strokeStyle = '#dee2e6';
+        // Grid mais sutil quando usamos texturas
+        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
         this.ctx.lineWidth = 1;
 
         for (let x = 0; x <= this.GAME_CONFIG.canvasWidth; x += this.GAME_CONFIG.gridSize) {
@@ -26,10 +64,33 @@ export class RenderSystem {
         }
     }
 
-    // Desenhar caminho dos inimigos
+    // Desenhar caminho dos inimigos (linha guia sutil)
     drawPath() {
-        this.ctx.strokeStyle = '#6c757d';
-        this.ctx.lineWidth = 3;
+        if (!this.imagesInitialized) {
+            // Fallback para caminho simples se imagens não carregaram
+            this.ctx.strokeStyle = '#6c757d';
+            this.ctx.lineWidth = 3;
+            this.ctx.beginPath();
+            
+            for (let i = 0; i < this.enemyPath.length; i++) {
+                const x = this.enemyPath[i].x * this.GAME_CONFIG.gridSize + this.GAME_CONFIG.gridSize / 2;
+                const y = this.enemyPath[i].y * this.GAME_CONFIG.gridSize + this.GAME_CONFIG.gridSize / 2;
+                
+                if (i === 0) {
+                    this.ctx.moveTo(x, y);
+                } else {
+                    this.ctx.lineTo(x, y);
+                }
+            }
+            
+            this.ctx.stroke();
+            return;
+        }
+
+        // Desenhar uma linha guia sutil sobre o caminho texturizado
+        this.ctx.strokeStyle = 'rgba(139, 115, 85, 0.3)'; // Cor mais sutil
+        this.ctx.lineWidth = 2;
+        this.ctx.setLineDash([5, 5]); // Linha tracejada
         this.ctx.beginPath();
         
         for (let i = 0; i < this.enemyPath.length; i++) {
@@ -44,6 +105,7 @@ export class RenderSystem {
         }
         
         this.ctx.stroke();
+        this.ctx.setLineDash([]); // Resetar linha tracejada
     }
 
     // Obter posição do grid baseada na posição do mouse
