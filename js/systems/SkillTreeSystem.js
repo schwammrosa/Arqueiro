@@ -164,7 +164,7 @@ function renderSkillTreeColumn(branch, containerId, skillTree, skillPoints) {
             if (canUpgrade) {
                 nodeDiv.style.cursor = 'pointer';
                 nodeDiv.onclick = () => {
-                    console.log('Cliquei em', node.id);
+
                     // Atualizar skillTree e pontos
                     const newSkillTree = { ...skillTree };
                     newSkillTree[node.id] = (newSkillTree[node.id] || 0) + 1;
@@ -182,7 +182,7 @@ function renderSkillTreeColumn(branch, containerId, skillTree, skillPoints) {
                     initSkillTreePanel('skill-tree-multi-panel', updatedSkillTree, updatedPoints);
                     
                     // DISPARAR EVENTO PARA NOTIFICAR MUDANÇA NA SKILL TREE
-                    console.log('🔄 Disparando evento skillTreeChanged para nó:', node.id);
+
                     document.dispatchEvent(new CustomEvent('skillTreeChanged', { 
                         detail: { 
                             nodeId: node.id, 

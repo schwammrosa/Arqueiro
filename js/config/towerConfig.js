@@ -68,7 +68,7 @@ export function loadTowerConfig() {
                 };
             }
         } catch (e) {
-            console.error('Erro ao carregar configurações das torres:', e);
+            // Erro ao carregar configurações das torres
         }
     }
     return DEFAULT_TOWER_TYPES;

@@ -63,7 +63,7 @@ export function loadGameConfig() {
             const config = JSON.parse(savedConfig);
             return { ...DEFAULT_GAME_CONFIG, ...config };
         } catch (e) {
-            console.error('Erro ao carregar configurações:', e);
+            // Erro ao carregar configurações
         }
     }
     return DEFAULT_GAME_CONFIG;
@@ -77,7 +77,7 @@ export function saveGameConfig(config) {
         notifyConfigChanged();
         return true;
     } catch (e) {
-        console.error('Erro ao salvar configurações:', e);
+        // Erro ao salvar configurações
         return false;
     }
 }

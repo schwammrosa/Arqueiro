@@ -64,7 +64,7 @@ export function loadEnemyConfig() {
                 }
             };
         } catch (e) {
-            console.error('Erro ao carregar configurações dos inimigos:', e);
+            // Erro ao carregar configurações dos inimigos
         }
     }
     return DEFAULT_ENEMY_CONFIG;

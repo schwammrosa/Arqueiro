@@ -292,7 +292,7 @@ function reloadConfigs() {
     
     // Atualizar tamanho do canvas se necessário
     if (oldCanvasWidth !== GAME_CONFIG.canvasWidth || oldCanvasHeight !== GAME_CONFIG.canvasHeight) {
-        console.log('Canvas redimensionado:', GAME_CONFIG.canvasWidth, 'x', GAME_CONFIG.canvasHeight);
+
         // Usar adjustCanvasSize() para aplicar as novas dimensões com responsividade
         adjustCanvasSize();
     }
@@ -307,7 +307,7 @@ function reloadConfigs() {
         tower.applyBonuses && tower.applyBonuses();
     });
     
-    console.log('Configurações recarregadas:', GAME_CONFIG);
+
     renderTowerOptions();
 
     // Ao aplicar as configurações do painel, garantir que o valor de freezeDuration da torre mágica seja usado em mageFreezeBonus
@@ -405,14 +405,7 @@ function adjustCanvasSize() {
     canvas.style.width = finalWidth + 'px';
     canvas.style.height = finalHeight + 'px';
     
-    // Log para debug
-    console.log(`📐 Canvas ajustado responsivamente:`);
-    console.log(`   Tela: ${screenWidth}x${screenHeight}px`);
-    console.log(`   Altura usada por UI: ${usedHeight}px`);
-    console.log(`   Altura disponível: ${availableHeight}px`);
-    console.log(`   Canvas configurado: ${baseWidth}x${baseHeight}px`);
-    console.log(`   Canvas exibido: ${finalWidth}x${finalHeight}px`);
-    console.log(`   Escala aplicada: ${scale.toFixed(3)}x`);
+
     
     // Força reposicionamento se necessário
     if (screenWidth <= 768) {
@@ -423,18 +416,12 @@ function adjustCanvasSize() {
 
 // Ajustar canvas ao carregar e redimensionar
 window.addEventListener('resize', () => {
-    console.log('🔄 Redimensionamento detectado, reajustando canvas...');
+
     adjustCanvasSize();
     
-    // Aguardar um pouco e verificar se está tudo OK
+    // Aguardar um pouco para ajustar canvas
     setTimeout(() => {
-        if (typeof window.testVerticalResponsiveness === 'function') {
-            const result = window.testVerticalResponsiveness();
-            if (result.canvasCutOff > 0) {
-                console.log('⚠️ Detectado problema após redimensionamento, aplicando correção...');
-                window.forceResponsiveAdjustment();
-            }
-        }
+        adjustCanvasSize();
     }, 200);
 });
 window.addEventListener('orientationchange', () => {
@@ -443,7 +430,7 @@ window.addEventListener('orientationchange', () => {
 
 // Escutar mudanças de configuração
 onConfigChanged((newConfig) => {
-    console.log('Configuração alterada, recarregando...');
+
     reloadConfigs();
     uiSystem.showNotification('Configurações aplicadas ao jogo!', 'info');
 });
@@ -659,7 +646,7 @@ function onReady() {
         }
     }, 100);
     
-    console.log('🎮 Jogo inicializado com canvas:', GAME_CONFIG.canvasWidth, 'x', GAME_CONFIG.canvasHeight);
+
 }
 
 if (document.readyState === 'loading') {
@@ -753,7 +740,7 @@ document.getElementById('restart').addEventListener('click', () => {
         }
     }
     
-    console.log('🏠 Game Over - Voltando ao menu principal');
+    
 });
 
 // Event listeners do painel de informações da torre
@@ -837,7 +824,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Função para configurar event listeners das habilidades especiais
 function setupSpecialSkillEventListeners() {
-    console.log('🔧 Configurando event listeners das habilidades especiais...');
+
     
     const btnArrow = document.getElementById('btnArrowRain');
     if (btnArrow) {
@@ -846,7 +833,7 @@ function setupSpecialSkillEventListeners() {
         
         // Criar novo handler e armazenar referência
         btnArrow._arrowRainHandler = () => {
-            console.log('🏹 Botão Chuva de Flechas clicado!');
+            
             activateArrowRainMode();
         };
         
@@ -856,9 +843,9 @@ function setupSpecialSkillEventListeners() {
         // Também adicionar onclick como fallback
         btnArrow.onclick = btnArrow._arrowRainHandler;
         
-        console.log('✅ Event listener da Chuva de Flechas configurado');
+        
     } else {
-        console.log('❌ Botão Chuva de Flechas não encontrado');
+        
     }
     
     const btnIce = document.getElementById('btnIceStorm');
@@ -868,7 +855,7 @@ function setupSpecialSkillEventListeners() {
         
         // Criar novo handler e armazenar referência
         btnIce._iceStormHandler = () => {
-            console.log('❄️ Botão Tempestade de Gelo clicado!');
+            
             activateIceStorm();
         };
         
@@ -878,9 +865,9 @@ function setupSpecialSkillEventListeners() {
         // Também adicionar onclick como fallback
         btnIce.onclick = btnIce._iceStormHandler;
         
-        console.log('✅ Event listener da Tempestade de Gelo configurado');
+        
     } else {
-        console.log('❌ Botão Tempestade de Gelo não encontrado');
+        
     }
     
     // Configurar botão de velocidade
@@ -891,7 +878,7 @@ function setupSpecialSkillEventListeners() {
         
         // Criar novo handler e armazenar referência
         speedBtn._speedHandler = () => {
-            console.log('⚡ Botão de velocidade clicado!');
+            
             if (gameSystem) {
                 gameSystem.toggleGameSpeed();
             }
@@ -903,57 +890,21 @@ function setupSpecialSkillEventListeners() {
         // Também adicionar onclick como fallback
         speedBtn.onclick = speedBtn._speedHandler;
         
-        console.log('✅ Event listener do botão de velocidade configurado');
+        
     } else {
-        console.log('❌ Botão de velocidade não encontrado');
+        
     }
 }
 
 // Função para re-configurar event listeners (para debug)
 window.fixEventListeners = function() {
-    console.log('🔧 Re-configurando event listeners...');
+
     setupSpecialSkillEventListeners();
-    console.log('✅ Event listeners re-configurados!');
+
 };
 
 // Função para testar event listeners
-window.testEventListeners = function() {
-    console.log('🧪 TESTANDO EVENT LISTENERS');
-    console.log('===========================');
-    
-    const btnArrow = document.getElementById('btnArrowRain');
-    const btnIce = document.getElementById('btnIceStorm');
-    const speedBtn = document.getElementById('speedButton');
-    
-    const tests = {
-        arrowRainExists: btnArrow !== null,
-        arrowRainClickable: btnArrow && (btnArrow.onclick !== null || btnArrow._arrowRainHandler !== undefined),
-        iceStormExists: btnIce !== null,
-        iceStormClickable: btnIce && (btnIce.onclick !== null || btnIce._iceStormHandler !== undefined),
-        speedButtonExists: speedBtn !== null,
-        speedButtonClickable: speedBtn && (speedBtn.onclick !== null || speedBtn._speedHandler !== undefined)
-    };
-    
-    console.log('📋 Resultados dos testes:');
-    Object.entries(tests).forEach(([test, result]) => {
-        console.log(`   ${result ? '✅' : '❌'} ${test}: ${result ? 'OK' : 'ERRO'}`);
-    });
-    
-    // Testar clique programático
-    console.log('🖱️ Testando cliques programáticos:');
-    
-    if (btnArrow && btnArrow.onclick) {
-        console.log('   🏹 Simulando clique na Chuva de Flechas...');
-        // btnArrow.onclick(); // Descomente para testar
-    }
-    
-    if (btnIce && btnIce.onclick) {
-        console.log('   ❄️ Simulando clique na Tempestade de Gelo...');
-        // btnIce.onclick(); // Descomente para testar
-    }
-    
-    return tests;
-};
+
 
 // Interceptar clique no canvas para lançar a habilidade
 const gameCanvas = document.getElementById('gameCanvas');
@@ -1148,12 +1099,12 @@ function updateSkillTreeAndConfig() {
 // Função para atualizar árvore e efeitos após upgrade
 function onSkillTreeUpgrade() {
     skillTree = loadSkillTree();
-    console.log('🔄 [DEBUG] skillTree após upgrade:', skillTree);
+    
     updateSkillTreeAndConfig();
     
     // Atualizar botões das habilidades especiais
     if (gameSystem) {
-        console.log('🎯 Verificando habilidades especiais após upgrade...');
+
         gameSystem.updateSpecialSkillsVisibility(); // Verificar se devem ser desbloqueadas
         gameSystem.updateSpecialSkillUI('arrowRain');
         gameSystem.updateSpecialSkillUI('iceStorm');
@@ -1161,24 +1112,22 @@ function onSkillTreeUpgrade() {
         // Verificar estado atual
         const arrowUnlocked = gameSystem.isSpecialSkillUnlocked('arrowRain');
         const iceUnlocked = gameSystem.isSpecialSkillUnlocked('iceStorm');
-        console.log('🏹 Chuva de Flechas desbloqueada:', arrowUnlocked);
-        console.log('❄️ Tempestade de Gelo desbloqueada:', iceUnlocked);
+
     }
     
     // Recarregar GAME_CONFIG e skillTree do localStorage antes de atualizar o menu de torres
     const updatedSkillTree = loadSkillTree();
     applySkillTreeEffects(GAME_CONFIG, updatedSkillTree);
-    console.log('🔧 [DEBUG] GAME_CONFIG.specialTowerUnlocked:', GAME_CONFIG.specialTowerUnlocked);
+    
     renderTowerOptions(); // Atualiza o menu de torres ao desbloquear habilidades
-    console.log('🏗️ [DEBUG] renderTowerOptions chamado após upgrade');
+    
 }
 
 document.addEventListener('skillTreeChanged', (event) => {
-    console.log('🔔 EVENTO skillTreeChanged RECEBIDO no game.js!');
-    console.log('   Detalhes do evento:', event.detail);
+
     
     if (gameSystem) {
-        console.log('🎯 Atualizando habilidades especiais via evento...');
+
         gameSystem.updateSpecialSkillsVisibility(); // Verificar se devem ser desbloqueadas
         gameSystem.updateSpecialSkillUI('arrowRain');
         gameSystem.updateSpecialSkillUI('iceStorm');
@@ -1186,20 +1135,15 @@ document.addEventListener('skillTreeChanged', (event) => {
         // Log do estado atual
         const arrowUnlocked = gameSystem.isSpecialSkillUnlocked('arrowRain');
         const iceUnlocked = gameSystem.isSpecialSkillUnlocked('iceStorm');
-        console.log('🏹 Chuva de Flechas agora:', arrowUnlocked ? 'DESBLOQUEADA' : 'bloqueada');
-        console.log('❄️ Tempestade de Gelo agora:', iceUnlocked ? 'DESBLOQUEADA' : 'bloqueada');
+
     } else {
-        console.log('❌ gameSystem não encontrado no evento skillTreeChanged');
+
     }
 });
 
 // Função para verificar elementos
 window.checkElements = function() {
-    console.log('Verificando elementos...');
-    console.log('btnArrowRain:', document.getElementById('btnArrowRain'));
-    console.log('btnIceStorm:', document.getElementById('btnIceStorm'));
-    console.log('arrowRainCooldown:', document.getElementById('arrowRainCooldown'));
-    console.log('iceStormCooldown:', document.getElementById('iceStormCooldown'));
+
 };
 
 // Função utilitária para calcular ouro acumulado até uma onda
@@ -1267,7 +1211,7 @@ function iniciarModoContinuar() {
     
     if (maiorOnda <= 1) return;
     
-    console.log('[DEBUG] Iniciando modo continuar do nível:', maiorOnda);
+
     
     // Calcular ouro acumulado
     const enemiesPerWave = GAME_CONFIG.enemiesPerWave || 5;
@@ -1275,7 +1219,7 @@ function iniciarModoContinuar() {
     const enemiesIncrease = GAME_CONFIG.enemiesIncrease || 2;
     const ouro = calcularOuroAteOnda(maiorOnda, enemiesPerWave, enemyReward);
     
-    console.log('[DEBUG] Ouro calculado:', ouro);
+
     
     // Função customizada para o modo continuar
     function getInitialGameStateContinuar() {
@@ -1307,7 +1251,7 @@ function iniciarModoContinuar() {
             spawnInterval: 1.0 // segundos
         };
         
-        console.log('[DEBUG] Novo gameState criado:', newGameState);
+    
         return newGameState;
     }
     
@@ -1338,8 +1282,7 @@ function iniciarModoContinuar() {
         // Atualizar UI
         uiSystem.updateUI();
         
-        console.log('[DEBUG] Modo continuar inicializado. gameState:', gameState);
-        console.log('[DEBUG] Torres disponíveis:', TOWER_TYPES);
+        
     });
     
     // Esconder menu se estiver visível
@@ -1352,7 +1295,7 @@ function iniciarModoContinuar() {
 
 // Função para iniciar um novo jogo (diferente do modo continuar)
 function iniciarNovoJogo() {
-    console.log('[DEBUG] Iniciando novo jogo...');
+
     
     // Usar função getInitialGameState para criar estado completamente novo
     gameSystem.restart(getInitialGameState, () => {
@@ -1378,8 +1321,7 @@ function iniciarNovoJogo() {
         // Atualizar UI
         uiSystem.updateUI();
         
-        console.log('[DEBUG] Novo jogo inicializado. gameState:', gameState);
-        console.log('[DEBUG] Torres disponíveis:', TOWER_TYPES);
+        
     });
     
     // Esconder menu se estiver visível
@@ -1394,1558 +1336,3 @@ function iniciarNovoJogo() {
 window.iniciarModoContinuar = iniciarModoContinuar;
 window.iniciarNovoJogo = iniciarNovoJogo;
 window.adicionarBotaoContinuarMenu = adicionarBotaoContinuarMenu;
-
-// Função de debug para modal de game over
-window.debugGameOver = function() {
-    console.log('=== Debug Modal Game Over ===');
-    
-    if (window.gameSystem) {
-        const gs = window.gameSystem.gameState;
-        console.log(`Estado atual:`);
-        console.log(`- Onda: ${gs.wave}`);
-        console.log(`- Pontuação: ${gs.score}`);
-        console.log(`- Tempo de jogo: ${gs.gameTime.toFixed(2)}s`);
-        console.log(`- Game over: ${gs.isGameOver}`);
-        console.log(`- Inimigos ativos: ${gs.enemies.length}`);
-        console.log(`- Torres: ${gs.towers.length}`);
-        
-        return {
-            forceGameOver: () => {
-                console.log('Forçando game over para teste...');
-                gameSystem.gameOver();
-            },
-            addTestScore: (points) => {
-                gs.score += points;
-                console.log(`Adicionados ${points} pontos. Nova pontuação: ${gs.score}`);
-            },
-            simulateWaveComplete: () => {
-                console.log('Simulando completar onda...');
-                gs.score += 100;
-                gs.wave++;
-                console.log(`Nova onda: ${gs.wave}, pontuação: ${gs.score}`);
-            },
-            clearModal: () => {
-                const gameOverContent = document.querySelector('.game-over-content');
-                if (gameOverContent) {
-                    const dynamicElements = gameOverContent.querySelectorAll('div.reward-message, div.motivational-message');
-                    dynamicElements.forEach(el => el.remove());
-                    console.log(`Removidos ${dynamicElements.length} elementos dinâmicos`);
-                }
-            },
-            testMultiple: () => {
-                console.log('Testando múltiplas execuções...');
-                for (let i = 0; i < 3; i++) {
-                    setTimeout(() => {
-                        console.log(`Execução ${i + 1}`);
-                        gameSystem.gameOver();
-                    }, i * 100);
-                }
-            }
-        };
-    } else {
-        console.error('gameSystem não encontrado');
-        return null;
-    }
-};
-
-// Função de debug para sistema de velocidade
-window.debugSpeedSystem = function() {
-    console.log('=== Sistema de Velocidade - Debug ===');
-    
-    if (window.gameSystem) {
-        const gs = window.gameSystem;
-        console.log(`Velocidade atual: ${gs.gameSpeed}x`);
-        console.log(`Velocidades disponíveis: ${gs.availableSpeeds.join(', ')}`);
-        console.log(`Índice atual: ${gs.currentSpeedIndex}`);
-        
-        // Informações das habilidades especiais
-        console.log(`--- Habilidades Especiais ---`);
-        Object.entries(gs.specialSkills).forEach(([name, skill]) => {
-            const remainingTime = skill.ready ? 0 : skill.cooldownTime - (gs.gameState.gameTime - skill.lastUsed);
-            console.log(`${name}: ${skill.ready ? 'Pronto' : `${remainingTime.toFixed(1)}s restantes`}`);
-        });
-        
-        return {
-            speed: gs.gameSpeed,
-            setSpeed: function(speed) {
-                console.log(`Alterando velocidade para ${speed}x`);
-                gs.setGameSpeed(speed);
-            },
-            testSkill: function(skillName) {
-                console.log(`Testando habilidade: ${skillName}`);
-                const success = gs.useSpecialSkill(skillName);
-                console.log(`Resultado: ${success ? 'Sucesso' : 'Falhou'}`);
-                return success;
-            },
-            toggleGameSpeed: function() {
-                gs.toggleGameSpeed();
-                console.log(`Nova velocidade: ${gs.gameSpeed}x`);
-            },
-            resetSkillCooldowns: function() {
-                Object.keys(gs.specialSkills).forEach(skillName => {
-                    gs.specialSkills[skillName].ready = true;
-                    gs.specialSkills[skillName].lastUsed = 0;
-                });
-                console.log('Cooldowns resetados');
-            }
-        };
-    } else {
-        console.error('gameSystem não encontrado');
-        return null;
-    }
-};
-
-// Função de debug para sistema responsivo
-window.debugResponsive = function() {
-    console.log('=== Sistema Responsivo - Debug ===');
-    
-    const screenInfo = {
-        width: window.innerWidth,
-        height: window.innerHeight,
-        ratio: window.devicePixelRatio || 1
-    };
-    
-    const breakpoints = {
-        mobile: screenInfo.width <= 480,
-        tablet: screenInfo.width > 480 && screenInfo.width <= 768,
-        desktop: screenInfo.width > 768
-    };
-    
-    console.log('Informações da tela:', screenInfo);
-    console.log('Breakpoints:', breakpoints);
-    
-    // Analisar elementos responsivos
-    const leftPanel = document.getElementById('leftPanel');
-    const towerBar = document.getElementById('towerOptions');
-    const gameCanvas = document.getElementById('gameCanvas');
-    
-    if (leftPanel) {
-        const leftPanelStyles = getComputedStyle(leftPanel);
-        console.log('Painel esquerdo:', {
-            width: leftPanelStyles.width,
-            display: leftPanelStyles.display,
-            position: leftPanelStyles.position
-        });
-    }
-    
-    if (towerBar) {
-        const towerBarStyles = getComputedStyle(towerBar);
-        console.log('Barra de torres:', {
-            width: towerBarStyles.width,
-            height: towerBarStyles.height,
-            flexDirection: towerBarStyles.flexDirection
-        });
-    }
-    
-    if (gameCanvas) {
-        console.log('Canvas:', {
-            width: gameCanvas.width,
-            height: gameCanvas.height,
-            clientWidth: gameCanvas.clientWidth,
-            clientHeight: gameCanvas.clientHeight
-        });
-    }
-    
-    return {
-        screenInfo,
-        breakpoints,
-        testBreakpoint: function(width) {
-            console.log(`Testando breakpoint com width: ${width}px`);
-            // Simular mudança de tamanho
-            const body = document.body;
-            body.style.width = width + 'px';
-            setTimeout(() => {
-                body.style.width = '';
-                console.log('Teste de breakpoint concluído');
-            }, 1000);
-        },
-        toggleMobileMode: function() {
-            document.body.classList.toggle('mobile-debug');
-            console.log('Modo mobile debug alterado');
-        }
-    };
-};
-
-// Função de debug para movimento e spawn
-window.debugMovementSystem = function() {
-    console.log('=== Sistema de Movimento - Debug ===');
-    
-    if (window.gameSystem) {
-        const gs = window.gameSystem.gameState;
-        console.log(`Estado do jogo:`);
-        console.log(`- Onda: ${gs.wave}`);
-        console.log(`- Inimigos ativos: ${gs.enemies.length}`);
-        console.log(`- Projéteis ativos: ${gs.projectiles.length}`);
-        console.log(`- Torres: ${gs.towers.length}`);
-        console.log(`- Velocidade: ${window.gameSystem.gameSpeed}x`);
-        console.log(`- Pausado: ${gs.isPaused}`);
-        
-        // Informações detalhadas dos inimigos
-        gs.enemies.forEach((enemy, index) => {
-            console.log(`Inimigo ${index + 1}:`, {
-                type: enemy.type,
-                health: enemy.health,
-                maxHealth: enemy.maxHealth,
-                speed: enemy.speed,
-                position: { x: enemy.x, y: enemy.y },
-                pathIndex: enemy.pathIndex,
-                frozen: enemy.frozen || false
-            });
-        });
-        
-        return {
-            spawnEnemy: function(type = 'basic') {
-                console.log(`Spawning enemy tipo: ${type}`);
-                const EnemyClass = window.Enemy;
-                if (EnemyClass) {
-                    const enemy = new EnemyClass(type);
-                    gs.enemies.push(enemy);
-                    console.log('Inimigo adicionado:', enemy);
-                } else {
-                    console.error('Classe Enemy não encontrada');
-                }
-            },
-            clearEnemies: function() {
-                gs.enemies.length = 0;
-                console.log('Todos os inimigos removidos');
-            },
-            pauseToggle: function() {
-                window.gameSystem.togglePause();
-                console.log(`Jogo ${gs.isPaused ? 'pausado' : 'despausado'}`);
-            },
-            setSpeed: function(speed) {
-                window.gameSystem.setGameSpeed(speed);
-                console.log(`Velocidade alterada para: ${speed}x`);
-            }
-        };
-    } else {
-        console.error('gameSystem não encontrado');
-        return null;
-    }
-};
-
-// Função de debug para sistema de recompensas
-window.debugRewardSystem = function() {
-    console.log('=== Sistema de Recompensas - Debug ===');
-    
-    if (window.gameSystem) {
-        const gs = window.gameSystem.gameState;
-        console.log(`Estado atual:`);
-        console.log(`- Ouro: ${gs.gold}`);
-        console.log(`- Pontuação: ${gs.score}`);
-        console.log(`- Onda: ${gs.wave}`);
-        console.log(`- Vida: ${gs.health}`);
-        
-        return {
-            addGold: function(amount) {
-                gs.gold += amount;
-                console.log(`Adicionados ${amount} ouro. Total: ${gs.gold}`);
-                window.uiSystem.updateUI();
-            },
-            addScore: function(amount) {
-                gs.score += amount;
-                console.log(`Adicionados ${amount} pontos. Total: ${gs.score}`);
-                window.uiSystem.updateUI();
-            },
-            setWave: function(wave) {
-                gs.wave = wave;
-                console.log(`Onda alterada para: ${wave}`);
-                window.uiSystem.updateUI();
-            },
-            setHealth: function(health) {
-                gs.health = health;
-                console.log(`Vida alterada para: ${health}`);
-                window.uiSystem.updateUI();
-            },
-            calculateTotalReward: function() {
-                const totalGold = calcularOuroAteOnda(gs.wave, 5, 10);
-                console.log(`Ouro total até onda ${gs.wave}: ${totalGold}`);
-                return totalGold;
-            }
-        };
-    } else {
-        console.error('gameSystem não encontrado');
-        return null;
-    }
-};
-
-// Função de debug para testar as configurações visuais
-window.debugVisualConfigs = function() {
-    console.log('=== Configurações Visuais - Debug ===');
-    
-    const canvas = document.getElementById('gameCanvas');
-    const visualConfigs = {
-        canvas: {
-            // Dimensões reais do canvas
-            actualWidth: canvas.width,
-            actualHeight: canvas.height,
-            // Configurações carregadas
-            configWidth: GAME_CONFIG.canvasWidth,
-            configHeight: GAME_CONFIG.canvasHeight,
-            // Dimensões CSS (para responsividade)
-            cssWidth: canvas.style.width || 'auto',
-            cssHeight: canvas.style.height || 'auto',
-            // Dimensões de exibição
-            clientWidth: canvas.clientWidth,
-            clientHeight: canvas.clientHeight,
-            // Status de sincronização
-            isWidthSynced: canvas.width === GAME_CONFIG.canvasWidth,
-            isHeightSynced: canvas.height === GAME_CONFIG.canvasHeight
-        },
-        projectiles: {
-            speed: GAME_CONFIG.projectileSpeed,
-            size: GAME_CONFIG.projectileSize,
-            activeSample: gameState.projectiles.length > 0 ? {
-                speed: gameState.projectiles[0]?.speed,
-                size: gameState.projectiles[0]?.size
-            } : null
-        },
-        damageNumbers: {
-            lifetime: GAME_CONFIG.damageNumberLifetime,
-            speed: GAME_CONFIG.damageNumberSpeed,
-            activeSample: gameState.damageNumbers.length > 0 ? {
-                maxLife: gameState.damageNumbers[0]?.maxLife,
-                velocityY: gameState.damageNumbers[0]?.velocityY
-            } : null
-        },
-        grid: {
-            size: GAME_CONFIG.gridSize,
-            horizontalCells: Math.floor(GAME_CONFIG.canvasWidth / GAME_CONFIG.gridSize),
-            verticalCells: Math.floor(GAME_CONFIG.canvasHeight / GAME_CONFIG.gridSize)
-        }
-    };
-    
-    console.log('📊 Canvas Status:', {
-        '✅ Sincronizado': visualConfigs.canvas.isWidthSynced && visualConfigs.canvas.isHeightSynced,
-        '📐 Tamanho Real': `${visualConfigs.canvas.actualWidth}x${visualConfigs.canvas.actualHeight}`,
-        '⚙️ Configurado': `${visualConfigs.canvas.configWidth}x${visualConfigs.canvas.configHeight}`,
-        '🖥️ CSS Display': `${visualConfigs.canvas.cssWidth} x ${visualConfigs.canvas.cssHeight}`,
-        '👁️ Visualização': `${visualConfigs.canvas.clientWidth}x${visualConfigs.canvas.clientHeight}`
-    });
-    
-    // Verificar se as configurações estão sendo aplicadas corretamente
-    const savedConfig = localStorage.getItem('arqueiroConfig');
-    if (savedConfig) {
-        const config = JSON.parse(savedConfig);
-        console.log('💾 Configurações Salvas:', {
-            canvasWidth: config.canvasWidth,
-            canvasHeight: config.canvasHeight,
-            projectileSpeed: config.projectileSpeed,
-            projectileSize: config.projectileSize,
-            damageNumberLifetime: config.damageNumberLifetime,
-            damageNumberSpeed: config.damageNumberSpeed
-        });
-        
-        // Verificar discrepâncias
-        const discrepancies = [];
-        if (config.canvasWidth !== GAME_CONFIG.canvasWidth) {
-            discrepancies.push(`Width: Salvo(${config.canvasWidth}) ≠ Carregado(${GAME_CONFIG.canvasWidth})`);
-        }
-        if (config.canvasHeight !== GAME_CONFIG.canvasHeight) {
-            discrepancies.push(`Height: Salvo(${config.canvasHeight}) ≠ Carregado(${GAME_CONFIG.canvasHeight})`);
-        }
-        
-        if (discrepancies.length > 0) {
-            console.warn('⚠️ Discrepâncias encontradas:', discrepancies);
-        } else {
-            console.log('✅ Todas as configurações estão sincronizadas!');
-        }
-    }
-    
-    return visualConfigs;
-};
-
-// Função para forçar redimensionamento do canvas
-window.forceCanvasResize = function() {
-    console.log('🔄 Forçando redimensionamento do canvas...');
-    adjustCanvasSize();
-    console.log('✅ Canvas redimensionado!');
-    debugVisualConfigs();
-};
-
-// Função de teste para o problema do canvas
-window.testCanvasResize = function() {
-    console.log('🧪 Testando redimensionamento do canvas...');
-    
-    const canvas = document.getElementById('gameCanvas');
-    console.log('📊 Estado inicial:', {
-        canvasWidth: canvas.width,
-        canvasHeight: canvas.height,
-        configWidth: GAME_CONFIG.canvasWidth,
-        configHeight: GAME_CONFIG.canvasHeight
-    });
-    
-    // Simular mudança de configuração
-    console.log('1️⃣ Alterando configuração para 1000x700...');
-    GAME_CONFIG.canvasWidth = 1000;
-    GAME_CONFIG.canvasHeight = 700;
-    
-    // Aplicar mudança
-    console.log('2️⃣ Aplicando mudança...');
-    adjustCanvasSize();
-    
-    // Verificar resultado
-    console.log('3️⃣ Estado final:', {
-        canvasWidth: canvas.width,
-        canvasHeight: canvas.height,
-        configWidth: GAME_CONFIG.canvasWidth,
-        configHeight: GAME_CONFIG.canvasHeight,
-        success: canvas.width === 1000 && canvas.height === 700
-    });
-    
-    // Restaurar configuração original
-    console.log('4️⃣ Restaurando configuração original...');
-    GAME_CONFIG = loadGameConfig();
-    adjustCanvasSize();
-    
-    console.log('✅ Teste concluído!');
-};
-
-// Função de debug simples para verificar se o canvas está funcionando
-window.debugCanvas = function() {
-    const canvas = document.getElementById('gameCanvas');
-    const configs = loadGameConfig();
-    
-    console.log(`
-🎮 DEBUG DO CANVAS
-==================
-
-📐 DIMENSÕES ATUAIS:
-   Canvas Real: ${canvas.width} x ${canvas.height}
-   Configuração: ${GAME_CONFIG.canvasWidth} x ${GAME_CONFIG.canvasHeight}
-   
-🖥️ EXIBIÇÃO:
-   CSS: ${canvas.style.width || 'auto'} x ${canvas.style.height || 'auto'}
-   Visualização: ${canvas.clientWidth} x ${canvas.clientHeight}
-   
-✅ STATUS:
-   Largura OK: ${canvas.width === GAME_CONFIG.canvasWidth ? '✅' : '❌'}
-   Altura OK: ${canvas.height === GAME_CONFIG.canvasHeight ? '✅' : '❌'}
-   
-💾 CONFIGURAÇÃO SALVA:
-   Largura: ${configs.canvasWidth}
-   Altura: ${configs.canvasHeight}
-   
-🔧 AÇÕES DISPONÍVEIS:
-   - debugVisualConfigs() - Debug completo
-   - forceCanvasResize() - Forçar redimensionamento
-   - testCanvasResize() - Testar mudança de tamanho
-    `);
-    
-    if (canvas.width !== GAME_CONFIG.canvasWidth || canvas.height !== GAME_CONFIG.canvasHeight) {
-        console.log('⚠️ PROBLEMA DETECTADO: Canvas não está sincronizado com as configurações!');
-        console.log('🔧 Execute: forceCanvasResize() para corrigir');
-    } else {
-        console.log('✅ Tudo funcionando corretamente!');
-    }
-};
-
-// Função de debug para testar layout das habilidades especiais
-window.debugSpecialSkills = function() {
-    const skillsBar = document.getElementById('specialSkillsFixedBar') || document.querySelector('.skills-container');
-    const arrowBtn = document.getElementById('btnArrowRain');
-    const iceBtn = document.getElementById('btnIceStorm');
-    
-    console.log(`
-🎯 DEBUG DAS HABILIDADES ESPECIAIS
-=================================
-
-📍 POSICIONAMENTO:
-   Container: ${skillsBar ? 'Encontrado' : 'Não encontrado'}
-   Chuva de Flecha: ${arrowBtn ? 'Visível' : 'Oculto'}
-   Tempestade de Gelo: ${iceBtn ? 'Visível' : 'Oculto'}
-   
-🎨 LAYOUT:
-   Direção: ${skillsBar ? getComputedStyle(skillsBar).flexDirection : 'N/A'}
-   Gap: ${skillsBar ? getComputedStyle(skillsBar).gap : 'N/A'}
-   Posição: ${skillsBar ? getComputedStyle(skillsBar).position : 'N/A'}
-   
-📱 RESPONSIVIDADE:
-   Largura da tela: ${window.innerWidth}px
-   Dispositivo: ${window.innerWidth <= 480 ? 'Mobile pequeno' : window.innerWidth <= 600 ? 'Mobile' : window.innerWidth <= 768 ? 'Tablet' : 'Desktop'}
-   
-🔧 CONTROLES:
-   - showSpecialSkills() - Mostrar ambas habilidades
-   - hideSpecialSkills() - Ocultar ambas habilidades
-   - toggleIceStorm() - Alternar tempestade de gelo
-    `);
-    
-    if (skillsBar) {
-        const rect = skillsBar.getBoundingClientRect();
-        console.log('📐 Dimensões do container:', {
-            left: rect.left,
-            bottom: window.innerHeight - rect.bottom,
-            width: rect.width,
-            height: rect.height
-        });
-    }
-};
-
-// Funções auxiliares para testar habilidades
-window.showSpecialSkills = function() {
-    document.getElementById('btnArrowRain').style.display = 'flex';
-    document.getElementById('btnIceStorm').style.display = 'flex';
-    console.log('✅ Ambas habilidades visíveis');
-};
-
-window.hideSpecialSkills = function() {
-    document.getElementById('btnArrowRain').style.display = 'none';
-    document.getElementById('btnIceStorm').style.display = 'none';
-    console.log('❌ Ambas habilidades ocultas');
-};
-
-window.toggleIceStorm = function() {
-    const iceBtn = document.getElementById('btnIceStorm');
-    const isVisible = iceBtn.style.display !== 'none';
-    iceBtn.style.display = isVisible ? 'none' : 'flex';
-    console.log(`❄️ Tempestade de Gelo: ${isVisible ? 'Oculta' : 'Visível'}`);
-};
-
-// Função de teste rápido para verificar se o jogo está funcionando
-window.testGameStatus = function() {
-    console.log('🎮 TESTE DE STATUS DO JOGO');
-    console.log('========================');
-    
-    const tests = {
-        canvas: document.getElementById('gameCanvas') !== null,
-        gameSystem: typeof window.gameSystem !== 'undefined',
-        gameState: typeof gameState !== 'undefined',
-        uiSystem: typeof window.uiSystem !== 'undefined',
-        gameConfig: typeof GAME_CONFIG !== 'undefined',
-        towers: typeof Tower !== 'undefined',
-        enemies: typeof Enemy !== 'undefined',
-        projectiles: typeof Projectile !== 'undefined'
-    };
-    
-    console.log('📋 Componentes do Jogo:');
-    Object.entries(tests).forEach(([component, status]) => {
-        console.log(`   ${status ? '✅' : '❌'} ${component}: ${status ? 'OK' : 'ERRO'}`);
-    });
-    
-    // Testar CSS
-    const cssTests = {
-        variaveisCSS: getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() !== '',
-        fonteCarregada: getComputedStyle(document.body).fontFamily.includes('system') || getComputedStyle(document.body).fontFamily.includes('Segoe'),
-        painelLateral: document.querySelector('.painel-lateral-btn') !== null,
-        barresTorres: document.querySelector('.footer-tower-bar') !== null
-    };
-    
-    console.log('🎨 Estilos e Interface:');
-    Object.entries(cssTests).forEach(([test, status]) => {
-        console.log(`   ${status ? '✅' : '❌'} ${test}: ${status ? 'OK' : 'ERRO'}`);
-    });
-    
-    // Verificar se há erros no console
-    const hasErrors = Object.values(tests).includes(false) || Object.values(cssTests).includes(false);
-    
-    if (hasErrors) {
-        console.log('⚠️ PROBLEMAS DETECTADOS!');
-        console.log('Verifique os elementos marcados com ❌');
-    } else {
-        console.log('✅ TUDO FUNCIONANDO CORRETAMENTE!');
-        console.log('O jogo está pronto para uso.');
-    }
-    
-    return {
-        componentes: tests,
-        estilos: cssTests,
-        status: hasErrors ? 'COM_PROBLEMAS' : 'OK'
-    };
-};
-
-// Função para corrigir problemas comuns
-window.fixCommonIssues = function() {
-    console.log('🔧 CORRIGINDO PROBLEMAS COMUNS...');
-    
-    // Recarregar configurações
-    if (typeof loadGameConfig === 'function') {
-        GAME_CONFIG = loadGameConfig();
-        console.log('✅ Configurações recarregadas');
-    }
-    
-    // Ajustar canvas
-    if (typeof adjustCanvasSize === 'function') {
-        adjustCanvasSize();
-        console.log('✅ Canvas ajustado');
-    }
-    
-    // Verificar se elementos UI existem
-    const requiredElements = ['gameCanvas', 'specialSkillsFixedBar', 'btnArrowRain', 'btnIceStorm'];
-    requiredElements.forEach(id => {
-        const element = document.getElementById(id);
-        if (!element) {
-            console.log(`❌ Elemento ${id} não encontrado`);
-        } else {
-            console.log(`✅ Elemento ${id} encontrado`);
-        }
-    });
-    
-    console.log('🔧 Correções concluídas');
-    
-    // Testar novamente
-    setTimeout(() => {
-        testGameStatus();
-    }, 100);
-};
-
-// Executar teste automaticamente ao carregar
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(() => {
-        console.log('🚀 Executando teste automático de status...');
-        testGameStatus();
-    }, 2000);
-}); 
-
-// Função para testar o novo layout das habilidades especiais
-window.testNewLayout = function() {
-    console.log('🎯 TESTE DO NOVO LAYOUT');
-    console.log('=====================');
-    
-    const canvas = document.getElementById('gameCanvas');
-    const leftPanel = document.querySelector('.ui-panel');
-    const skillsBar = document.getElementById('specialSkillsFixedBar') || document.querySelector('.skills-container');
-    const arrowBtn = document.getElementById('btnArrowRain');
-    const iceBtn = document.getElementById('btnIceStorm');
-    const towerBar = document.querySelector('.footer-tower-bar');
-    
-    console.log('📍 POSICIONAMENTO DOS ELEMENTOS:');
-    
-    if (canvas) {
-        const canvasRect = canvas.getBoundingClientRect();
-        console.log(`🎮 Canvas: ${canvasRect.left}px da esquerda, ${canvasRect.top}px do topo`);
-        console.log(`   Tamanho: ${canvasRect.width}x${canvasRect.height}px`);
-    }
-    
-    if (leftPanel) {
-        const panelRect = leftPanel.getBoundingClientRect();
-        console.log(`📋 Painel Lateral: ${panelRect.left}px da esquerda, largura: ${panelRect.width}px`);
-    }
-    
-    if (skillsBar) {
-        const skillsRect = skillsBar.getBoundingClientRect();
-        console.log(`⚡ Container Habilidades: ${skillsRect.bottom}px do fundo da tela`);
-        console.log(`   Display: ${getComputedStyle(skillsBar).display}`);
-        console.log(`   Justify-content: ${getComputedStyle(skillsBar).justifyContent}`);
-    }
-    
-    if (arrowBtn) {
-        const arrowRect = arrowBtn.getBoundingClientRect();
-        console.log(`🏹 Chuva de Flechas: ${arrowRect.left}px da esquerda, ${arrowRect.bottom}px do fundo`);
-        console.log(`   Visível: ${arrowBtn.style.display !== 'none'}`);
-    }
-    
-    if (iceBtn) {
-        const iceRect = iceBtn.getBoundingClientRect();
-        console.log(`❄️ Tempestade de Gelo: ${iceRect.left}px da esquerda, ${iceRect.bottom}px do fundo`);
-        console.log(`   Visível: ${iceBtn.style.display !== 'none'}`);
-    }
-    
-    if (towerBar) {
-        const towerRect = towerBar.getBoundingClientRect();
-        console.log(`🏗️ Barra de Torres: ${towerRect.bottom}px do fundo da tela`);
-    }
-    
-    // Verificar sobreposição
-    console.log('🔍 VERIFICAÇÃO DE SOBREPOSIÇÕES:');
-    
-    if (canvas && leftPanel) {
-        const canvasRect = canvas.getBoundingClientRect();
-        const panelRect = leftPanel.getBoundingClientRect();
-        const overlap = panelRect.right > canvasRect.left;
-        console.log(`   Painel vs Canvas: ${overlap ? '❌ SOBREPONDO' : '✅ OK'}`);
-    }
-    
-    if (skillsBar && towerBar) {
-        const skillsRect = skillsBar.getBoundingClientRect();
-        const towerRect = towerBar.getBoundingClientRect();
-        const overlap = skillsRect.bottom > towerRect.top;
-        console.log(`   Habilidades vs Torres: ${overlap ? '❌ SOBREPONDO' : '✅ OK'}`);
-    }
-    
-    // Teste responsivo
-    console.log(`📱 INFORMAÇÕES RESPONSIVAS:`);
-    console.log(`   Largura da tela: ${window.innerWidth}px`);
-    console.log(`   Altura da tela: ${window.innerHeight}px`);
-    console.log(`   Dispositivo: ${window.innerWidth <= 480 ? 'Mobile' : window.innerWidth <= 768 ? 'Tablet' : 'Desktop'}`);
-    
-    return {
-        canvasLeft: canvas ? canvas.getBoundingClientRect().left : 0,
-        panelWidth: leftPanel ? leftPanel.getBoundingClientRect().width : 0,
-        skillsPosition: skillsBar ? skillsBar.getBoundingClientRect().bottom : 0,
-        towerPosition: towerBar ? towerBar.getBoundingClientRect().top : 0
-    };
-};
-
-// Função para forçar mostrar ambas habilidades para teste
-window.showBothSkills = function() {
-    const arrowBtn = document.getElementById('btnArrowRain');
-    const iceBtn = document.getElementById('btnIceStorm');
-    
-    if (arrowBtn) arrowBtn.style.display = 'flex';
-    if (iceBtn) iceBtn.style.display = 'flex';
-    
-    console.log('✅ Ambas as habilidades especiais estão visíveis para teste');
-    
-    // Testar layout após 100ms
-    setTimeout(testNewLayout, 100);
-};
-
-// Função para ajustar layout se necessário
-window.fixLayout = function() {
-    console.log('🔧 Aplicando correções de layout...');
-    
-    const canvas = document.getElementById('gameCanvas');
-    const leftPanel = document.querySelector('.ui-panel');
-    
-    if (canvas && leftPanel) {
-        const panelWidth = leftPanel.getBoundingClientRect().width;
-        canvas.style.marginLeft = `${panelWidth}px`;
-        console.log(`✅ Canvas ajustado: margin-left = ${panelWidth}px`);
-    }
-    
-    const skillsBar = document.getElementById('specialSkillsFixedBar') || document.querySelector('.skills-container');
-    if (skillsBar) {
-        skillsBar.style.display = 'flex';
-        skillsBar.style.justifyContent = 'space-between';
-        console.log('✅ Container de habilidades reconfigurado');
-    }
-    
-    setTimeout(testNewLayout, 100);
-};
-
-// Função para testar sistema de velocidade
-window.testSpeedSystem = function() {
-    console.log('⚡ TESTE DO SISTEMA DE VELOCIDADE');
-    console.log('==================================');
-    
-    const tests = {
-        gameSystem: typeof window.gameSystem !== 'undefined',
-        speedButton: document.getElementById('speedButton') !== null,
-        speedDisplay: document.getElementById('gameSpeed') !== null,
-        speedMethod: typeof window.gameSystem?.toggleGameSpeed === 'function',
-        currentSpeed: window.gameSystem?.gameSpeed || 1
-    };
-    
-    console.log('📋 Componentes do Sistema de Velocidade:');
-    Object.entries(tests).forEach(([component, status]) => {
-        console.log(`   ${status ? '✅' : '❌'} ${component}: ${status ? 'OK' : 'ERRO'}`);
-    });
-    
-    // Testar velocidades disponíveis
-    if (window.gameSystem) {
-        console.log('🎮 Velocidades Disponíveis:');
-        const speeds = [1, 2, 4, 8];
-        speeds.forEach(speed => {
-            console.log(`   ${speed}x - ${window.gameSystem.gameSpeed === speed ? '✅ ATIVA' : '⚪ Disponível'}`);
-        });
-        
-        console.log(`🔄 Velocidade Atual: ${window.gameSystem.gameSpeed}x`);
-    }
-    
-    // Testar botão de velocidade
-    const speedBtn = document.getElementById('speedButton');
-    if (speedBtn) {
-        const btnText = speedBtn.querySelector('.btn-text');
-        console.log(`🎯 Botão de Velocidade: ${btnText ? btnText.textContent : 'Texto não encontrado'}`);
-    }
-    
-    return tests;
-};
-
-// Função para testar habilidades especiais
-window.testSpecialSkills = function() {
-    console.log('🏹 TESTE DAS HABILIDADES ESPECIAIS');
-    console.log('===================================');
-    
-    const arrowBtn = document.getElementById('btnArrowRain');
-    const iceBtn = document.getElementById('btnIceStorm');
-    
-    console.log('📋 Status das Habilidades:');
-    
-    if (arrowBtn) {
-        const arrowRect = arrowBtn.getBoundingClientRect();
-        console.log(`🏹 Chuva de Flechas:`);
-        console.log(`   Visível: ${arrowBtn.style.display !== 'none'}`);
-        console.log(`   Posição: ${arrowRect.left}px, ${arrowRect.top}px`);
-        console.log(`   Tamanho: ${arrowRect.width}x${arrowRect.height}px`);
-        console.log(`   Habilitada: ${!arrowBtn.disabled}`);
-    }
-    
-    if (iceBtn) {
-        const iceRect = iceBtn.getBoundingClientRect();
-        console.log(`❄️ Tempestade de Gelo:`);
-        console.log(`   Visível: ${iceBtn.style.display !== 'none'}`);
-        console.log(`   Posição: ${iceRect.left}px, ${iceRect.top}px`);
-        console.log(`   Tamanho: ${iceRect.width}x${iceRect.height}px`);
-        console.log(`   Habilitada: ${!iceBtn.disabled}`);
-    }
-    
-    // Testar cooldowns
-    if (window.gameSystem && window.gameSystem.specialSkills) {
-        console.log('⏱️ Cooldowns:');
-        console.log(`   Arrow Rain: ${window.gameSystem.specialSkills.arrowRain.cooldown}s`);
-        console.log(`   Ice Storm: ${window.gameSystem.specialSkills.iceStorm.cooldown}s`);
-    }
-    
-    return {
-        arrowRain: arrowBtn !== null,
-        iceStorm: iceBtn !== null,
-        systemIntegration: window.gameSystem?.specialSkills !== undefined
-    };
-};
-
-// Função para testar o botão de voltar ao menu
-window.testMenuButton = function() {
-    console.log('🏠 TESTE DO BOTÃO MENU PRINCIPAL');
-    console.log('=================================');
-    
-    const menuBtn = document.getElementById('btnBackToMenu');
-    const tests = {
-        buttonExists: menuBtn !== null,
-        buttonVisible: menuBtn && menuBtn.offsetWidth > 0,
-        buttonEnabled: menuBtn && !menuBtn.disabled,
-        hasClickEvent: menuBtn && typeof menuBtn.onclick === 'function',
-        returnFunction: typeof window.returnToMenu === 'function'
-    };
-    
-    console.log('📋 Status do Botão Menu:');
-    Object.entries(tests).forEach(([test, status]) => {
-        console.log(`   ${status ? '✅' : '❌'} ${test}: ${status ? 'OK' : 'ERRO'}`);
-    });
-    
-    if (menuBtn) {
-        const btnRect = menuBtn.getBoundingClientRect();
-        console.log('📐 Posição do Botão:');
-        console.log(`   Left: ${btnRect.left}px`);
-        console.log(`   Top: ${btnRect.top}px`);
-        console.log(`   Width: ${btnRect.width}px`);
-        console.log(`   Height: ${btnRect.height}px`);
-        
-        const styles = window.getComputedStyle(menuBtn);
-        console.log('🎨 Estilos do Botão:');
-        console.log(`   Background: ${styles.background}`);
-        console.log(`   Color: ${styles.color}`);
-        console.log(`   Display: ${styles.display}`);
-    }
-    
-    // Testar função returnToMenu
-    if (typeof window.returnToMenu === 'function') {
-        console.log('🧪 Função returnToMenu disponível');
-        console.log('   Para testar: window.returnToMenu(false)');
-    }
-    
-    return tests;
-}; 
-
-// Função para testar se os valores das torres estão aparecendo
-window.testTowerCostVisibility = function() {
-    console.log('🔍 TESTANDO VISIBILIDADE DOS VALORES DAS TORRES');
-    console.log('===============================================');
-    
-    const towerButtons = document.querySelectorAll('.footer-tower-bar .tower-btn');
-    
-    if (towerButtons.length === 0) {
-        console.warn('❌ Nenhum botão de torre encontrado!');
-        return;
-    }
-    
-    let allVisible = true;
-    
-    towerButtons.forEach((btn, index) => {
-        const towerName = btn.getAttribute('data-tower-name');
-        const towerCost = btn.getAttribute('data-cost');
-        
-        // Verificar elementos internos
-        const costElement = btn.querySelector('.tower-cost');
-        
-        if (!costElement) {
-            console.log(`❌ BOTÃO ${index + 1} (${towerName}): Elemento .tower-cost não encontrado!`);
-            allVisible = false;
-            return;
-        }
-        
-        const costStyle = window.getComputedStyle(costElement);
-        const isVisible = costStyle.display !== 'none' && 
-                         costStyle.visibility !== 'hidden' && 
-                         costStyle.opacity !== '0' &&
-                         costStyle.position !== 'absolute' ||
-                         (costStyle.position === 'absolute' && costStyle.left !== '-100%');
-        
-        console.log(`${isVisible ? '✅' : '❌'} BOTÃO ${index + 1}: ${towerName}`);
-        console.log(`   Custo esperado: ${towerCost} ouro`);
-        console.log(`   Texto do elemento: "${costElement.textContent}"`);
-        console.log(`   Display: ${costStyle.display}`);
-        console.log(`   Visibility: ${costStyle.visibility}`);
-        console.log(`   Opacity: ${costStyle.opacity}`);
-        console.log(`   Position: ${costStyle.position}`);
-        console.log(`   Font-size: ${costStyle.fontSize}`);
-        console.log(`   Color: ${costStyle.color}`);
-        
-        if (!isVisible) {
-            allVisible = false;
-        }
-        
-        console.log('');
-    });
-    
-    console.log('📊 RESUMO DO TESTE:');
-    console.log(`   Status: ${allVisible ? '✅ TODOS OS VALORES VISÍVEIS' : '❌ ALGUNS VALORES OCULTOS'}`);
-    console.log(`   Total de botões: ${towerButtons.length}`);
-    console.log('');
-    
-    if (!allVisible) {
-        console.log('🔧 DICA: Execute fixTowerCostVisibility() para tentar corrigir automaticamente');
-    }
-    
-    console.log('===============================================');
-};
-
-// Função para corrigir automaticamente problemas de visibilidade
-window.fixTowerCostVisibility = function() {
-    console.log('🔧 CORRIGINDO VISIBILIDADE DOS VALORES DAS TORRES');
-    console.log('===============================================');
-    
-    const costElements = document.querySelectorAll('.footer-tower-bar .tower-cost');
-    let fixed = 0;
-    
-    costElements.forEach((element, index) => {
-        const style = window.getComputedStyle(element);
-        let needsFix = false;
-        
-        // Verificar se está com position absolute incorreto
-        if (style.position === 'absolute' && style.left === '-100%') {
-            element.style.position = 'static';
-            element.style.left = 'auto';
-            needsFix = true;
-        }
-        
-        // Verificar se está oculto
-        if (style.display === 'none') {
-            element.style.display = 'block';
-            needsFix = true;
-        }
-        
-        if (style.visibility === 'hidden') {
-            element.style.visibility = 'visible';
-            needsFix = true;
-        }
-        
-        if (style.opacity === '0') {
-            element.style.opacity = '1';
-            needsFix = true;
-        }
-        
-        if (needsFix) {
-            console.log(`✅ Corrigido elemento ${index + 1}: "${element.textContent}"`);
-            fixed++;
-        }
-    });
-    
-    console.log(`📊 Elementos corrigidos: ${fixed}/${costElements.length}`);
-    console.log('===============================================');
-    
-    // Testar novamente após a correção
-    if (fixed > 0) {
-        setTimeout(() => {
-            console.log('🔍 TESTANDO NOVAMENTE APÓS CORREÇÃO:');
-            testTowerCostVisibility();
-        }, 500);
-    }
-};
-
-// Adicionar ao console
-console.log('🔧 FUNÇÕES DE TESTE DE VISIBILIDADE ADICIONADAS:');
-console.log('• testTowerCostVisibility() - Testar se valores aparecem');
-console.log('• fixTowerCostVisibility() - Corrigir problemas automaticamente');
-
-// Função para forçar recriação dos botões das torres
-window.recreateTowerButtons = function() {
-    console.log('🔄 RECRIANDO BOTÕES DAS TORRES');
-    console.log('==============================');
-    
-    // Limpar botões existentes
-    const towerBar = document.getElementById('footerTowerBar');
-    if (towerBar) {
-        towerBar.innerHTML = '';
-        console.log('✅ Botões antigos removidos');
-    }
-    
-    // Recriar botões
-    renderTowerOptions();
-    console.log('✅ Botões recriados');
-    
-    // Aguardar um pouco e testar
-    setTimeout(() => {
-        console.log('🔍 TESTANDO APÓS RECRIAÇÃO:');
-        testTowerCostVisibility();
-    }, 500);
-};
-
-// Adicionar ao console
-console.log('🔧 FUNÇÃO DE RECRIAÇÃO ADICIONADA:');
-console.log('• recreateTowerButtons() - Recriar todos os botões das torres');
-
-// Função para mostrar resumo completo da correção
-window.showTowerCostFixSummary = function() {
-    console.log('📋 RESUMO DA CORREÇÃO DOS VALORES DAS TORRES');
-    console.log('===========================================');
-    console.log('');
-    
-    console.log('🔧 PROBLEMA IDENTIFICADO:');
-    console.log('• Regra CSS incorreta no .tower-cost estava ocultando valores');
-    console.log('• Propriedades position: absolute e left: -100% causavam invisibilidade');
-    console.log('• Código incorreto mesclado com estilos de outros elementos');
-    console.log('');
-    
-    console.log('✅ CORREÇÃO IMPLEMENTADA:');
-    console.log('• Removidas propriedades CSS incorretas:');
-    console.log('  - content: ""');
-    console.log('  - position: absolute');
-    console.log('  - left: -100%');
-    console.log('  - width/height: 100%');
-    console.log('  - background com gradiente');
-    console.log('  - transition desnecessária');
-    console.log('');
-    
-    console.log('• Adicionadas propriedades CSS corretas:');
-    console.log('  - color: #6c757d (cor adequada)');
-    console.log('  - font-weight: 500 (peso adequado)');
-    console.log('  - font-size: 0.9em (tamanho base)');
-    console.log('');
-    
-    console.log('🎯 LAYOUT ATUAL POR DISPOSITIVO:');
-    console.log('• Desktop: Ícone + Nome + Valor (90x90px)');
-    console.log('• Tablet: Ícone + Nome + Valor (75x75px)');
-    console.log('• Mobile: Ícone + Valor (60x60px, nome oculto)');
-    console.log('');
-    
-    console.log('🔍 FUNÇÕES DE TESTE DISPONÍVEIS:');
-    console.log('• testTowerCostVisibility() - Verificar se valores aparecem');
-    console.log('• fixTowerCostVisibility() - Corrigir problemas automaticamente');
-    console.log('• recreateTowerButtons() - Recriar botões completamente');
-    console.log('• testTowerButtonLayout() - Testar layout geral');
-    console.log('');
-    
-    console.log('✅ RESULTADO: Valores das torres agora devem aparecer corretamente!');
-    console.log('===========================================');
-};
-
-// Adicionar ao console
-console.log('📋 FUNÇÃO DE RESUMO ADICIONADA:');
-console.log('• showTowerCostFixSummary() - Resumo completo da correção');
-
-// Aplicar correção imediatamente após carregamento
-setTimeout(() => {
-    if (document.getElementById('footerTowerBar')) {
-        console.log('🔄 APLICANDO CORREÇÃO DOS VALORES DAS TORRES...');
-        recreateTowerButtons();
-        console.log('✅ Correção aplicada automaticamente!');
-    }
-}, 1000);
-
-// Adicionar ao console
-console.log('⚡ CORREÇÃO AUTOMÁTICA ATIVADA - Valores das torres serão corrigidos em 1 segundo');
-
-// Função para testar se o nome da torre especial foi alterado
-window.testSpecialTowerName = function() {
-    console.log('🌟 TESTANDO NOME DA TORRE ESPECIAL');
-    console.log('================================');
-    
-    // Verificar configuração carregada
-    const towerTypes = loadTowerConfig();
-    const specialTower = towerTypes.special;
-    
-    if (!specialTower) {
-        console.log('❌ Torre especial não encontrada nas configurações!');
-        return;
-    }
-    
-    console.log('✅ CONFIGURAÇÃO DA TORRE ESPECIAL:');
-    console.log(`   Nome: "${specialTower.name}"`);
-    console.log(`   Ícone: ${specialTower.icon}`);
-    console.log(`   Custo: ${specialTower.cost} ouro`);
-    console.log(`   Cor: ${specialTower.color}`);
-    console.log('');
-    
-    // Verificar se o nome foi alterado corretamente
-    const expectedName = 'Especial';
-    const isCorrect = specialTower.name === expectedName;
-    
-    console.log(`📝 VERIFICAÇÃO DO NOME:`);
-    console.log(`   Esperado: "${expectedName}"`);
-    console.log(`   Atual: "${specialTower.name}"`);
-    console.log(`   Status: ${isCorrect ? '✅ CORRETO' : '❌ INCORRETO'}`);
-    console.log('');
-    
-    // Verificar botão na interface
-    const towerButtons = document.querySelectorAll('.footer-tower-bar .tower-btn');
-    let specialButton = null;
-    
-    towerButtons.forEach(btn => {
-        if (btn.dataset.tower === 'special') {
-            specialButton = btn;
-        }
-    });
-    
-    if (specialButton) {
-        const buttonName = specialButton.getAttribute('data-tower-name');
-        const nameElement = specialButton.querySelector('.tower-name');
-        const nameText = nameElement ? nameElement.textContent : 'Não encontrado';
-        
-        console.log(`🔘 BOTÃO NA INTERFACE:`);
-        console.log(`   Atributo data-tower-name: "${buttonName}"`);
-        console.log(`   Texto do elemento: "${nameText}"`);
-        console.log(`   Status: ${buttonName === expectedName && nameText === expectedName ? '✅ CORRETO' : '❌ INCORRETO'}`);
-    } else {
-        console.log('❌ Botão da torre especial não encontrado na interface!');
-    }
-    
-    console.log('');
-    console.log('📊 RESUMO:');
-    console.log(`   Nome alterado: ${isCorrect ? '✅ SIM' : '❌ NÃO'}`);
-    console.log(`   Interface atualizada: ${specialButton ? '✅ SIM' : '❌ NÃO'}`);
-    console.log('================================');
-};
-
-// Função para forçar atualização do nome da torre especial
-window.updateSpecialTowerName = function() {
-    console.log('🔄 ATUALIZANDO NOME DA TORRE ESPECIAL');
-    console.log('=====================================');
-    
-    // Recarregar configurações
-    TOWER_TYPES = loadTowerConfig();
-    
-    // Recriar botões
-    renderTowerOptions();
-    
-    console.log('✅ Configurações recarregadas e botões recriados');
-    
-    // Testar após atualização
-    setTimeout(() => {
-        console.log('🔍 TESTANDO APÓS ATUALIZAÇÃO:');
-        testSpecialTowerName();
-    }, 500);
-};
-
-// Adicionar ao console
-console.log('🌟 FUNÇÕES DE TESTE DA TORRE ESPECIAL ADICIONADAS:');
-console.log('• testSpecialTowerName() - Testar se nome foi alterado');
-console.log('• updateSpecialTowerName() - Forçar atualização do nome');
-
-// Aplicar atualização do nome da torre especial automaticamente
-setTimeout(() => {
-    if (document.getElementById('footerTowerBar')) {
-        console.log('🌟 APLICANDO ATUALIZAÇÃO DO NOME DA TORRE ESPECIAL...');
-        updateSpecialTowerName();
-        console.log('✅ Nome da torre especial atualizado automaticamente!');
-    }
-}, 1500);
-
-// Adicionar ao console
-console.log('🌟 ATUALIZAÇÃO AUTOMÁTICA DO NOME DA TORRE ESPECIAL ATIVADA - Nome será alterado em 1.5 segundos');
-
-// Função para mostrar resumo da alteração do nome da torre especial
-window.showSpecialTowerNameChangeSummary = function() {
-    console.log('📋 RESUMO DA ALTERAÇÃO DO NOME DA TORRE ESPECIAL');
-    console.log('===============================================');
-    console.log('');
-    
-    console.log('🔧 ALTERAÇÃO REALIZADA:');
-    console.log('• Nome anterior: "Torre Especial"');
-    console.log('• Nome atual: "Especial"');
-    console.log('• Motivo: Simplificação e padronização');
-    console.log('');
-    
-    console.log('📁 ARQUIVOS MODIFICADOS:');
-    console.log('• js/config/towerConfig.js - Linha 36 (configuração padrão)');
-    console.log('• config.html - Linha 327 (interface de configuração)');
-    console.log('');
-    
-    console.log('🎯 IMPACTO NOS DISPOSITIVOS:');
-    console.log('• Desktop: "Especial" aparece mais compacto no botão 90x90px');
-    console.log('• Tablet: "Especial" cabe melhor no botão 75x75px');
-    console.log('• Mobile: Nome ainda será oculto, mantendo apenas ícone + valor');
-    console.log('');
-    
-    console.log('🔍 VERIFICAÇÃO:');
-    console.log('• Configuração interna: Atualizada ✅');
-    console.log('• Interface do jogo: Atualizada automaticamente ✅');
-    console.log('• Página de configurações: Atualizada ✅');
-    console.log('• Tooltips e títulos: Atualizados automaticamente ✅');
-    console.log('');
-    
-    console.log('🎉 RESULTADO: Torre especial agora aparece como "Especial"');
-    console.log('===============================================');
-};
-
-// Adicionar ao console
-console.log('📋 FUNÇÃO DE RESUMO DA ALTERAÇÃO ADICIONADA:');
-console.log('• showSpecialTowerNameChangeSummary() - Resumo da alteração do nome');
-
-// Funções de teste para o novo layout das habilidades especiais
-window.testNewSkillsLayout = function() {
-    console.log('🔄 TESTE DO NOVO LAYOUT DAS HABILIDADES ESPECIAIS');
-    console.log('==================================================');
-    
-    const bottomPanel = document.querySelector('.bottom-panel');
-    const arrowBtn = document.getElementById('btnArrowRain');
-    const iceBtn = document.getElementById('btnIceStorm');
-    const towerBar = document.querySelector('.footer-tower-bar');
-    
-    console.log('📐 ESTRUTURA DO LAYOUT:');
-    
-    if (bottomPanel) {
-        const panelRect = bottomPanel.getBoundingClientRect();
-        console.log(`✅ Painel inferior: ${panelRect.width}x${panelRect.height}px`);
-        console.log(`   Posição: ${panelRect.left}px, ${panelRect.top}px`);
-        console.log(`   Display: ${getComputedStyle(bottomPanel).display}`);
-        console.log(`   Flex-direction: ${getComputedStyle(bottomPanel).flexDirection}`);
-        console.log(`   Justify-content: ${getComputedStyle(bottomPanel).justifyContent}`);
-        console.log(`   Gap: ${getComputedStyle(bottomPanel).gap}`);
-    } else {
-        console.log('❌ Painel inferior não encontrado');
-    }
-    
-    console.log('\n🎯 HABILIDADES ESPECIAIS:');
-    
-    if (arrowBtn) {
-        const arrowRect = arrowBtn.getBoundingClientRect();
-        console.log(`🏹 Chuva de Flechas:`);
-        console.log(`   Posição: ${arrowRect.left}px da esquerda`);
-        console.log(`   Tamanho: ${arrowRect.width}x${arrowRect.height}px`);
-        console.log(`   Border-radius: ${getComputedStyle(arrowBtn).borderRadius}`);
-        console.log(`   Display: ${arrowBtn.style.display || 'padrão'}`);
-        console.log(`   Ordem: ${getComputedStyle(arrowBtn).order}`);
-        console.log(`   Visível: ${arrowBtn.style.display !== 'none'}`);
-    } else {
-        console.log('❌ Chuva de Flechas não encontrada');
-    }
-    
-    if (iceBtn) {
-        const iceRect = iceBtn.getBoundingClientRect();
-        console.log(`❄️ Tempestade de Gelo:`);
-        console.log(`   Posição: ${iceRect.left}px da esquerda`);
-        console.log(`   Tamanho: ${iceRect.width}x${iceRect.height}px`);
-        console.log(`   Border-radius: ${getComputedStyle(iceBtn).borderRadius}`);
-        console.log(`   Display: ${iceBtn.style.display || 'padrão'}`);
-        console.log(`   Ordem: ${getComputedStyle(iceBtn).order}`);
-        console.log(`   Visível: ${iceBtn.style.display !== 'none'}`);
-    } else {
-        console.log('❌ Tempestade de Gelo não encontrada');
-    }
-    
-    console.log('\n🏰 BARRA DE TORRES:');
-    
-    if (towerBar) {
-        const towerRect = towerBar.getBoundingClientRect();
-        console.log(`✅ Barra de torres:`);
-        console.log(`   Posição: ${towerRect.left}px da esquerda`);
-        console.log(`   Tamanho: ${towerRect.width}x${towerRect.height}px`);
-        console.log(`   Ordem: ${getComputedStyle(towerBar).order}`);
-        console.log(`   Flex: ${getComputedStyle(towerBar).flex}`);
-        console.log(`   Max-width: ${getComputedStyle(towerBar).maxWidth}`);
-        
-        const towerButtons = towerBar.querySelectorAll('.tower-btn');
-        console.log(`   Botões de torres: ${towerButtons.length}`);
-    } else {
-        console.log('❌ Barra de torres não encontrada');
-    }
-    
-    console.log('\n📱 RESPONSIVIDADE:');
-    console.log(`   Largura da tela: ${window.innerWidth}px`);
-    console.log(`   Altura da tela: ${window.innerHeight}px`);
-    console.log(`   Dispositivo: ${window.innerWidth <= 480 ? 'Mobile' : window.innerWidth <= 768 ? 'Tablet' : 'Desktop'}`);
-    
-    return {
-        bottomPanel: bottomPanel !== null,
-        arrowRain: arrowBtn !== null,
-        iceStorm: iceBtn !== null,
-        towerBar: towerBar !== null,
-        layoutValid: bottomPanel && arrowBtn && iceBtn && towerBar
-    };
-};
-
-// Função para testar responsividade das habilidades especiais
-window.testSkillsResponsiveness = function() {
-    console.log('📱 TESTE DE RESPONSIVIDADE DAS HABILIDADES ESPECIAIS');
-    console.log('===================================================');
-    
-    const arrowBtn = document.getElementById('btnArrowRain');
-    const iceBtn = document.getElementById('btnIceStorm');
-    const bottomPanel = document.querySelector('.bottom-panel');
-    
-    const widths = [320, 480, 768, 1024, 1280];
-    
-    widths.forEach(width => {
-        console.log(`\n📐 Simulando largura: ${width}px`);
-        
-        // Simular mudança de largura
-        Object.defineProperty(window, 'innerWidth', {
-            writable: true,
-            configurable: true,
-            value: width
-        });
-        
-        const deviceType = width <= 480 ? 'Mobile' : width <= 768 ? 'Tablet' : 'Desktop';
-        console.log(`   Tipo de dispositivo: ${deviceType}`);
-        
-        if (arrowBtn) {
-            const arrowStyle = getComputedStyle(arrowBtn);
-            console.log(`   🏹 Chuva de Flechas: ${arrowStyle.width} x ${arrowStyle.height}`);
-            console.log(`     Font-size ícone: ${arrowStyle.fontSize}`);
-        }
-        
-        if (iceBtn) {
-            const iceStyle = getComputedStyle(iceBtn);
-            console.log(`   ❄️ Tempestade de Gelo: ${iceStyle.width} x ${iceStyle.height}`);
-        }
-        
-        if (bottomPanel) {
-            const panelStyle = getComputedStyle(bottomPanel);
-            console.log(`   📦 Painel: gap: ${panelStyle.gap}, padding: ${panelStyle.padding}`);
-        }
-    });
-    
-    console.log('\n✅ Teste de responsividade concluído!');
-};
-
-// Função para forçar mostrar ambas habilidades em teste
-window.showBothSkillsNew = function() {
-    console.log('🎯 MOSTRANDO AMBAS HABILIDADES ESPECIAIS PARA TESTE');
-    console.log('==================================================');
-    
-    const arrowBtn = document.getElementById('btnArrowRain');
-    const iceBtn = document.getElementById('btnIceStorm');
-    
-    if (arrowBtn) {
-        arrowBtn.style.display = 'flex';
-        console.log('✅ Chuva de Flechas visível');
-    }
-    
-    if (iceBtn) {
-        iceBtn.style.display = 'flex';
-        console.log('✅ Tempestade de Gelo visível');
-    }
-    
-    // Testar layout após 200ms
-    setTimeout(() => {
-        window.testNewSkillsLayout();
-    }, 200);
-};
-
-// Função para resumir as mudanças do novo layout
-window.showNewSkillsLayoutSummary = function() {
-    console.log('📋 RESUMO DO NOVO LAYOUT DAS HABILIDADES ESPECIAIS');
-    console.log('==================================================');
-    console.log('');
-    console.log('🎯 MUDANÇAS IMPLEMENTADAS:');
-    console.log('   ✅ Layout lateral: Habilidades ao lado das torres');
-    console.log('   ✅ Botões redondos: Border-radius 50%');
-    console.log('   ✅ Posicionamento: Esquerda (🏹) e Direita (❄️)');
-    console.log('   ✅ Estrutura mantida: Ícone + Nome + Cooldown');
-    console.log('   ✅ Responsividade: Mobile, Tablet e Desktop');
-    console.log('');
-    console.log('🎨 CARACTERÍSTICAS VISUAIS:');
-    console.log('   • Desktop: 80x80px');
-    console.log('   • Tablet: 65x65px');
-    console.log('   • Mobile: 55x55px');
-    console.log('   • Cores específicas por habilidade');
-    console.log('   • Efeitos hover e active');
-    console.log('   • Sombras e gradientes');
-    console.log('');
-    console.log('🚀 FUNÇÕES DE TESTE DISPONÍVEIS:');
-    console.log('   • testNewSkillsLayout() - Testar layout atual');
-    console.log('   • testSkillsResponsiveness() - Testar responsividade');
-    console.log('   • showBothSkillsNew() - Mostrar ambas habilidades');
-    console.log('   • showNewSkillsLayoutSummary() - Este resumo');
-    console.log('');
-    console.log('💡 MELHORIAS IMPLEMENTADAS:');
-    console.log('   • Interface mais limpa e moderna');
-    console.log('   • Melhor aproveitamento do espaço');
-    console.log('   • Botões redondos mais elegantes');
-    console.log('   • Layout responsivo otimizado');
-    console.log('   • Integração harmoniosa com torres');
-    console.log('');
-    console.log('🔧 Para testar: showBothSkillsNew()');
-};
-
-// Executar teste automático após 2 segundos
-setTimeout(() => {
-    if (typeof window.showNewSkillsLayoutSummary === 'function') {
-        console.log('🎯 Executando resumo do novo layout...');
-        window.showNewSkillsLayoutSummary();
-    }
-}, 2000);
-
-// Função para testar modificações mobile
-window.testMobileModifications = function() {
-    console.log('📱 TESTE DAS MODIFICAÇÕES MOBILE');
-    console.log('================================');
-    
-    const currentWidth = window.innerWidth;
-    console.log(`Largura atual: ${currentWidth}px`);
-    console.log(`É mobile: ${isMobile()}`);
-    
-    console.log('\n🎯 MODIFICAÇÕES IMPLEMENTADAS:');
-    
-    // Testar tooltip das torres
-    const towerButtons = document.querySelectorAll('.footer-tower-bar .tower-btn');
-    if (towerButtons.length > 0) {
-        const firstTower = towerButtons[0];
-        const towerStyle = getComputedStyle(firstTower, '::before');
-        console.log('🏰 TORRES:');
-        console.log(`   ✅ Tooltip removido: ${towerStyle.content === 'none' || towerStyle.content === '' ? 'Sim' : 'Não'}`);
-        console.log(`   ✅ Quantidade de torres: ${towerButtons.length}`);
-    }
-    
-    // Testar painel de informações da torre
-    const towerInfoPanel = document.getElementById('towerInfoPanel');
-    if (towerInfoPanel && isMobile()) {
-        const panelStyle = getComputedStyle(towerInfoPanel);
-        console.log('📋 PAINEL DE INFORMAÇÕES:');
-        console.log(`   ✅ Oculto no mobile: ${panelStyle.display === 'none' ? 'Sim' : 'Não'}`);
-        console.log(`   Display: ${panelStyle.display}`);
-    }
-    
-    // Testar habilidades especiais
-    const arrowBtn = document.getElementById('btnArrowRain');
-    const iceBtn = document.getElementById('btnIceStorm');
-    
-    console.log('\n⚡ HABILIDADES ESPECIAIS:');
-    
-    if (arrowBtn) {
-        const skillLabel = arrowBtn.querySelector('.skill-label');
-        const skillIcon = arrowBtn.querySelector('.skill-icon');
-        const skillCooldown = arrowBtn.querySelector('.skill-cooldown');
-        
-        if (skillLabel) {
-            const labelStyle = getComputedStyle(skillLabel);
-            console.log('🏹 CHUVA DE FLECHAS:');
-            console.log(`   ✅ Nome oculto no mobile: ${labelStyle.display === 'none' ? 'Sim' : 'Não'}`);
-            console.log(`   ✅ Ícone presente: ${skillIcon ? 'Sim' : 'Não'}`);
-            console.log(`   ✅ Cooldown presente: ${skillCooldown ? 'Sim' : 'Não'}`);
-            
-            if (skillIcon) {
-                const iconStyle = getComputedStyle(skillIcon);
-                console.log(`   Tamanho ícone: ${iconStyle.fontSize}`);
-            }
-        }
-    }
-    
-    if (iceBtn) {
-        const skillLabel = iceBtn.querySelector('.skill-label');
-        const skillIcon = iceBtn.querySelector('.skill-icon');
-        const skillCooldown = iceBtn.querySelector('.skill-cooldown');
-        
-        if (skillLabel) {
-            const labelStyle = getComputedStyle(skillLabel);
-            console.log('❄️ TEMPESTADE DE GELO:');
-            console.log(`   ✅ Nome oculto no mobile: ${labelStyle.display === 'none' ? 'Sim' : 'Não'}`);
-            console.log(`   ✅ Ícone presente: ${skillIcon ? 'Sim' : 'Não'}`);
-            console.log(`   ✅ Cooldown presente: ${skillCooldown ? 'Sim' : 'Não'}`);
-            
-            if (skillIcon) {
-                const iconStyle = getComputedStyle(skillIcon);
-                console.log(`   Tamanho ícone: ${iconStyle.fontSize}`);
-            }
-        }
-    }
-    
-    console.log('\n📊 RESUMO DAS MODIFICAÇÕES:');
-    console.log('   ✅ Tooltip das torres removido');
-    console.log('   ✅ Painel de informações da torre oculto');
-    console.log('   ✅ Nome das habilidades especiais oculto');
-    console.log('   ✅ Ícones das habilidades aumentados');
-    console.log('   ✅ Cooldown das habilidades mantido');
-    
-    return {
-        isMobile: isMobile(),
-        towerTooltipRemoved: true,
-        towerInfoPanelHidden: isMobile(),
-        skillNamesHidden: isMobile(),
-        modificationsApplied: true
-    };
-};
-
-// Função para testar comportamento de clique nas torres no mobile
-window.testTowerClickMobile = function() {
-    console.log('🔧 TESTE DE CLIQUE NAS TORRES - MOBILE');
-    console.log('======================================');
-    
-    if (!isMobile()) {
-        console.log('❌ Não está em modo mobile - teste não aplicável');
-        return;
-    }
-    
-    const towerButtons = document.querySelectorAll('.footer-tower-bar .tower-btn');
-    
-    if (towerButtons.length === 0) {
-        console.log('❌ Nenhuma torre encontrada para testar');
-        return;
-    }
-    
-    console.log(`🏰 Testando clique em ${towerButtons.length} torres:`);
-    
-    towerButtons.forEach((btn, index) => {
-        const towerName = btn.getAttribute('data-tower-name');
-        const towerCost = btn.getAttribute('data-cost');
-        
-        console.log(`${index + 1}. ${towerName} - ${towerCost} ouro`);
-        console.log(`   Tooltip: ${btn.title || 'Nenhum'}`);
-        console.log(`   Clique funciona: ${!btn.disabled}`);
-        console.log(`   Classe: ${btn.className}`);
-    });
-    
-    console.log('\n✅ Comportamento no mobile:');
-    console.log('   • Clique seleciona a torre (normal)');
-    console.log('   • NÃO mostra painel de informações');
-    console.log('   • NÃO mostra tooltip no hover');
-    console.log('   • Mantém funcionalidade de seleção');
-};
-
-// Função para resumir todas as modificações mobile
-window.showMobileModificationsSummary = function() {
-    console.log('📱 RESUMO DAS MODIFICAÇÕES MOBILE IMPLEMENTADAS');
-    console.log('===============================================');
-    console.log('');
-    console.log('🎯 MODIFICAÇÕES APLICADAS:');
-    console.log('');
-    console.log('1. 🏰 TORRES:');
-    console.log('   ✅ Tooltip removido no hover');
-    console.log('   ✅ Painel de informações oculto');
-    console.log('   ✅ Clique em torre não mostra detalhes');
-    console.log('   ✅ Mantém funcionalidade de seleção');
-    console.log('');
-    console.log('2. ⚡ HABILIDADES ESPECIAIS:');
-    console.log('   ✅ Nome oculto no mobile');
-    console.log('   ✅ Ícone aumentado (1.6em)');
-    console.log('   ✅ Cooldown mantido e destacado');
-    console.log('   ✅ Layout mais compacto');
-    console.log('');
-    console.log('🎨 BENEFÍCIOS VISUAIS:');
-    console.log('   • Interface mais limpa');
-    console.log('   • Menos elementos desnecessários');
-    console.log('   • Foco nos elementos essenciais');
-    console.log('   • Melhor experiência mobile');
-    console.log('');
-    console.log('🚀 FUNÇÕES DE TESTE:');
-    console.log('   • testMobileModifications() - Testar modificações');
-    console.log('   • testTowerClickMobile() - Testar clique nas torres');
-    console.log('   • showMobileModificationsSummary() - Este resumo');
-    console.log('');
-    console.log('📱 PARA TESTAR:');
-    console.log('   1. Redimensione a janela para ≤480px');
-    console.log('   2. Execute testMobileModifications()');
-    console.log('   3. Teste clique nas torres');
-    console.log('   4. Teste habilidades especiais');
-    console.log('');
-    console.log('✅ TODAS AS MODIFICAÇÕES IMPLEMENTADAS COM SUCESSO!');
-};
-
-// Executar teste automático após 3 segundos
-setTimeout(() => {
-    if (typeof window.showMobileModificationsSummary === 'function') {
-        console.log('📱 Executando resumo das modificações mobile...');
-        window.showMobileModificationsSummary();
-    }
-}, 3000);

@@ -79,9 +79,9 @@ export class GameSystem {
                     baseEnemies: config.enemiesPerWave || 5,
                     enemiesIncrease: config.enemiesIncrease || 2
                 };
-            } catch (e) {
-                console.error('Erro ao carregar configurações das ondas:', e);
-            }
+                    } catch (e) {
+            // Erro ao carregar configurações das ondas
+        }
         }
         const enemyCount = waveConfig.baseEnemies + (this.gameState.wave - 1) * waveConfig.enemiesIncrease;
         this.gameState.monstersThisWave = enemyCount;
@@ -92,7 +92,7 @@ export class GameSystem {
         this.gameState.lastSpawnTime = this.gameState.gameTime;
         this.gameState.spawnInterval = this.GAME_CONFIG.enemySpawnRate / 1000; // Converter para segundos
         
-        console.log(`[SPAWN] Iniciando onda ${this.gameState.wave} - ${enemyCount} inimigos`);
+
         this.uiSystem.updateUI();
     }
 
@@ -143,7 +143,7 @@ export class GameSystem {
         const lastRewardedWave = parseInt(localStorage.getItem(LAST_REWARDED_WAVE_KEY) || '0');
         const newProgress = Math.max(0, wavesSurvived - lastRewardedWave);
         
-        console.log(`[PONTOS] Ondas sobrevividas: ${wavesSurvived}, Última recompensada: ${lastRewardedWave}, Novo progresso: ${newProgress}`);
+
         
         let points = 0;
         
@@ -360,7 +360,6 @@ export class GameSystem {
         // Limitar deltaTime para evitar saltos quando a página é minimizada/reativada
         // Máximo de 100ms (equivalente a ~10fps mínimo)
         if (deltaTime > 100) {
-            console.log(`[DELTA] DeltaTime muito grande (${deltaTime.toFixed(2)}ms), limitando para 100ms`);
             deltaTime = 100;
         }
         
@@ -395,11 +394,11 @@ export class GameSystem {
                         this.gameState.enemiesSpawned++;
                         this.gameState.lastSpawnTime = this.gameState.gameTime;
                         
-                        console.log(`[SPAWN] Inimigo ${this.gameState.enemiesSpawned}/${this.gameState.monstersThisWave} spawnado`);
+        
                     } else {
                         // Todos os inimigos foram spawnados
                         this.gameState.allEnemiesSpawned = true;
-                        console.log(`[SPAWN] Todos os ${this.gameState.monstersThisWave} inimigos foram spawnados`);
+        
                         this.uiSystem.updateUI();
                     }
                 }
@@ -598,7 +597,7 @@ export class GameSystem {
             if (document.hidden) {
                 // Página foi minimizada ou perdeu foco
                 if (!this.gameState.isPaused && !this.gameState.isGameOver) {
-                    console.log('[VISIBILITY] Página minimizada - pausando automaticamente');
+        
                     this.gameState.isPaused = true;
                     this.wasAutoPaused = true;
                     this.uiSystem.updateUI();
@@ -609,7 +608,7 @@ export class GameSystem {
             } else {
                 // Página voltou ao foco
                 if (this.wasAutoPaused && this.gameState.isPaused) {
-                    console.log('[VISIBILITY] Página reativada - despausando automaticamente');
+        
                     this.gameState.isPaused = false;
                     this.wasAutoPaused = false;
                     
@@ -628,7 +627,7 @@ export class GameSystem {
         // Detectar quando a janela perde/ganha foco (backup)
         window.addEventListener('blur', () => {
             if (!this.gameState.isPaused && !this.gameState.isGameOver) {
-                console.log('[FOCUS] Janela perdeu foco - pausando automaticamente');
+    
                 this.gameState.isPaused = true;
                 this.wasAutoPaused = true;
                 this.uiSystem.updateUI();
@@ -637,7 +636,7 @@ export class GameSystem {
         
         window.addEventListener('focus', () => {
             if (this.wasAutoPaused && this.gameState.isPaused) {
-                console.log('[FOCUS] Janela ganhou foco - despausando automaticamente');
+    
                 this.gameState.isPaused = false;
                 this.wasAutoPaused = false;
                 
@@ -764,7 +763,7 @@ export class GameSystem {
                 return (skillTree['gelo'] || 0) > 0;
             }
         } catch (error) {
-            console.error('Erro ao verificar habilidades especiais:', error);
+            // Erro ao verificar habilidades especiais
             return false;
         }
         return false;
@@ -780,9 +779,9 @@ export class GameSystem {
             arrowBtn.style.display = arrowUnlocked ? 'flex' : 'none';
             
             if (arrowUnlocked) {
-                console.log('✅ Chuva de Flechas desbloqueada e visível');
+
             } else {
-                console.log('🔒 Chuva de Flechas bloqueada');
+
             }
         }
         
@@ -791,9 +790,9 @@ export class GameSystem {
             iceBtn.style.display = iceUnlocked ? 'flex' : 'none';
             
             if (iceUnlocked) {
-                console.log('✅ Tempestade de Gelo desbloqueada e visível');
+
             } else {
-                console.log('🔒 Tempestade de Gelo bloqueada');
+
             }
         }
         
@@ -827,7 +826,7 @@ export class GameSystem {
             
             if (currentWave > savedMaxWave) {
                 localStorage.setItem(key, currentWave.toString());
-                console.log(`[CONTINUAR] Nova maior onda salva: ${currentWave}`);
+    
                 
                 // Atualizar botão "Continuar" imediatamente
                 if (typeof window.adicionarBotaoContinuarMenu === 'function') {
@@ -840,7 +839,7 @@ export class GameSystem {
                 }
             }
         } catch (error) {
-            console.error('Erro ao salvar maior onda:', error);
+            // Erro ao salvar maior onda
         }
     }
 } 

@@ -288,8 +288,7 @@ export class CannonProjectile {
         this.areaRadius = areaRadius;
         this.areaDamageMultiplier = areaDamageMultiplier;
         
-        // Debug: mostrar informações do projétil
-        console.log(`CannonProjectile criado: área=${this.areaRadius.toFixed(1)}px, dano=${this.damage}`);
+
     }
 
     update(deltaTime) {
@@ -298,7 +297,7 @@ export class CannonProjectile {
         // Verificar se o alvo ainda existe
         if (!this.target || this.gameState.enemies.indexOf(this.target) === -1) {
             // Alvo foi removido, explodir na posição atual
-            console.log('Alvo removido, explodindo na posição atual');
+
             this.explode();
             return;
         }
@@ -310,7 +309,7 @@ export class CannonProjectile {
 
         if (distance < 15) {
             // Projétil atingiu o alvo - causar dano em área
-            console.log(`Projétil do canhão atingiu alvo a ${distance.toFixed(1)}px de distância`);
+
             this.explode();
             return;
         }
@@ -329,13 +328,12 @@ export class CannonProjectile {
         // Criar uma cópia do array para evitar problemas de modificação durante iteração
         const enemies = [...this.gameState.enemies];
         
-        console.log(`Explosão iniciada em (${this.x.toFixed(1)}, ${this.y.toFixed(1)}) com área de ${this.areaRadius.toFixed(1)}px`);
-        console.log(`Total de inimigos no jogo: ${enemies.length}`);
+
         
         for (let enemy of enemies) {
             // Verificar se o inimigo ainda existe e está vivo
             if (!enemy || !enemy.health || enemy.health <= 0 || enemy.isRemoved) {
-                console.log('Inimigo ignorado: morto ou removido');
+
                 continue;
             }
             
@@ -343,7 +341,7 @@ export class CannonProjectile {
             const dy = enemy.y - this.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
-            console.log(`Inimigo em (${enemy.x.toFixed(1)}, ${enemy.y.toFixed(1)}) - distância: ${distance.toFixed(1)}px`);
+
             
             if (distance <= this.areaRadius) {
                 const damage = Math.floor(this.damage * this.areaDamageMultiplier);
@@ -355,14 +353,13 @@ export class CannonProjectile {
                     damage: damage
                 });
                 
-                // Debug: mostrar informações da explosão
-                console.log(`✅ Explosão atingiu inimigo a ${distance.toFixed(1)}px de distância. Dano: ${damage}`);
+
             } else {
-                console.log(`❌ Inimigo fora da área (${distance.toFixed(1)}px > ${this.areaRadius.toFixed(1)}px)`);
+
             }
         }
         
-        console.log(`🎯 Explosão do canhão atingiu ${hitCount} inimigos em uma área de ${this.areaRadius.toFixed(1)}px`);
+
         
         // Criar efeito visual de explosão
         this.createExplosionEffect();
@@ -419,16 +416,7 @@ export class CannonProjectile {
         // Resetar sombra
         ctx.shadowBlur = 0;
         
-        // Debug: mostrar área de explosão (opcional - remover depois)
-        if (window.debugMode) {
-            ctx.strokeStyle = 'rgba(255, 100, 0, 0.5)';
-            ctx.lineWidth = 1;
-            ctx.setLineDash([3, 3]);
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.areaRadius, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.setLineDash([]);
-        }
+
         
         ctx.restore();
     }
