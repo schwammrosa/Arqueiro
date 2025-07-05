@@ -204,6 +204,7 @@
                 <span class="continue-text">Continuar</span>
                 <span class="continue-wave">(onda 1)</span>
             </button>
+            <button id="btnTutorial" class="main-menu-btn">📚 Tutorial</button>
             <button id="btnMenuConfig" class="main-menu-btn">Configurações</button>
             <button id="btnMenuCredits" class="main-menu-btn">Créditos</button>
         </div>
@@ -229,6 +230,81 @@
                     <div style="font-size: 12px; color: #4fdfff; margin-top: 5px;">Template: Linha Reta</div>
                     <div id="progressHard" style="display: none; margin-top: 5px; color: #4fdfff;"></div>
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal do Tutorial -->
+    <div id="tutorialModal" class="tutorial-modal" style="display:none;">
+        <div class="tutorial-modal-content">
+            <span id="closeTutorialModal" class="tutorial-close">&times;</span>
+            <div class="tutorial-header">
+                <h2>📚 Tutorial - Legado da Fortaleza</h2>
+                <div class="tutorial-progress">
+                    <span id="tutorialStep">1</span> de <span id="tutorialTotal">6</span>
+                </div>
+            </div>
+            
+            <div class="tutorial-content">
+                <div id="tutorialStep1" class="tutorial-step active">
+                    <div class="tutorial-icon">🎯</div>
+                    <h3>Bem-vindo ao Legado da Fortaleza!</h3>
+                    <p>Este é um jogo de Tower Defense onde você deve defender sua fortaleza contra ondas de inimigos. Vamos aprender os conceitos básicos!</p>
+                    <div class="tutorial-tip">
+                        <strong>💡 Dica:</strong> Você começa com 100 de vida e 50 de ouro. Se sua vida chegar a 0, o jogo acaba!
+                    </div>
+                </div>
+                
+                <div id="tutorialStep2" class="tutorial-step">
+                    <div class="tutorial-icon">🏰</div>
+                    <h3>Colocando Torres</h3>
+                    <p>Para defender sua fortaleza, você precisa colocar torres no mapa. Clique em uma torre na barra inferior e depois clique onde quer colocá-la no mapa.</p>
+                    <div class="tutorial-tip">
+                        <strong>💡 Dica:</strong> Cada torre tem um custo diferente. O Arqueiro custa 25 ouro, o Canhão 50 ouro e a Torre Especial 100 ouro.
+                    </div>
+                </div>
+                
+                <div id="tutorialStep3" class="tutorial-step">
+                    <div class="tutorial-icon">⬆️</div>
+                    <h3>Evoluindo Torres</h3>
+                    <p>Clique em uma torre colocada para ver suas informações. Você pode evoluí-la para aumentar dano, alcance e velocidade de tiro.</p>
+                    <div class="tutorial-tip">
+                        <strong>💡 Dica:</strong> Torres evoluídas são muito mais eficientes! Sempre evolua suas torres quando possível.
+                    </div>
+                </div>
+                
+                <div id="tutorialStep4" class="tutorial-step">
+                    <div class="tutorial-icon">🏹</div>
+                    <h3>Habilidades Especiais</h3>
+                    <p>Você tem duas habilidades especiais: Chuva de Flechas e Tempestade de Gelo. Use-as estrategicamente para derrotar inimigos difíceis.</p>
+                    <div class="tutorial-tip">
+                        <strong>💡 Dica:</strong> A Chuva de Flechas causa dano em área, enquanto a Tempestade de Gelo desacelera os inimigos.
+                    </div>
+                </div>
+                
+                <div id="tutorialStep5" class="tutorial-step">
+                    <div class="tutorial-icon">⚡</div>
+                    <h3>Gerenciando Ondas</h3>
+                    <p>Clique em "Iniciar Onda" para começar uma nova onda de inimigos. Cada onda fica mais difícil, mas você ganha mais ouro.</p>
+                    <div class="tutorial-tip">
+                        <strong>💡 Dica:</strong> Prepare-se bem antes de iniciar uma onda. É melhor ter torres evoluídas do que muitas torres fracas.
+                    </div>
+                </div>
+                
+                <div id="tutorialStep6" class="tutorial-step">
+                    <div class="tutorial-icon">🎮</div>
+                    <h3>Dificuldades e Progresso</h3>
+                    <p>Escolha entre Fácil, Normal ou Difícil. Cada dificuldade tem configurações diferentes e salva seu progresso separadamente.</p>
+                    <div class="tutorial-tip">
+                        <strong>💡 Dica:</strong> Comece no modo Fácil para aprender o jogo, depois experimente as outras dificuldades!
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tutorial-navigation">
+                <button id="tutorialPrev" class="tutorial-nav-btn">← Anterior</button>
+                <button id="tutorialNext" class="tutorial-nav-btn">Próximo →</button>
+                <button id="tutorialFinish" class="tutorial-nav-btn tutorial-finish" style="display:none;">Finalizar Tutorial</button>
             </div>
         </div>
     </div>

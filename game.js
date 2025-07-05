@@ -728,7 +728,8 @@ function onReady() {
         }
     }, 100);
     
-
+    // Verificar se é um usuário novo para mostrar o tutorial
+    checkFirstTimeUser();
 }
 
 if (document.readyState === 'loading') {
@@ -736,6 +737,152 @@ if (document.readyState === 'loading') {
 } else {
     onReady();
 }
+
+// Sistema de Tutorial
+let tutorialState = {
+    currentStep: 1,
+    totalSteps: 6,
+    isActive: false
+};
+
+function showTutorial() {
+    tutorialState.isActive = true;
+    tutorialState.currentStep = 1;
+    updateTutorialStep();
+    document.getElementById('tutorialModal').style.display = 'flex';
+}
+
+function hideTutorial() {
+    tutorialState.isActive = false;
+    document.getElementById('tutorialModal').style.display = 'none';
+}
+
+function updateTutorialStep() {
+    // Esconder todos os passos
+    for (let i = 1; i <= tutorialState.totalSteps; i++) {
+        const step = document.getElementById(`tutorialStep${i}`);
+        if (step) {
+            step.classList.remove('active');
+        }
+    }
+    
+    // Mostrar o passo atual
+    const currentStep = document.getElementById(`tutorialStep${tutorialState.currentStep}`);
+    if (currentStep) {
+        currentStep.classList.add('active');
+    }
+    
+    // Atualizar indicador de progresso
+    document.getElementById('tutorialStep').textContent = tutorialState.currentStep;
+    document.getElementById('tutorialTotal').textContent = tutorialState.totalSteps;
+    
+    // Atualizar botões de navegação
+    const prevBtn = document.getElementById('tutorialPrev');
+    const nextBtn = document.getElementById('tutorialNext');
+    const finishBtn = document.getElementById('tutorialFinish');
+    
+    prevBtn.disabled = tutorialState.currentStep === 1;
+    nextBtn.style.display = tutorialState.currentStep === tutorialState.totalSteps ? 'none' : 'inline-block';
+    finishBtn.style.display = tutorialState.currentStep === tutorialState.totalSteps ? 'inline-block' : 'none';
+}
+
+function nextTutorialStep() {
+    if (tutorialState.currentStep < tutorialState.totalSteps) {
+        tutorialState.currentStep++;
+        updateTutorialStep();
+    }
+}
+
+function prevTutorialStep() {
+    if (tutorialState.currentStep > 1) {
+        tutorialState.currentStep--;
+        updateTutorialStep();
+    }
+}
+
+function finishTutorial() {
+    hideTutorial();
+    // Salvar que o tutorial foi visto
+    localStorage.setItem('tutorialCompleted', 'true');
+}
+
+function checkFirstTimeUser() {
+    const tutorialCompleted = localStorage.getItem('tutorialCompleted');
+    if (!tutorialCompleted) {
+        // Mostrar tutorial automaticamente para novos usuários
+        setTimeout(() => {
+            showTutorial();
+        }, 1000); // Pequeno delay para garantir que o menu carregou
+    }
+}
+
+// Event listeners do tutorial
+document.addEventListener('DOMContentLoaded', function() {
+    // Botão de tutorial no menu
+    const btnTutorial = document.getElementById('btnTutorial');
+    if (btnTutorial) {
+        btnTutorial.addEventListener('click', showTutorial);
+    }
+    
+    // Botões de navegação do tutorial
+    const closeTutorialBtn = document.getElementById('closeTutorialModal');
+    const prevBtn = document.getElementById('tutorialPrev');
+    const nextBtn = document.getElementById('tutorialNext');
+    const finishBtn = document.getElementById('tutorialFinish');
+    
+    if (closeTutorialBtn) {
+        closeTutorialBtn.addEventListener('click', hideTutorial);
+    }
+    
+    if (prevBtn) {
+        prevBtn.addEventListener('click', prevTutorialStep);
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', nextTutorialStep);
+    }
+    
+    if (finishBtn) {
+        finishBtn.addEventListener('click', finishTutorial);
+    }
+    
+    // Fechar tutorial ao clicar fora
+    const tutorialModal = document.getElementById('tutorialModal');
+    if (tutorialModal) {
+        tutorialModal.addEventListener('click', function(e) {
+            if (e.target === tutorialModal) {
+                hideTutorial();
+            }
+        });
+    }
+    
+    // Navegação por teclado
+    document.addEventListener('keydown', function(e) {
+        if (!tutorialState.isActive) return;
+        
+        switch(e.key) {
+            case 'ArrowRight':
+            case ' ':
+                e.preventDefault();
+                if (tutorialState.currentStep < tutorialState.totalSteps) {
+                    nextTutorialStep();
+                } else {
+                    finishTutorial();
+                }
+                break;
+            case 'ArrowLeft':
+                e.preventDefault();
+                if (tutorialState.currentStep > 1) {
+                    prevTutorialStep();
+                }
+                break;
+            case 'Escape':
+                e.preventDefault();
+                hideTutorial();
+                break;
+        }
+    });
+});
 
 // Event listeners
 canvas.addEventListener('click', (e) => {
@@ -1053,7 +1200,6 @@ window.renderGame = function() {
 gameSystem.initializeFirstWave();
 uiSystem.updateUI();
 // Não iniciar o game loop automaticamente - será iniciado quando clicar em "Jogar"
-gameSystem.startGameLoop();
 
 window.arrowRainSelecting = arrowRainSelecting;
 window.arrowRainPreview = arrowRainPreview;
@@ -1427,6 +1573,8 @@ function iniciarModoContinuar() {
     
     // Notificar o jogador
     uiSystem.showNotification(`Continuando do nível ${maiorOnda} com ${ouro} ouro!`, 'info');
+    // Iniciar o game loop
+    gameSystem.startGameLoop();
 }
 
 // Função para iniciar um novo jogo (diferente do modo continuar)
@@ -1469,6 +1617,8 @@ function iniciarNovoJogo() {
     
     // Notificar o jogador
     uiSystem.showNotification('Novo jogo iniciado!', 'success');
+    // Iniciar o game loop
+    gameSystem.startGameLoop();
 }
 
 // Expor função para o escopo global

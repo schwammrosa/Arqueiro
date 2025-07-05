@@ -897,6 +897,278 @@ a.painel-lateral-btn:active {
     font-weight: 600;
 }
 
+/* ===== TUTORIAL MODAL ===== */
+.tutorial-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    backdrop-filter: blur(10px);
+}
+
+.tutorial-modal-content {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    border: 2px solid #4fdfff;
+    border-radius: 20px;
+    padding: 0;
+    max-width: 600px;
+    width: 90%;
+    max-height: 95vh;
+    min-height: 600px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(79, 223, 255, 0.3);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.tutorial-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 2em;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s ease;
+}
+
+.tutorial-close:hover {
+    color: #dc3545;
+    transform: scale(1.1);
+}
+
+.tutorial-header {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    padding: 25px 30px 20px;
+    border-bottom: 1px solid #4fdfff;
+    text-align: center;
+}
+
+.tutorial-header h2 {
+    color: #4fdfff;
+    margin: 0 0 10px 0;
+    font-size: 1.6em;
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.tutorial-progress {
+    color: #94a3b8;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.tutorial-content {
+    padding: 30px;
+    flex: 1 1 auto;
+    min-height: 350px;
+    max-height: none;
+    overflow-y: auto;
+}
+
+.tutorial-step {
+    display: none;
+    text-align: center;
+    animation: fadeIn 0.5s ease;
+}
+
+.tutorial-step.active {
+    display: block;
+}
+
+.tutorial-icon {
+    font-size: 4em;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.tutorial-step h3 {
+    color: #4fdfff;
+    margin: 0 0 15px 0;
+    font-size: 1.4em;
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.tutorial-step p {
+    color: #e2e8f0;
+    margin: 0 0 20px 0;
+    font-size: 1.1em;
+    line-height: 1.6;
+}
+
+.tutorial-tip {
+    background: rgba(79, 223, 255, 0.18);
+    border: 1px solid #4fdfff;
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 20px;
+    color: #eafaff;
+    font-weight: 500;
+}
+
+.tutorial-tip strong {
+    color: #ffe066;
+    text-shadow: 0 1px 2px #222;
+}
+
+.tutorial-tip p, .tutorial-tip {
+    color: #eafaff !important;
+}
+
+.tutorial-navigation {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px 30px;
+    background: rgba(15, 23, 42, 0.5);
+    border-top: 1px solid rgba(79, 223, 255, 0.2);
+}
+
+.tutorial-nav-btn {
+    background: linear-gradient(135deg, #334155, #475569);
+    border: 1px solid #4fdfff;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    font-size: 0.95em;
+}
+
+.tutorial-nav-btn:hover {
+    background: linear-gradient(135deg, #4fdfff, #38bdf8);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(79, 223, 255, 0.3);
+}
+
+.tutorial-nav-btn:disabled {
+    background: #6b7280;
+    border-color: #6b7280;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.tutorial-finish {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    border-color: #10b981 !important;
+}
+
+.tutorial-finish:hover {
+    background: linear-gradient(135deg, #059669, #047857) !important;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3) !important;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsividade do Tutorial */
+@media (max-width: 768px) {
+    .tutorial-modal-content {
+        max-width: 95%;
+        max-height: 98vh;
+        min-height: 400px;
+    }
+    .tutorial-header {
+        padding: 20px 20px 15px;
+    }
+    
+    .tutorial-header h2 {
+        font-size: 1.4em;
+    }
+    
+    .tutorial-content {
+        min-height: 200px;
+    }
+    
+    .tutorial-icon {
+        font-size: 3em;
+        margin-bottom: 15px;
+    }
+    
+    .tutorial-step h3 {
+        font-size: 1.2em;
+    }
+    
+    .tutorial-step p {
+        font-size: 1em;
+    }
+    
+    .tutorial-navigation {
+        padding: 15px 20px;
+    }
+    
+    .tutorial-nav-btn {
+        padding: 10px 15px;
+        font-size: 0.9em;
+    }
+}
+
+@media (max-width: 480px) {
+    .tutorial-modal-content {
+        max-width: 98%;
+        max-height: 99vh;
+        min-height: 200px;
+    }
+    .tutorial-header {
+        padding: 15px 15px 10px;
+    }
+    
+    .tutorial-header h2 {
+        font-size: 1.2em;
+    }
+    
+    .tutorial-content {
+        min-height: 100px;
+    }
+    
+    .tutorial-icon {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+    }
+    
+    .tutorial-step h3 {
+        font-size: 1.1em;
+    }
+    
+    .tutorial-step p {
+        font-size: 0.9em;
+    }
+    
+    .tutorial-tip {
+        padding: 12px;
+    }
+    
+    .tutorial-navigation {
+        padding: 12px 15px;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .tutorial-nav-btn {
+        padding: 8px 12px;
+        font-size: 0.85em;
+    }
+}
+
 /* Animações para notificações */
 @keyframes slideIn {
     from {
