@@ -205,12 +205,6 @@ if (btnUpgrades) {
 document.getElementById('closeUpgradeModal').addEventListener('click', () => {
     document.getElementById('upgradeModal').style.display = 'none';
 });
-window.addEventListener('mousedown', (e) => {
-    const modal = document.getElementById('upgradeModal');
-    if (modal.style.display !== 'none' && !modal.querySelector('.upgrade-modal-content').contains(e.target)) {
-        modal.style.display = 'none';
-    }
-});
 
 // Variáveis globais para configurações (serão atualizadas dinamicamente)
 let GAME_CONFIG = loadGameConfig();

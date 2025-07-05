@@ -2573,3 +2573,263 @@ a.painel-lateral-btn:active {
 #btnHard:hover {
     border-color: rgba(255, 0, 0, 0.6);
 }
+
+/* ===== UPGRADE MODAL NOVO VISUAL ===== */
+.upgrade-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.92);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    backdrop-filter: blur(10px);
+}
+
+.upgrade-modal-content {
+    background: linear-gradient(135deg, #1e293b, #334155);
+    border: 2px solid #4fdfff;
+    border-radius: 20px;
+    padding: 0;
+    max-width: 520px;
+    width: 92%;
+    min-height: 420px;
+    box-shadow: 0 20px 40px rgba(79, 223, 255, 0.3);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.upgrade-header {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    padding: 24px 30px 18px 30px;
+    border-bottom: 1px solid #4fdfff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.upgrade-header h2 {
+    color: #4fdfff;
+    margin: 0 auto;
+    font-size: 1.5em;
+    font-weight: bold;
+    text-align: center;
+    flex: 1;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.upgrade-close {
+    position: absolute;
+    top: 18px;
+    right: 28px;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 2em;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s ease;
+}
+.upgrade-close:hover {
+    color: #dc3545;
+    transform: scale(1.1);
+}
+
+.upgrade-points-info {
+    color: #eafaff;
+    background: rgba(79, 223, 255, 0.10);
+    border-bottom: 1px solid #4fdfff;
+    padding: 14px 30px;
+    font-size: 1.1em;
+    text-align: center;
+    font-weight: 500;
+}
+.upgrade-points-label {
+    color: #4fdfff;
+    font-weight: bold;
+}
+.upgrade-points-value {
+    color: #ffe066;
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-left: 4px;
+}
+
+.upgrade-list {
+    flex: 1 1 auto;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.upgrade-item {
+    background: rgba(51, 65, 85, 0.35);
+    border: 1.5px solid rgba(79, 223, 255, 0.18);
+    border-radius: 14px;
+    padding: 18px 18px 14px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: border 0.3s, background 0.3s;
+    position: relative;
+}
+.upgrade-item.unlocked {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.10);
+}
+.upgrade-item.available {
+    border-color: #ffe066;
+    background: rgba(255, 224, 102, 0.08);
+}
+.upgrade-item.locked {
+    border-color: #dc3545;
+    background: rgba(220, 53, 69, 0.08);
+    opacity: 0.7;
+}
+.upgrade-title {
+    color: #4fdfff;
+    font-size: 1.15em;
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+.upgrade-desc {
+    color: #eafaff;
+    font-size: 1em;
+    margin-bottom: 2px;
+}
+.upgrade-level {
+    color: #ffe066;
+    font-size: 0.98em;
+    font-weight: bold;
+}
+.upgrade-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+}
+.upgrade-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-weight: bold;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+}
+.upgrade-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25);
+}
+.upgrade-btn:disabled {
+    background: #6b7280;
+    color: #cbd5e1;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+@media (max-width: 768px) {
+    .upgrade-modal-content {
+        max-width: 98vw;
+        min-height: 320px;
+        padding: 0;
+    }
+    .upgrade-header {
+        padding: 18px 12px 12px 12px;
+    }
+    .upgrade-points-info {
+        padding: 10px 12px;
+        font-size: 1em;
+    }
+    .upgrade-list {
+        padding: 14px 10px 14px 10px;
+        gap: 12px;
+    }
+    .upgrade-item {
+        padding: 12px 10px 10px 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .upgrade-modal-content {
+        max-width: 99vw;
+        min-height: 180px;
+    }
+    .upgrade-header {
+        padding: 12px 6px 8px 6px;
+    }
+    .upgrade-points-info {
+        padding: 7px 6px;
+        font-size: 0.95em;
+    }
+    .upgrade-list {
+        padding: 8px 4px 8px 4px;
+        gap: 8px;
+    }
+    .upgrade-item {
+        padding: 8px 4px 6px 4px;
+    }
+    .upgrade-title {
+        font-size: 1em;
+    }
+    .upgrade-desc {
+        font-size: 0.95em;
+    }
+    .upgrade-level {
+        font-size: 0.92em;
+    }
+    .upgrade-btn {
+        padding: 6px 10px;
+        font-size: 0.95em;
+    }
+}
+
+.upgrade-modal-content {
+    max-width: 99vw;
+    width: 99vw;
+    min-width: 0;
+}
+
+.upgrade-list {
+    padding: 16px 8px 16px 8px;
+    gap: 18px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+    .upgrade-modal-content {
+        max-width: 99vw;
+        width: 99vw;
+    }
+    .upgrade-list {
+        padding: 10px 4px 10px 4px;
+    }
+}
+
+@media (max-width: 768px) {
+    .upgrade-modal-content {
+        max-width: 99vw;
+        min-height: 320px;
+        padding: 0;
+    }
+    .upgrade-list {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 8px 2px 8px 2px;
+    }
+}

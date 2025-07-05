@@ -24,6 +24,12 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="skill-tree.css">
     <link rel="stylesheet" href="config-style.css">
+    <style>
+        /* Estilos específicos para o jogo principal */
+        .game-container {
+            position: relative;
+        }
+    </style>
 </head>
 <body>
     <div class="game-container">
@@ -186,10 +192,14 @@
     <!-- Painel/modal de upgrades -->
     <div id="upgradeModal" class="upgrade-modal" style="display:none;">
         <div class="upgrade-modal-content">
-            <span id="closeUpgradeModal" class="close-modal">&times;</span>
-            <h2>Upgrades Globais</h2>
-            <div id="upgradePointsInfo">Pontos disponíveis: <span id="upgradePoints">0</span></div>
-            <div id="upgradeList"></div>
+            <div class="upgrade-header">
+                <h2>🔮 Upgrades Globais</h2>
+                <span id="closeUpgradeModal" class="upgrade-close">&times;</span>
+            </div>
+            <div class="upgrade-points-info">
+                <span class="upgrade-points-label">Pontos disponíveis:</span> <span id="upgradePoints" class="upgrade-points-value">0</span>
+            </div>
+            <div id="upgradeList" class="upgrade-list"></div>
         </div>
     </div>
 

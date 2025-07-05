@@ -30,7 +30,7 @@ export const SKILL_TREE = [
 export const SKILL_ICONS = {
     vida: '❤️', cura: '💚', defesa: '🛡️',
     dano: '⚔️', dano_arq: '🏹', vel_arq: '💨', dano_can: '🚀', alc_can: '💥', dano_mag: '🔮', cong_mag: '❄️', dano_tes: '⚡', enc_tes: '🔗',
-    esp: '✨', chuva: '🏹', gelo: '❄️', ouro: '��', torre: '🌟'
+    esp: '✨', chuva: '🏹', gelo: '❄️', ouro: '💰', torre: '🌟'
 };
 
 /**
@@ -113,12 +113,25 @@ function renderSkillTreeColumn(branch, containerId, skillTree, skillPoints) {
             nodeDiv.style.position = 'relative';
             nodeDiv.style.zIndex = 2;
             nodeDivs[node.id] = nodeDiv;
-            // Tooltip
+            
+            // Determinar estado do nó
             const level = skillTree[node.id] || 0;
             const canUpgrade = (level < node.max) && (skillPoints >= node.cost) && canUnlockSkill(node, skillTree);
             const unlocked = level > 0;
             const locked = !canUpgrade && level < node.max;
             const atMax = level >= node.max;
+            
+            // Aplicar classes CSS baseado no estado
+            if (atMax) {
+                nodeDiv.classList.add('maxed');
+            } else if (unlocked) {
+                nodeDiv.classList.add('unlocked');
+            } else if (canUpgrade) {
+                nodeDiv.classList.add('available');
+            } else {
+                nodeDiv.classList.add('locked');
+            }
+            
             let statusText = '';
             let lockReason = '';
             if (atMax) {
@@ -144,6 +157,7 @@ function renderSkillTreeColumn(branch, containerId, skillTree, skillPoints) {
             nodeDiv.appendChild(tooltip);
             nodeDiv.onmouseenter = () => { tooltip.style.display = 'block'; };
             nodeDiv.onmouseleave = () => { tooltip.style.display = 'none'; };
+            
             // Ícone de cadeado se bloqueado
             if (locked && !unlocked) {
                 const lockIcon = document.createElement('div');
@@ -157,14 +171,12 @@ function renderSkillTreeColumn(branch, containerId, skillTree, skillPoints) {
                 lockIcon.style.pointerEvents = 'none';
                 lockIcon.style.zIndex = '10';
                 nodeDiv.appendChild(lockIcon);
-                // Borda azul para nós bloqueados
-                nodeDiv.style.border = '2px solid #0066cc';
             }
+            
             // Evento de clique para evoluir
             if (canUpgrade) {
                 nodeDiv.style.cursor = 'pointer';
                 nodeDiv.onclick = () => {
-
                     // Atualizar skillTree e pontos
                     const newSkillTree = { ...skillTree };
                     newSkillTree[node.id] = (newSkillTree[node.id] || 0) + 1;
@@ -182,7 +194,6 @@ function renderSkillTreeColumn(branch, containerId, skillTree, skillPoints) {
                     initSkillTreePanel('skill-tree-multi-panel', updatedSkillTree, updatedPoints);
                     
                     // DISPARAR EVENTO PARA NOTIFICAR MUDANÇA NA SKILL TREE
-
                     document.dispatchEvent(new CustomEvent('skillTreeChanged', { 
                         detail: { 
                             nodeId: node.id, 
@@ -195,49 +206,148 @@ function renderSkillTreeColumn(branch, containerId, skillTree, skillPoints) {
                 nodeDiv.style.cursor = 'default';
                 nodeDiv.onclick = null;
             }
-            if (atMax) {
-                nodeDiv.style.boxShadow = '0 0 0 3px #ff2d2d, 0 0 12px #ff2d2d88';
-            } else {
-                nodeDiv.style.boxShadow = '';
-            }
+            
             rowDiv.appendChild(nodeDiv);
         });
         container.appendChild(rowDiv);
     }
     // Desenhar conexões SVG entre os nós (após renderizar)
     setTimeout(() => {
-        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svg.classList.add('skill-conn');
-        svg.setAttribute('width', container.offsetWidth);
-        svg.setAttribute('height', container.offsetHeight);
-        svg.style.position = 'absolute';
-        svg.style.left = '0';
-        svg.style.top = '0';
-        svg.style.pointerEvents = 'none';
-        svg.style.zIndex = 1;
-        tree.forEach(node => {
-            if (!node.parent) return;
-            const from = nodeDivs[node.parent];
-            const to = nodeDivs[node.id];
-            if (!from || !to) return;
-            const fromRect = from.getBoundingClientRect();
-            const toRect = to.getBoundingClientRect();
-            const contRect = container.getBoundingClientRect();
-            const x1 = fromRect.left + fromRect.width/2 - contRect.left;
-            const y1 = fromRect.top + fromRect.height - contRect.top;
-            const x2 = toRect.left + toRect.width/2 - contRect.left;
-            const y2 = toRect.top - contRect.top;
-            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            line.setAttribute('x1', x1);
-            line.setAttribute('y1', y1);
-            line.setAttribute('x2', x2);
-            line.setAttribute('y2', y2);
-            svg.appendChild(line);
-        });
-        const oldSvg = container.querySelector('.skill-conn');
-        if (oldSvg) oldSvg.remove();
-        container.appendChild(svg);
-    }, 10);
+        drawSkillConnections(container, tree, nodeDivs, skillTree);
+    }, 50);
+}
+
+/**
+ * Desenha as linhas de conexão entre os nós da árvore de habilidades
+ * @param {HTMLElement} container - Container da árvore
+ * @param {Array} tree - Array de nós da árvore
+ * @param {Object} nodeDivs - Objeto com referências aos elementos dos nós
+ * @param {Object} skillTree - Estado atual dos upgrades
+ */
+function drawSkillConnections(container, tree, nodeDivs, skillTree) {
+    // Remover SVG antigo se existir
+    const oldSvg = container.querySelector('.skill-conn');
+    if (oldSvg) oldSvg.remove();
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.classList.add('skill-conn');
+    svg.setAttribute('width', container.offsetWidth);
+    svg.setAttribute('height', container.offsetHeight);
+    svg.style.position = 'absolute';
+    svg.style.left = '0';
+    svg.style.top = '0';
+    svg.style.pointerEvents = 'none';
+    svg.style.zIndex = 1;
+
+    // Definir gradientes para as linhas
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    
+    // Gradiente para linhas desbloqueadas
+    const unlockedGradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+    unlockedGradient.setAttribute('id', 'unlockedGradient');
+    unlockedGradient.setAttribute('x1', '0%');
+    unlockedGradient.setAttribute('y1', '0%');
+    unlockedGradient.setAttribute('x2', '100%');
+    unlockedGradient.setAttribute('y2', '0%');
+    
+    const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop1.setAttribute('offset', '0%');
+    stop1.setAttribute('stop-color', '#4fdfff');
+    stop1.setAttribute('stop-opacity', '0.8');
+    
+    const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop2.setAttribute('offset', '50%');
+    stop2.setAttribute('stop-color', '#00bfff');
+    stop2.setAttribute('stop-opacity', '1');
+    
+    const stop3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop3.setAttribute('offset', '100%');
+    stop3.setAttribute('stop-color', '#4fdfff');
+    stop3.setAttribute('stop-opacity', '0.8');
+    
+    unlockedGradient.appendChild(stop1);
+    unlockedGradient.appendChild(stop2);
+    unlockedGradient.appendChild(stop3);
+    defs.appendChild(unlockedGradient);
+
+    // Gradiente para linhas bloqueadas
+    const lockedGradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+    lockedGradient.setAttribute('id', 'lockedGradient');
+    lockedGradient.setAttribute('x1', '0%');
+    lockedGradient.setAttribute('y1', '0%');
+    lockedGradient.setAttribute('x2', '100%');
+    lockedGradient.setAttribute('y2', '0%');
+    
+    const stop1Locked = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop1Locked.setAttribute('offset', '0%');
+    stop1Locked.setAttribute('stop-color', '#666');
+    stop1Locked.setAttribute('stop-opacity', '0.3');
+    
+    const stop2Locked = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop2Locked.setAttribute('offset', '50%');
+    stop2Locked.setAttribute('stop-color', '#999');
+    stop2Locked.setAttribute('stop-opacity', '0.5');
+    
+    const stop3Locked = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop3Locked.setAttribute('offset', '100%');
+    stop3Locked.setAttribute('stop-color', '#666');
+    stop3Locked.setAttribute('stop-opacity', '0.3');
+    
+    lockedGradient.appendChild(stop1Locked);
+    lockedGradient.appendChild(stop2Locked);
+    lockedGradient.appendChild(stop3Locked);
+    defs.appendChild(lockedGradient);
+
+    svg.appendChild(defs);
+
+    // Desenhar linhas de conexão
+    tree.forEach(node => {
+        if (!node.parent) return;
+        
+        const from = nodeDivs[node.parent];
+        const to = nodeDivs[node.id];
+        if (!from || !to) return;
+
+        const fromRect = from.getBoundingClientRect();
+        const toRect = to.getBoundingClientRect();
+        const contRect = container.getBoundingClientRect();
+
+        // Calcular pontos de conexão - ajustar para conectar topo do pai com baixo do filho
+        const x1 = fromRect.left + fromRect.width/2 - contRect.left;
+        const y1 = fromRect.top - contRect.top - 2; // Pequena margem para cima
+        const x2 = toRect.left + toRect.width/2 - contRect.left;
+        const y2 = toRect.top + toRect.height - contRect.top + 2; // Pequena margem para baixo
+
+        // Verificar se o nó pai está desbloqueado
+        const parentLevel = skillTree[node.parent] || 0;
+        const isUnlocked = parentLevel > 0;
+
+        // Criar linha com animação
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', x1);
+        line.setAttribute('y1', y1);
+        line.setAttribute('x2', x2);
+        line.setAttribute('y2', y2);
+        line.setAttribute('stroke-width', '3');
+        line.setAttribute('stroke-linecap', 'round');
+        
+        if (isUnlocked) {
+            line.setAttribute('stroke', 'url(#unlockedGradient)');
+            line.setAttribute('filter', 'drop-shadow(0 0 6px #4fdfff88)');
+            line.style.opacity = '0';
+            line.style.animation = 'skillLineAppear 0.8s ease-out forwards';
+            line.classList.add('unlocked-line');
+        } else {
+            line.setAttribute('stroke', 'url(#lockedGradient)');
+            line.setAttribute('stroke-dasharray', '5,5');
+            line.style.opacity = '0.4';
+            line.classList.add('locked-line');
+        }
+
+        svg.appendChild(line);
+    });
+
+    container.appendChild(svg);
 }
 
 // Função para checar se pode desbloquear uma habilidade

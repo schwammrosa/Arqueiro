@@ -12,11 +12,10 @@
 }
 
 .skill-tree-panel {
-  background: #181c24;
-  border: 2px solid #1e2633;
-  border-radius: 18px;
-  box-shadow: 0 4px 32px #000a;
-  padding: 24px 16px 32px 16px;
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
   min-width: 260px;
   max-width: 340px;
   width: 340px;
@@ -38,12 +37,15 @@
 }
 
 .skill-tree-grid {
+  background: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 0 8px 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
   margin: 0 auto;
-  padding: 0 0 8px 0;
   position: relative;
 }
 
@@ -68,6 +70,66 @@
   stroke-width: 3;
   opacity: 0.7;
   filter: drop-shadow(0 0 4px #4fdfff88);
+}
+
+/* Animações para as linhas de ligação */
+@keyframes skillLineAppear {
+  0% {
+    opacity: 0;
+    stroke-dasharray: 0, 1000;
+    stroke-dashoffset: 1000;
+  }
+  30% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 1;
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes skillLinePulse {
+  0%, 100% {
+    opacity: 0.7;
+    filter: drop-shadow(0 0 4px #4fdfff88);
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 8px #4fdfffaa);
+  }
+}
+
+@keyframes skillLineFlow {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -20;
+  }
+}
+
+/* Efeitos especiais para linhas desbloqueadas */
+.skill-conn line[stroke*="unlockedGradient"] {
+  animation: skillLineAppear 0.8s ease-out forwards, skillLinePulse 3s ease-in-out infinite 0.8s;
+}
+
+/* Efeitos para linhas bloqueadas */
+.skill-conn line[stroke*="lockedGradient"] {
+  animation: skillLineFlow 2s linear infinite;
+}
+
+/* Fallback para navegadores que não suportam seletores de atributos complexos */
+.skill-conn line {
+  transition: all 0.3s ease;
+}
+
+.skill-conn line.unlocked-line {
+  animation: skillLineAppear 0.8s ease-out forwards, skillLinePulse 3s ease-in-out infinite 0.8s;
+}
+
+.skill-conn line.locked-line {
+  animation: skillLineFlow 2s linear infinite;
 }
 
 .skill-tooltip {
@@ -97,13 +159,147 @@
   display: block;
 }
 
-.skill-tooltip::after {
-  content: '';
+/* Melhorias visuais para os nós */
+.skill-node {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #1e293b, #334155);
+  border: 2px solid #4fdfff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(79, 223, 255, 0.2);
+  position: relative;
+  overflow: visible;
+}
+
+.skill-node:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 20px rgba(79, 223, 255, 0.4);
+  border-color: #00bfff;
+}
+
+.skill-node:active {
+  transform: scale(0.95);
+}
+
+/* Estados dos nós */
+.skill-node.unlocked {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  border-color: #4fdfff;
+  box-shadow: 0 4px 12px rgba(79, 223, 255, 0.3);
+}
+
+.skill-node.available {
+  background: linear-gradient(135deg, #1e293b, #334155);
+  border-color: #00bfff;
+  box-shadow: 0 4px 12px rgba(0, 191, 255, 0.3);
+  animation: skillNodeGlow 2s ease-in-out infinite;
+}
+
+.skill-node.locked {
+  background: linear-gradient(135deg, #374151, #4b5563);
+  border-color: #6b7280;
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.2);
+  opacity: 0.6;
+}
+
+.skill-node.maxed {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.5), rgba(220, 38, 38, 0.5));
+  border-color: #ff0000;
+  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.4);
+  animation: skillNodeMaxed 2s ease-in-out infinite;
+}
+
+/* Animações para os nós */
+@keyframes skillNodeGlow {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(0, 191, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 8px 20px rgba(0, 191, 255, 0.6);
+  }
+}
+
+@keyframes skillNodeMaxed {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(255, 0, 0, 0.4);
+  }
+  50% {
+    box-shadow: 0 8px 20px rgba(255, 0, 0, 0.8);
+  }
+}
+
+/* Ícones dos nós */
+.skill-icon {
+  font-size: 2.3em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* Ícone de cadeado */
+.skill-lock-icon {
   position: absolute;
+  top: 50%;
   left: 50%;
-  top: 100%;
-  transform: translateX(-50%);
-  border-width: 7px;
-  border-style: solid;
-  border-color: #4fdfff transparent transparent transparent;
+  transform: translate(-50%, -50%);
+  font-size: 1.5em;
+  opacity: 0.7;
+  z-index: 10;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+}
+
+/* Responsividade */
+@media (max-width: 900px) {
+  #skill-tree-multi-panel {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin: 16px auto;
+  }
+  
+  .skill-tree-panel {
+    width: 100%;
+    max-width: 320px;
+    min-width: 280px;
+  }
+  
+  .skill-node {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .skill-icon {
+    font-size: 2em;
+  }
+}
+
+@media (max-width: 480px) {
+  .skill-tree-panel {
+    max-width: 280px;
+    min-width: 260px;
+  }
+  
+  .skill-node {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .skill-icon {
+    font-size: 1.8em;
+  }
+  
+  .skill-tooltip {
+    width: 150px;
+    font-size: 0.9em;
+  }
 } 
