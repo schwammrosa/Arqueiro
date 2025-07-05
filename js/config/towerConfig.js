@@ -41,7 +41,7 @@ export const DEFAULT_TOWER_TYPES = {
         chainRadius: 1.2    // Multiplicador do alcance para encadeamento
     },
     special: {
-        name: 'Torre Especial',
+        name: 'Especial',
         icon: '🌟',
         color: '#8e44ad',
         damage: 40,

@@ -130,22 +130,26 @@
             </div>
         </div>
 
-        <!-- Container para as habilidades especiais -->
-        <div id="specialSkillsFixedBar" class="skills-container">
-            <button id="btnArrowRain" class="special-skill-btn" title="Chuva de Flechas">
+        <!-- Container para habilidades e torres lado a lado -->
+        <div class="bottom-panel">
+            <!-- Habilidade Esquerda -->
+            <button id="btnArrowRain" class="special-skill-btn skill-left" title="Chuva de Flechas">
                 <span class="skill-icon">🏹</span>
                 <span class="skill-label">Chuva de Flechas</span>
                 <span class="skill-cooldown" id="arrowRainCooldown"></span>
             </button>
-            <button id="btnIceStorm" class="special-skill-btn" title="Tempestade de Gelo">
+            
+            <!-- Torres no Centro -->
+            <div class="footer-tower-bar" id="footerTowerBar">
+                <!-- As opções de torres serão geradas dinamicamente pelo JS -->
+            </div>
+            
+            <!-- Habilidade Direita -->
+            <button id="btnIceStorm" class="special-skill-btn skill-right" title="Tempestade de Gelo">
                 <span class="skill-icon">❄️</span>
                 <span class="skill-label">Tempestade de Gelo</span>
                 <span class="skill-cooldown" id="iceStormCooldown"></span>
             </button>
-        </div>
-
-        <div class="footer-tower-bar" id="footerTowerBar">
-            <!-- As opções de torres serão geradas dinamicamente pelo JS -->
         </div>
     </div>
     
