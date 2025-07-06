@@ -210,16 +210,10 @@ document.getElementById('closeUpgradeModal').addEventListener('click', () => {
 let GAME_CONFIG = loadGameConfig();
 let TOWER_TYPES = loadTowerConfig();
 
-// Função para aplicar preset de dificuldade (removida - agora implementada no index.html)
-// function applyDifficultyPreset(difficulty) { ... }
-
 // Função para mostrar o modal de dificuldade
 function showDifficultyModal() {
     document.getElementById('difficultyModal').style.display = 'flex';
 }
-
-// Event listeners para os botões de dificuldade (removidos - agora implementados no index.html)
-// function setupDifficultyEventListeners() { ... }
 
 // Função para aplicar os efeitos da árvore de habilidades ao GAME_CONFIG
 function applySkillTreeEffects(gameConfig, skillTree) {
@@ -448,7 +442,7 @@ function loadEnemyPath() {
         try {
             const path = JSON.parse(savedPath);
             if (path && path.length > 0) {
-                console.log('Caminho carregado do template:', path.length, 'pontos');
+        
                 return path;
             }
         } catch (e) {
@@ -462,7 +456,7 @@ function loadEnemyPath() {
         try {
             const config = JSON.parse(savedConfig);
             if (config.enemyPath && config.enemyPath.length > 0) {
-                console.log('Caminho carregado do config:', config.enemyPath.length, 'pontos');
+        
                 return config.enemyPath;
             }
         } catch (e) {
@@ -470,7 +464,7 @@ function loadEnemyPath() {
         }
     }
     
-    console.log('Usando caminho padrão:', GAME_CONFIG.enemyPath.length, 'pontos');
+    
     return GAME_CONFIG.enemyPath;
 }
 
@@ -482,9 +476,12 @@ const renderSystem = new RenderSystem(ctx, GAME_CONFIG, enemyPath);
 // Garantir que o gameState seja a mesma referência
 renderSystem.gameState = gameState;
 
+// Log para debug
+console.log('🎮 RenderSystem criado, status dos monstros:', renderSystem.monstersInitialized);
+
 // Inicializar sistema de interface do usuário
 const uiSystem = new UISystem(gameState);
-window.uiSystem = uiSystem; // Disponibilizar para testes
+
 
 // Garantir que o gameState seja a mesma referência
 gameState = uiSystem.gameState;
@@ -498,15 +495,12 @@ gameState = gameSystem.gameState;
 // Inicializar botões das habilidades especiais
 gameSystem.updateSpecialSkillsVisibility();
 
-// Demonstrar nova fórmula de upgrade (para debug)
-console.log('🎮 Nova Fórmula de Upgrade Implementada!');
-console.log('💡 Exemplo para torre de 50 ouro com 50% de upgrade:');
-Tower.demonstrateUpgradeFormula(50, 50); // Controlar visibilidade primeiro
+ // Controlar visibilidade primeiro
 gameSystem.updateSpecialSkillUI('arrowRain');
 gameSystem.updateSpecialSkillUI('iceStorm');
 gameSystem.updateSpeedUI();
 // Tornar gameSystem acessível globalmente para o menu
-window.gameSystem = gameSystem;
+
 
 // Função para verificar se está em dispositivo mobile
 function isMobile() {
@@ -1195,22 +1189,16 @@ gameSystem.initializeFirstWave();
 uiSystem.updateUI();
 // Não iniciar o game loop automaticamente - será iniciado quando clicar em "Jogar"
 
-window.arrowRainSelecting = arrowRainSelecting;
-window.arrowRainPreview = arrowRainPreview;
-window.ARROW_RAIN_RADIUS = ARROW_RAIN_RADIUS;
 
-// Remover o antigo window.renderGame, pois a renderização do preview agora está no GameSystem
-// (Se existir, pode remover ou deixar vazio)
-window.renderGame = undefined;
 
 // Sempre que alterar arrowRainSelecting ou arrowRainPreview, sincronizar com window
 function setArrowRainSelecting(val) {
     arrowRainSelecting = val;
-    window.arrowRainSelecting = val;
+    
 }
 function setArrowRainPreview(val) {
     arrowRainPreview = val;
-    window.arrowRainPreview = val;
+    
 }
 
 // Função utilitária para mostrar/esconder tooltip
@@ -1397,9 +1385,7 @@ document.addEventListener('skillTreeChanged', (event) => {
 });
 
 // Função para verificar elementos
-window.checkElements = function() {
 
-};
 
 // Função utilitária para calcular ouro acumulado até uma onda
 function calcularOuroAteOnda(onda, enemiesPerWave, enemyReward) {
@@ -1420,12 +1406,9 @@ function salvarMaiorOnda(onda) {
     
     // Salvar progresso por dificuldade
     const selectedDifficulty = localStorage.getItem('selectedDifficulty') || 'normal';
-    console.log('Salvando progresso para dificuldade:', selectedDifficulty, 'onda:', onda);
-    
     // Salvar diretamente no localStorage
     const progressKey = `progress_${selectedDifficulty}`;
     localStorage.setItem(progressKey, onda.toString());
-    console.log('Progresso salvo:', progressKey, '=', onda);
 }
 
 // Controlar visibilidade do botão Continuar no menu inicial
@@ -1490,16 +1473,10 @@ function iniciarModoContinuar() {
     const progressKey = `progress_${selectedDifficulty}`;
     const maiorOnda = parseInt(localStorage.getItem(progressKey) || '1');
     
-    console.log('Iniciando modo continuar para dificuldade:', selectedDifficulty);
-    console.log('Progresso carregado:', progressKey, '=', maiorOnda);
-    
     if (maiorOnda <= 1) {
-        console.log('Nenhum progresso encontrado, iniciando novo jogo');
         iniciarNovoJogo();
         return;
     }
-    
-    console.log('Progresso válido encontrado, continuando da onda:', maiorOnda);
     
 
     
@@ -1547,18 +1524,14 @@ function iniciarModoContinuar() {
     
     // Função customizada para inicializar o modo continuar (não reseta wave)
     function initializeContinuarMode() {
-        console.log('Inicializando modo continuar - wave atual:', gameSystem.gameState.wave);
-        
         const savedConfig = localStorage.getItem('arqueiroConfig');
         const waveDelaySeconds = savedConfig ? JSON.parse(savedConfig).waveDelaySeconds || 5 : 5;
         gameSystem.gameState.nextWaveTimer = waveDelaySeconds;
         gameSystem.gameState.waveInProgress = false;
         gameSystem.gameState.allEnemiesSpawned = false;
-        
-        console.log('Modo continuar inicializado - próxima onda será:', gameSystem.gameState.wave);
     }
     
-    console.log('Chamando gameSystem.restart para modo continuar...');
+
     gameSystem.restart(getInitialGameStateContinuar, initializeContinuarMode);
     
     // Esconder menu se estiver visível
@@ -1573,12 +1546,9 @@ function iniciarModoContinuar() {
 
 // Função para iniciar um novo jogo (diferente do modo continuar)
 function iniciarNovoJogo() {
-    console.log('=== INICIANDO NOVO JOGO ===');
-    
     // Usar função getInitialGameState para criar estado completamente novo
-    console.log('Chamando gameSystem.restart para novo jogo...');
     gameSystem.restart(getInitialGameState, () => {
-        console.log('Callback do restart executado - novo jogo');
+
         
         // Inicializar primeira onda normalmente
         gameSystem.initializeFirstWave();
@@ -1602,7 +1572,7 @@ function iniciarNovoJogo() {
         // Atualizar UI
         uiSystem.updateUI();
         
-        console.log('Novo jogo configurado com sucesso. Wave atual:', gameState.wave);
+
     });
     
     // Esconder menu se estiver visível
@@ -1615,7 +1585,7 @@ function iniciarNovoJogo() {
     gameSystem.startGameLoop();
 }
 
-// Expor função para o escopo global
+// Expor funções necessárias para o escopo global
 window.iniciarModoContinuar = iniciarModoContinuar;
 window.iniciarNovoJogo = iniciarNovoJogo;
 window.adicionarBotaoContinuarMenu = adicionarBotaoContinuarMenu;

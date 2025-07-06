@@ -60,7 +60,7 @@ export class ImageManager {
             const successCount = results.filter(r => r !== null).length;
             const totalCount = Object.keys(imageMap).length;
             
-            console.log(`📊 Carregamento: ${successCount}/${totalCount} imagens carregadas`);
+
             
             // Considerar sucesso se pelo menos 80% das imagens carregaram
             return successCount >= totalCount * 0.8;
@@ -347,7 +347,7 @@ export class ImageManager {
             const loadSuccess = await this.loadImages(imageMap);
             
             if (loadSuccess) {
-                console.log('✅ Imagens reais carregadas com sucesso!');
+        
                 return true;
             } else {
                 console.warn('⚠️ Falha ao carregar imagens reais, usando texturas procedurais como fallback');
@@ -388,7 +388,7 @@ export class ImageManager {
             this.images.set('path_start', this.defaultImages.pathStart);
             this.images.set('path_end', this.defaultImages.pathEnd);
             
-            console.log('✅ Texturas procedurais carregadas como fallback');
+    
             return true;
         } catch (error) {
             console.error('Erro ao inicializar imagens procedurais:', error);

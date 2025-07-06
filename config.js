@@ -21,113 +21,8 @@ import {
     saveEnemyConfig 
 } from './js/config/enemyConfig.js';
 
-// Configurações padrão do jogo
-const DEFAULT_CONFIG = {
-    // Configurações gerais
-    initialHealth: 20,
-    initialGold: 100,
-    gridSize: 40,
-    waveDelay: 3000,
-    upgradeBaseCost: 50,
-    upgradePercentage: 50, // Porcentagem do valor da torre para upgrade
-    sellPercentage: 50,
-    pointsPerKill: 8,           // Reduzido de 10 para 8 (compensar multiplicadores)
-    waveBonusMultiplier: 40,    // Reduzido de 50 para 40 (temos bônus exponencial)
-    upgradeBonusMultiplier: 20, // Reduzido de 25 para 20 (mais equilibrado)
-    waveDelaySeconds: 5,
-    goldMultiplier: 1,
-    enemyHealthMultiplier: 1.1,
-    enemySpeedMultiplier: 1.05,
-    enemySpawnRate: 1000,
-    
-    // Configurações das torres
-    towers: {
-        archer: {
-            cost: 50,
-            range: 120,
-            damage: 15,
-            fireRate: 1000
-        },
-        cannon: {
-            cost: 75,
-            range: 100,
-            damage: 25,
-            fireRate: 1500
-        },
-        magic: {
-            cost: 100,
-            range: 140,
-            damage: 20,
-            fireRate: 800
-        },
-        tesla: {
-            cost: 120,
-            range: 150,
-            damage: 30,
-            fireRate: 1000
-        }
-    },
-    
-    // Configurações dos inimigos
-    enemyBaseHealth: 50,
-    enemyHealthIncrease: 10,
-    enemySpeed: 0.5,
-    enemyReward: 10,
-    enemiesPerWave: 5,
-    enemiesIncrease: 2,
-    
-    // Configurações visuais
-    canvasWidth: 800,
-    canvasHeight: 600,
-    projectileSpeed: 5,
-    projectileSize: 4,
-    damageNumberLifetime: 60,
-    damageNumberSpeed: 1,
-    
-    // Configurações de tipos especiais de inimigos
-    enemyTypes: {
-        normal: {
-            name: 'Normal',
-            healthMultiplier: 1,
-            speedMultiplier: 1,
-            rewardMultiplier: 1,
-            spawnChance: 70, // 70% de chance
-            color: '#dc3545'
-        },
-        fast: {
-            name: 'Rápido',
-            healthMultiplier: 0.7,
-            speedMultiplier: 1.8,
-            rewardMultiplier: 1.2,
-            spawnChance: 20, // 20% de chance
-            color: '#ffc107'
-        },
-        tank: {
-            name: 'Tanque',
-            healthMultiplier: 2.5,
-            speedMultiplier: 0.6,
-            rewardMultiplier: 1.8,
-            spawnChance: 8, // 8% de chance
-            color: '#6c757d'
-        },
-        elite: {
-            name: 'Elite',
-            healthMultiplier: 5,
-            speedMultiplier: 0.8,
-            rewardMultiplier: 3,
-            spawnChance: 2, // 2% de chance
-            color: '#dc3545'
-        }
-    },
-    
-    // Caminho padrão
-    enemyPath: [
-        {x: 0, y: 3}, {x: 1, y: 3}, {x: 2, y: 3}, {x: 3, y: 3}, {x: 4, y: 3},
-        {x: 5, y: 3}, {x: 6, y: 3}, {x: 7, y: 3}, {x: 8, y: 3}, {x: 9, y: 3},
-        {x: 10, y: 3}, {x: 11, y: 3}, {x: 12, y: 3}, {x: 13, y: 3}, {x: 14, y: 3},
-        {x: 15, y: 3}, {x: 16, y: 3}, {x: 17, y: 3}, {x: 18, y: 3}, {x: 19, y: 3}
-    ]
-};
+// Usar configurações do módulo gameConfig.js
+const DEFAULT_CONFIG = DEFAULT_GAME_CONFIG;
 
 // Templates de caminhos pré-definidos
 const PATH_TEMPLATES = {
@@ -231,13 +126,8 @@ const PATH_TEMPLATES = {
 
 // Função para testar todos os templates
 function testAllTemplates() {
-    console.log('🧪 Testando todos os templates de caminho...');
-    
     Object.keys(PATH_TEMPLATES).forEach(templateName => {
         const template = PATH_TEMPLATES[templateName];
-        console.log(`\n📋 Template: ${template.name} (${templateName})`);
-        console.log(`📝 Descrição: ${template.description}`);
-        console.log(`📊 Pontos: ${template.path.length}`);
         
         // Verificar pontos válidos
         let validPoints = 0;
@@ -248,25 +138,12 @@ function testAllTemplates() {
                 validPoints++;
             } else {
                 invalidPoints++;
-                console.warn(`❌ Ponto inválido: (${point.x}, ${point.y})`);
             }
         });
         
-        console.log(`✅ Pontos válidos: ${validPoints}`);
-        if (invalidPoints > 0) {
-            console.warn(`❌ Pontos inválidos: ${invalidPoints}`);
-        }
-        
         // Validar conectividade do caminho
-        const validation = validateTemplatePath(template.path);
-        if (validation.valid) {
-            console.log(`🔗 Conectividade: ✅ Válida`);
-        } else {
-            console.error(`🔗 Conectividade: ❌ ${validation.error}`);
-        }
+        validateTemplatePath(template.path);
     });
-    
-    console.log('\n🎯 Teste de templates concluído!');
 }
 
 // Estado atual das configurações
@@ -803,12 +680,12 @@ function createPathTemplates() {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             const template = btn.dataset.template;
-            console.log(`🎯 Aplicando template: ${template}`);
+    
             applyPathTemplate(template);
         });
     });
     
-    console.log('✅ Templates de caminho criados e configurados!');
+
 }
 
 // Configurar editor de caminho
@@ -906,7 +783,7 @@ function applyPathTemplate(templateName) {
         try {
             applyPathToGrid(template.path);
             showNotification(`Template "${template.name}" aplicado com sucesso!`, 'success');
-            console.log(`Template ${templateName} aplicado: ${template.path.length} células`);
+    
         } catch (error) {
             console.error('Erro ao aplicar template:', error);
             showNotification(`Erro ao aplicar template: ${error.message}`, 'error');
@@ -1295,7 +1172,7 @@ function saveConfig() {
         
         // Se estamos no mesmo domínio, tentar aplicar mudanças imediatamente
         if (window.opener && window.opener.reloadConfigs) {
-            console.log('🔄 Aplicando configurações ao jogo...');
+    
             window.opener.reloadConfigs();
             window.opener.forceCanvasResize && window.opener.forceCanvasResize();
         }

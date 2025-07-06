@@ -31,73 +31,20 @@ export class UISystem {
             startBtn.disabled = false;
         }
         // Atualizar estados dos botões de torre baseado no ouro
-        if (typeof window.updateTowerButtonStates === 'function') {
-            window.updateTowerButtonStates();
-        } else {
-            // Fallback para o sistema antigo
-            document.querySelectorAll('.tower-btn').forEach(btn => {
-                const cost = parseInt(btn.dataset.cost);
-                if (this.gameState.gold < cost) {
-                    btn.classList.add('disabled');
-                } else {
-                    btn.classList.remove('disabled');
-                }
-            });
-        }
+        document.querySelectorAll('.tower-btn').forEach(btn => {
+            const cost = parseInt(btn.dataset.cost);
+            if (this.gameState.gold < cost) {
+                btn.classList.add('disabled');
+            } else {
+                btn.classList.remove('disabled');
+            }
+        });
     }
 
     showNotification(message, type = 'info', duration = 3000) {
-        // Criar elemento de notificação
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.textContent = message;
-        
-        // Estilos da notificação - centralizada no topo
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 15px 20px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 600;
-            z-index: 10000;
-            animation: slideInDown 0.4s ease;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        `;
-        
-        // Cores por tipo
-        const colors = {
-            success: 'linear-gradient(135deg, #28a745, #1e7e34)',
-            error: 'linear-gradient(135deg, #dc3545, #c82333)',
-            info: 'linear-gradient(135deg, #17a2b8, #117a8b)',
-            warning: 'linear-gradient(135deg, #ffc107, #e0a800)'
-        };
-        
-        notification.style.background = colors[type] || colors.info;
-        
-        // Verificar se há outras notificações e ajustar posição
-        const existingNotifications = document.querySelectorAll('.notification');
-        if (existingNotifications.length > 0) {
-            const offset = existingNotifications.length * 80; // 80px de espaçamento
-            notification.style.top = `${20 + offset}px`;
-        }
-        
-        // Adicionar ao DOM
-        document.body.appendChild(notification);
-        
-        // Remover após o tempo especificado
-        setTimeout(() => {
-            notification.style.animation = 'slideOutUp 0.4s ease';
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 400);
-        }, duration);
+        // Notificações desativadas
+        // console.log(`[NOTIFICAÇÃO DESATIVADA] (${type}): ${message}`);
+        return;
     }
 
     repositionNotifications() {

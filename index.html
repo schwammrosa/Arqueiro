@@ -1144,7 +1144,7 @@
     window.saveProgress = function(difficulty, wave) {
         const progressKey = `progress_${difficulty}`;
         localStorage.setItem(progressKey, wave.toString());
-        console.log(`Progresso salvo: ${difficulty} - Onda ${wave}`);
+
     };
 
     window.loadProgress = function(difficulty) {
@@ -1154,12 +1154,11 @@
     };
 
     window.showDifficultyModal = function(isContinue = false) {
-        console.log('showDifficultyModal chamada com isContinue:', isContinue);
+
         const modal = document.getElementById('difficultyModal');
         const title = document.getElementById('difficultyModalTitle');
         
         if (!modal) {
-            console.log('Modal não encontrado!');
             return;
         }
         
@@ -1190,7 +1189,6 @@
         }
         
         modal.style.setProperty('display', 'flex', 'important');
-        console.log('Modal exibido com sucesso');
     };
 
     // Templates de caminho pré-definidos
@@ -1267,7 +1265,6 @@
     }
 
     window.selectDifficulty = function(difficulty) {
-        console.log('Dificuldade selecionada:', difficulty);
         
         // Esconder modal de dificuldade
         const difficultyModal = document.getElementById('difficultyModal');
@@ -1283,7 +1280,6 @@
         
         // Verificar se é para continuar ou novo jogo
         const isContinue = document.getElementById('difficultyModalTitle').textContent === 'Continuar Jogo';
-        console.log('É para continuar?', isContinue);
         
         // Aplicar configurações de dificuldade
         const PRESETS = {
@@ -1350,7 +1346,6 @@
         if (preset) {
             // Salvar a dificuldade selecionada
             localStorage.setItem('selectedDifficulty', difficulty);
-            console.log('Dificuldade salva:', difficulty);
             
             // Salvar configurações
             const currentConfig = JSON.parse(localStorage.getItem('arqueiroConfig') || '{}');
@@ -1361,7 +1356,6 @@
             const pathTemplate = getPathTemplateForDifficulty(difficulty);
             if (pathTemplate) {
                 localStorage.setItem('enemyPath', JSON.stringify(pathTemplate.path));
-                console.log('Template de caminho aplicado:', pathTemplate.name);
                 
                 // Mostrar notificação sobre o template aplicado
                 setTimeout(() => {
@@ -1371,7 +1365,7 @@
                 }, 1000);
             }
             
-            console.log('Configurações aplicadas:', preset.name);
+
         }
         
         // Iniciar o jogo
@@ -1379,12 +1373,9 @@
         
         if (isContinue) {
             // Continuar jogo com progresso salvo
-            console.log('Iniciando modo continuar para dificuldade:', difficulty);
             if (typeof window.iniciarModoContinuar !== 'undefined') {
-                console.log('Chamando iniciarModoContinuar...');
                 window.iniciarModoContinuar();
             } else {
-                console.log('Função iniciarModoContinuar não encontrada');
                 // Fallback: iniciar novo jogo
                 if (typeof window.iniciarNovoJogo !== 'undefined') {
                     window.iniciarNovoJogo();
@@ -1392,12 +1383,8 @@
             }
         } else {
             // Novo jogo
-            console.log('Iniciando novo jogo para dificuldade:', difficulty);
             if (typeof window.iniciarNovoJogo !== 'undefined') {
-                console.log('Chamando iniciarNovoJogo...');
                 window.iniciarNovoJogo();
-            } else {
-                console.log('Função iniciarNovoJogo não encontrada');
             }
         }
         
@@ -1419,7 +1406,6 @@
 
                 // Ao clicar em Jogar, mostrar modal de seleção de dificuldade
         btnPlay.onclick = function() {
-            console.log('Botão Jogar clicado');
             
             const difficultyModal = document.getElementById('difficultyModal');
             const title = document.getElementById('difficultyModalTitle');
@@ -1436,17 +1422,12 @@
                     }
                 });
                 
-                console.log('Mostrando modal...');
                 difficultyModal.style.display = 'flex';
-                console.log('Modal exibido!');
-            } else {
-                console.log('Modal não encontrado!');
             }
         };
         
         // Ao clicar em Continuar, mostrar modal com progresso de cada dificuldade
         btnContinue.onclick = function() {
-            console.log('Botão Continuar clicado');
             
             const difficultyModal = document.getElementById('difficultyModal');
             const title = document.getElementById('difficultyModalTitle');
@@ -1472,9 +1453,6 @@
                 
                 // Mostrar modal
                 difficultyModal.style.display = 'flex';
-                console.log('Modal de continuar exibido!');
-            } else {
-                console.log('Modal não encontrado!');
             }
         };
         
@@ -1526,9 +1504,9 @@
                     } else if (typeof window.gameSystem.stopGameLoop === 'function') {
                         window.gameSystem.stopGameLoop();
                     }
-                    console.log('Jogo pausado com sucesso!');
+
                 } catch (error) {
-                    console.log('Erro ao pausar jogo:', error);
+                    // Erro ao pausar jogo
                 }
             }
             
@@ -1544,16 +1522,13 @@
                 try {
                     if (typeof window.gameSystem.saveGame === 'function') {
                         window.gameSystem.saveGame();
-                        console.log('Jogo salvo com sucesso!');
-                    } else {
-                        console.log('Função saveGame não disponível');
                     }
                 } catch (error) {
-                    console.log('Erro ao salvar jogo:', error);
+                    // Erro ao salvar jogo
                 }
             }
             
-            console.log('Retornando ao menu principal...');
+
         };
     });
 

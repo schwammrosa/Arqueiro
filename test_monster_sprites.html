@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Sistema de Sprites de Monstros</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+            padding: 20px;
+        }
+        canvas {
+            border: 2px solid #333;
+            background: #2a2a2a;
+        }
+        .info {
+            margin: 20px 0;
+            padding: 10px;
+            background: #333;
+            border-radius: 5px;
+        }
+        .error {
+            color: #ff6b6b;
+        }
+        .success {
+            color: #51cf66;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste - Sistema de Sprites de Monstros</h1>
+    
+    <div class="info">
+        <h3>Status do Sistema:</h3>
+        <div id="status">Carregando...</div>
+    </div>
+    
+    <canvas id="testCanvas" width="400" height="300"></canvas>
+    
+    <div class="info">
+        <h3>Logs:</h3>
+        <div id="logs"></div>
+    </div>
+
+    <script type="module">
+        import { MonsterSpriteManager } from './js/systems/MonsterSpriteManager.js';
+        import { imageManager } from './js/systems/ImageManager.js';
+        
+        const statusDiv = document.getElementById('status');
+        const logsDiv = document.getElementById('logs');
+        const canvas = document.getElementById('testCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function log(message, type = 'info') {
+            const logDiv = document.createElement('div');
+            logDiv.className = type;
+            logDiv.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logsDiv.appendChild(logDiv);
+            console.log(message);
+        }
+        
+        async function testMonsterSprites() {
+            try {
+                log('🚀 Iniciando teste do sistema de sprites...');
+                
+                // Criar MonsterSpriteManager
+                const monsterSpriteManager = new MonsterSpriteManager(imageManager);
+                log('✅ MonsterSpriteManager criado');
+                
+                // Verificar configurações
+                const availableMonsters = monsterSpriteManager.getAvailableMonsters();
+                log(`📋 Monstros disponíveis: ${availableMonsters.join(', ')}`);
+                
+                // Carregar monstros
+                log('🔄 Carregando monstros...');
+                const success = await monsterSpriteManager.loadAllMonsters();
+                
+                if (success) {
+                    log('✅ Todos os monstros carregados com sucesso!', 'success');
+                    statusDiv.innerHTML = '<span class="success">✅ Sistema funcionando!</span>';
+                    
+                    // Testar desenho
+                    const testMonster = {
+                        type: 'normal',
+                        x: 200,
+                        y: 150,
+                        direction: 'down'
+                    };
+                    
+                    log('🎨 Testando desenho de monstro...');
+                    monsterSpriteManager.drawMonster(ctx, testMonster, Date.now());
+                    log('✅ Desenho concluído!', 'success');
+                    
+                } else {
+                    log('❌ Falha ao carregar monstros', 'error');
+                    statusDiv.innerHTML = '<span class="error">❌ Erro no carregamento</span>';
+                }
+                
+                // Mostrar estatísticas
+                const stats = monsterSpriteManager.getStats();
+                log(`📊 Estatísticas: ${JSON.stringify(stats, null, 2)}`);
+                
+            } catch (error) {
+                log(`❌ Erro no teste: ${error.message}`, 'error');
+                statusDiv.innerHTML = `<span class="error">❌ Erro: ${error.message}</span>`;
+            }
+        }
+        
+        // Executar teste
+        testMonsterSprites();
+    </script>
+</body>
+</html> 

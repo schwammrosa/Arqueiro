@@ -208,11 +208,8 @@ export class GameSystem {
 
     // Restart do jogo
     restart(getInitialGameState, initializeFirstWave) {
-        console.log('GameSystem.restart chamado');
-        
         // Parar game loop atual se estiver rodando
         if (this.isRunning) {
-            console.log('Parando game loop atual');
             this.stopGameLoop();
         }
         
@@ -258,8 +255,6 @@ export class GameSystem {
         setTimeout(() => {
             this.updateSpecialSkillsVisibility();
         }, 100);
-        
-        console.log('GameSystem.restart concluído');
     }
 
     // Limpar referências órfãs
@@ -403,7 +398,7 @@ export class GameSystem {
                 if (timeSinceLastSpawn >= this.gameState.spawnInterval) {
                     // Spawnar próximo inimigo
                     if (this.gameState.enemiesSpawned < this.gameState.monstersThisWave) {
-                        this.gameState.enemies.push(new this.Enemy(null, this.gameState, this.GAME_CONFIG, this.enemyPath, this.chooseEnemyType, this.calculateEnemyStats, this.DamageNumber, this.uiSystem.showNotification.bind(this.uiSystem)));
+                        this.gameState.enemies.push(new this.Enemy(null, this.gameState, this.GAME_CONFIG, this.enemyPath, this.chooseEnemyType, this.calculateEnemyStats, this.DamageNumber, this.uiSystem.showNotification.bind(this.uiSystem), this.renderSystem.monsterSpriteManager));
                         this.gameState.enemiesSpawned++;
                         this.gameState.lastSpawnTime = this.gameState.gameTime;
                         
@@ -441,10 +436,22 @@ export class GameSystem {
             tower.draw();
         });
         
+        // Atualizar inimigos
         this.gameState.enemies.forEach(enemy => {
             enemy.update(speedAdjustedDeltaTime);
-            enemy.draw(this.renderSystem.ctx);
         });
+        
+        // Desenhar monstros com sprites (se disponível)
+        if (this.renderSystem.monstersInitialized) {
+            this.renderSystem.drawMonsters(this.gameState);
+        } else {
+            // Fallback: desenhar inimigos individualmente
+            if (this.gameState.enemies && this.gameState.enemies.length > 0) {
+                this.gameState.enemies.forEach(enemy => {
+                    enemy.draw(this.renderSystem.ctx);
+                });
+            }
+        }
         
         this.gameState.projectiles.forEach(projectile => {
             projectile.update(speedAdjustedDeltaTime);
@@ -615,10 +622,10 @@ export class GameSystem {
                     if (this.renderSystem && this.renderSystem.updateEnemyPath) {
                         this.renderSystem.updateEnemyPath(newPath);
                     }
-                    console.log('GameSystem: Caminho recarregado com', newPath.length, 'pontos');
+
                 }
             } catch (e) {
-                console.error('Erro ao recarregar caminho:', e);
+                // Erro ao recarregar caminho
             }
         }
     }
@@ -829,12 +836,7 @@ export class GameSystem {
             }
         }
         
-        // Garantir que os event listeners estejam funcionando
-        setTimeout(() => {
-            if (typeof window.fixEventListeners === 'function') {
-                window.fixEventListeners();
-            }
-        }, 100);
+
     }
     
     // Usar habilidade especial
@@ -865,19 +867,9 @@ export class GameSystem {
             const selectedDifficulty = localStorage.getItem('selectedDifficulty') || 'normal';
             const progressKey = `progress_${selectedDifficulty}`;
             localStorage.setItem(progressKey, currentWave.toString());
-            console.log('Progresso salvo no GameSystem:', progressKey, '=', currentWave);
-            
-            // Atualizar botão "Continuar" imediatamente
-            if (typeof window.adicionarBotaoContinuarMenu === 'function') {
-                window.adicionarBotaoContinuarMenu();
-            }
-            
-            // Adicionar botão "Continuar" na tela de game over
-            if (typeof window.adicionarBotaoContinuarGameOver === 'function') {
-                window.adicionarBotaoContinuarGameOver();
-            }
+
         } catch (error) {
-            console.log('Erro ao salvar progresso:', error);
+            // Erro ao salvar progresso
         }
     }
 } 

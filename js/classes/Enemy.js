@@ -1,6 +1,8 @@
 // Classe Inimigo
+import { ENEMY_TYPE_TO_SPRITE } from '../config/monsterConfig.js';
+
 export class Enemy {
-    constructor(type = null, gameState, GAME_CONFIG, enemyPath, chooseEnemyType, calculateEnemyStats, DamageNumber, showNotification) {
+    constructor(type = null, gameState, GAME_CONFIG, enemyPath, chooseEnemyType, calculateEnemyStats, DamageNumber, showNotification, monsterSpriteManager = null) {
         this.pathIndex = 0;
         this.x = enemyPath[0].x * GAME_CONFIG.gridSize + GAME_CONFIG.gridSize / 2;
         this.y = enemyPath[0].y * GAME_CONFIG.gridSize + GAME_CONFIG.gridSize / 2;
@@ -19,12 +21,24 @@ export class Enemy {
         this.scoreMultiplier = stats.scoreMultiplier || 1;
         this.isRemoved = false; // Flag para evitar remoção duplicada
         
+        // Direção inicial (será calculada durante o movimento)
+        this.direction = 'down';
+        
         // Dependências injetadas
         this.gameState = gameState;
         this.GAME_CONFIG = GAME_CONFIG;
         this.enemyPath = enemyPath;
         this.DamageNumber = DamageNumber;
         this.showNotification = showNotification;
+        this.monsterSpriteManager = monsterSpriteManager;
+        
+        // Mapear tipos de inimigos para sprites de monstros
+        this.spriteType = this.mapEnemyTypeToSprite();
+    }
+
+    // Mapear tipos de inimigos para sprites de monstros
+    mapEnemyTypeToSprite() {
+        return ENEMY_TYPE_TO_SPRITE[this.type] || 'normal';
     }
 
     update(deltaTime) {
@@ -47,6 +61,11 @@ export class Enemy {
             const dx = targetX - this.x;
             const dy = targetY - this.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
+
+            // Calcular direção para sprites
+            if (this.monsterSpriteManager) {
+                this.direction = this.monsterSpriteManager.getDirectionFromMovement(dx, dy);
+            }
 
             if (distance < 5) {
                 this.pathIndex++;
@@ -151,34 +170,45 @@ export class Enemy {
     draw(ctx) {
         if (this.isRemoved) return;
 
-        // Desenhar inimigo
-        ctx.save();
-        
-        // Efeito visual de slow - inimigos lentos ficam azulados
-        let fillColor = this.color;
-        let strokeColor = '#000000';
-        
-        if (this.slowUntil && Date.now() < this.slowUntil) {
-            // Aplicar efeito azulado para inimigos lentos
-            fillColor = this.color;
-            strokeColor = '#36b9cc';
-            ctx.lineWidth = 3;
-            
-            // Adicionar brilho azul
-            ctx.shadowColor = '#36b9cc';
-            ctx.shadowBlur = 8;
+        // Tentar usar sprite se disponível
+        if (this.monsterSpriteManager && this.monsterSpriteManager.isMonsterLoaded(this.spriteType)) {
+            // Usar sprite animado
+            this.monsterSpriteManager.drawMonster(ctx, {
+                type: this.spriteType,
+                x: this.x,
+                y: this.y,
+                direction: this.direction
+            }, this.gameState.gameTime);
         } else {
-            ctx.lineWidth = 2;
+            // Fallback para desenho simples
+            ctx.save();
+            
+            // Efeito visual de slow - inimigos lentos ficam azulados
+            let fillColor = this.color;
+            let strokeColor = '#000000';
+            
+            if (this.slowUntil && Date.now() < this.slowUntil) {
+                // Aplicar efeito azulado para inimigos lentos
+                fillColor = this.color;
+                strokeColor = '#36b9cc';
+                ctx.lineWidth = 3;
+                
+                // Adicionar brilho azul
+                ctx.shadowColor = '#36b9cc';
+                ctx.shadowBlur = 8;
+            } else {
+                ctx.lineWidth = 2;
+            }
+            
+            ctx.fillStyle = fillColor;
+            ctx.strokeStyle = strokeColor;
+            
+            // Desenhar círculo do inimigo
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
         }
-        
-        ctx.fillStyle = fillColor;
-        ctx.strokeStyle = strokeColor;
-        
-        // Desenhar círculo do inimigo
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
         
         // Desenhar barra de vida
         const barWidth = this.size * 2;

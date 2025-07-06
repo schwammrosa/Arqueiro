@@ -1,5 +1,6 @@
 // Sistema de Renderização
 import { imageManager } from './ImageManager.js';
+import { MonsterSpriteManager } from './MonsterSpriteManager.js';
 
 export class RenderSystem {
     constructor(ctx, GAME_CONFIG, enemyPath) {
@@ -7,16 +8,18 @@ export class RenderSystem {
         this.GAME_CONFIG = GAME_CONFIG;
         this.enemyPath = enemyPath;
         this.imageManager = imageManager;
+        this.monsterSpriteManager = new MonsterSpriteManager(imageManager);
         this.imagesInitialized = false;
+        this.monstersInitialized = false;
         
-        // Inicializar imagens padrão
+        // Inicializar imagens padrão e monstros
         this.initializeImages();
+        this.initializeMonsters();
     }
     
     // Atualizar caminho dos inimigos
     updateEnemyPath(newPath) {
         this.enemyPath = newPath;
-        console.log('RenderSystem: Caminho atualizado para', newPath.length, 'pontos');
     }
 
     // Inicializar imagens do jogo
@@ -27,6 +30,28 @@ export class RenderSystem {
         } catch (error) {
             console.error('Erro ao inicializar imagens:', error);
             this.imagesInitialized = false;
+        }
+    }
+
+    // Inicializar sprites de monstros
+    async initializeMonsters() {
+        try {
+            console.log('🎮 Iniciando carregamento de sprites de monstros...');
+            
+            // Aguardar um pouco para garantir que o ImageManager esteja pronto
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            const success = await this.monsterSpriteManager.loadAllMonsters();
+            this.monstersInitialized = success;
+            
+            if (success) {
+                console.log('✅ Sistema de sprites de monstros inicializado com sucesso!');
+            } else {
+                console.warn('⚠️ Falha ao inicializar sprites de monstros - usando fallback');
+            }
+        } catch (error) {
+            console.error('❌ Erro ao inicializar sprites de monstros:', error);
+            this.monstersInitialized = false;
         }
     }
 
@@ -177,47 +202,34 @@ export class RenderSystem {
     
     // Desenhar preview da torre selecionada
     drawTowerPreview(mouseX, mouseY, towerType) {
-        if (!window.TOWER_TYPES || !window.TOWER_TYPES[towerType]) return;
-        
-        const tower = window.TOWER_TYPES[towerType];
-        const gridSize = this.GAME_CONFIG.gridSize;
-        
-        // Calcular posição do grid
-        const gridX = Math.floor(mouseX / gridSize);
-        const gridY = Math.floor(mouseY / gridSize);
-        const centerX = gridX * gridSize + gridSize / 2;
-        const centerY = gridY * gridSize + gridSize / 2;
-        
-        this.ctx.save();
-        
-        // Desenhar área da torre com transparência
-        this.ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
-        this.ctx.fillRect(
-            centerX - gridSize / 2,
-            centerY - gridSize / 2,
-            gridSize,
-            gridSize
-        );
-        
-        // Borda da área
-        this.ctx.strokeStyle = '#00ff00';
-        this.ctx.lineWidth = 2;
-        this.ctx.strokeRect(
-            centerX - gridSize / 2,
-            centerY - gridSize / 2,
-            gridSize,
-            gridSize
-        );
-        
-        // Ícone da torre
-        this.ctx.font = '20px Arial';
-        this.ctx.fillStyle = 'rgba(0, 255, 0, 0.8)';
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText(tower.icon || '🏰', centerX, centerY + 5);
-        
-        this.ctx.restore();
+        // Esta função precisa ser implementada com acesso às configurações de torres
+        // Por enquanto, deixar vazia para evitar erros
     }
     
+    // Desenhar monstros com sprites animados
+    drawMonsters(gameState) {
+        if (!gameState.enemies || gameState.enemies.length === 0) return;
+        
+        for (const enemy of gameState.enemies) {
+            if (!enemy || enemy.isRemoved) continue;
+            
+            // Calcular direção baseada no próximo segmento do caminho
+            if (enemy.pathIndex >= 0 && enemy.pathIndex < this.enemyPath.length - 1) {
+                const from = this.enemyPath[enemy.pathIndex];
+                const to = this.enemyPath[enemy.pathIndex + 1];
+                const dx = to.x - from.x;
+                const dy = to.y - from.y;
+                const dir = this.monsterSpriteManager.getDirectionFromMovement(dx, dy);
+                // LOG DETALHADO
+                // console.log('[VIRADA] id:', enemy.id || '-', 'pathIndex:', enemy.pathIndex, 'pos:', {x: enemy.x, y: enemy.y}, 'from:', from, 'to:', to, 'dx:', dx, 'dy:', dy, 'novaDirecao:', dir);
+                enemy.direction = dir;
+            }
+            
+            // Desenhar monstro com sprite
+            this.monsterSpriteManager.drawMonster(this.ctx, enemy, gameState.gameTime);
+        }
+    }
+
     // Desenhar efeitos visuais
     drawVisualEffects(gameState) {
         if (!gameState.visualEffects) return;

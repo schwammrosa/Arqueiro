@@ -284,19 +284,7 @@ export class Tower {
         return upgradeCost;
     }
     
-    // Função para demonstrar a nova fórmula de upgrade (para debug)
-    static demonstrateUpgradeFormula(baseCost, upgradePercentage, maxLevel = 5) {
-        console.log(`📊 Demonstração da Nova Fórmula de Upgrade:`);
-        console.log(`💰 Custo base da torre: ${baseCost} ouro`);
-        console.log(`📈 Porcentagem de upgrade: ${upgradePercentage}%`);
-        console.log(`\n📋 Custos por nível:`);
-        
-        for (let level = 1; level <= maxLevel; level++) {
-            const upgradeCost = Math.floor(baseCost * (upgradePercentage / 100) * level);
-            const totalCost = Math.floor(baseCost * (upgradePercentage / 100) * (level * (level + 1)) / 2);
-            console.log(`Nível ${level}: ${upgradeCost} ouro (Total acumulado: ${totalCost} ouro)`);
-        }
-    }
+
     
     upgrade() {
         const upgradeCost = this.getUpgradeCost();
