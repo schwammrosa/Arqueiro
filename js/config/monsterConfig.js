@@ -29,7 +29,37 @@ export const MONSTER_SPRITE_CONFIG = {
         frameHeight: 32,
         animationSpeed: 200,
         enemyTypes: ['fast']
-    }
+    },
+    'tank': {
+        name: 'Cavaleiro Esquelético',
+        sprites: {
+            'down': 'assets/monstros/Tanque/cavaleiro_esqueletico_baixo.png',
+            'right': 'assets/monstros/Tanque/cavaleiro_esqueletico_direita.png',
+            'left': 'assets/monstros/Tanque/cavaleiro_esqueletico_esquerda.png',
+            'up': 'assets/monstros/Tanque/cavaleiro_esqueletico_subindo.png'
+        },
+        size: { width: 32, height: 32 },
+        animationFrames: 1,
+        frameWidth: 32,
+        frameHeight: 32,
+        animationSpeed: 200,
+        enemyTypes: ['tank']
+    },
+    'elite': {
+        name: 'Troll Cornudo',
+        sprites: {
+            'down': 'assets/monstros/Elite/troll_cornudo_baixo.png',
+            'right': 'assets/monstros/Elite/troll_cornudo_dieira.png',
+            'left': 'assets/monstros/Elite/troll_cornudo_esquerda.png',
+            'up': 'assets/monstros/Elite/troll_cornudo_subindo.png'
+        },
+        size: { width: 32, height: 32 },
+        animationFrames: 1,
+        frameWidth: 32,
+        frameHeight: 32,
+        animationSpeed: 200,
+        enemyTypes: ['elite']
+    },
     // Adicionar novos monstros aqui:
     // 'orc_guerreiro': {
     //     name: 'Orc Guerreiro',
@@ -52,8 +82,8 @@ export const MONSTER_SPRITE_CONFIG = {
 export const ENEMY_TYPE_TO_SPRITE = {
     'normal': 'normal',
     'fast': 'fast',
-    'tank': 'normal',
-    'elite': 'normal'
+    'tank': 'tank',
+    'elite': 'elite'
 };
 
 // Função para obter configuração de sprite por tipo de inimigo
