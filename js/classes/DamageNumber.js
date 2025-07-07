@@ -1,4 +1,6 @@
 // Classe para números de dano
+import { loadGameConfig } from '../config/gameConfig.js';
+
 export class DamageNumber {
     constructor(x, y, damage, color = '#ff0000') {
         this.x = x;
@@ -6,15 +8,15 @@ export class DamageNumber {
         this.damage = damage;
         this.color = color;
         
-        // Carregar configurações dos números de dano
-        const savedConfig = localStorage.getItem('arqueiroConfig');
-        const lifetime = savedConfig ? JSON.parse(savedConfig).damageNumberLifetime || 60 : 60;
-        const speed = savedConfig ? JSON.parse(savedConfig).damageNumberSpeed || 1 : 1;
+        // Carregar configurações usando o sistema centralizado
+        const config = loadGameConfig();
+        const lifetime = config.damageNumberLifetime || 60;
+        const speed = config.damageNumberSpeed || 1;
         
-        this.life = lifetime; // Frames de vida
+        this.life = lifetime;
         this.maxLife = lifetime;
-        this.velocityY = -speed; // Movimento para cima
-        this.velocityX = (Math.random() - 0.5) * 2 * speed; // Movimento lateral aleatório
+        this.velocityY = -speed;
+        this.velocityX = (Math.random() - 0.5) * 2 * speed;
     }
 
     update(deltaTime, gameState) {
@@ -30,10 +32,10 @@ export class DamageNumber {
     }
 
     draw(ctx) {
-        if (this.life <= 0) return;
+        if (this.isDead()) return;
 
         const alpha = this.life / this.maxLife;
-        const fontSize = 16 + (this.maxLife - this.life) * 0.5; // Aumentar tamanho gradualmente
+        const fontSize = 16 + (this.maxLife - this.life) * 0.5;
 
         ctx.save();
         ctx.globalAlpha = alpha;
@@ -43,10 +45,9 @@ export class DamageNumber {
         ctx.lineWidth = 2;
         ctx.textAlign = 'center';
         
-        // Desenhar contorno
-        ctx.strokeText(`-${this.damage}`, this.x, this.y);
-        // Desenhar texto
-        ctx.fillText(`-${this.damage}`, this.x, this.y);
+        const damageText = `-${this.damage}`;
+        ctx.strokeText(damageText, this.x, this.y);
+        ctx.fillText(damageText, this.x, this.y);
         
         ctx.restore();
     }

@@ -497,8 +497,8 @@ function collectConfigFromFields() {
         canvasHeight: getElementValue('canvasHeight', 600),
         projectileSpeed: getElementValue('projectileSpeed', 300, true),
         projectileSize: getElementValue('projectileSize', 6),
-        damageNumberLifetime: getElementValue('damageNumberLifetime', 1000),
-        damageNumberSpeed: getElementValue('damageNumberSpeed', 50, true),
+        damageNumberLifetime: getElementValue('damageNumberLifetime', 60),
+        damageNumberSpeed: getElementValue('damageNumberSpeed', 1),
         
         // Configurações de tipos especiais de inimigos
         enemyTypes: {
