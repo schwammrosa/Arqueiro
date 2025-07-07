@@ -69,29 +69,34 @@ export class MonsterSpriteManager {
         const frameHeight = config.frameHeight;
         const totalFrames = config.animationFrames;
 
-        // Criar canvas para extrair cada frame
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = frameWidth;
-        canvas.height = frameHeight;
+        // Se é apenas 1 frame, usar a imagem diretamente
+        if (totalFrames === 1) {
+            frames.push(spriteImage);
+        } else {
+            // Criar canvas para extrair cada frame
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = frameWidth;
+            canvas.height = frameHeight;
 
-        // Extrair cada frame horizontalmente
-        for (let i = 0; i < totalFrames; i++) {
-            ctx.clearRect(0, 0, frameWidth, frameHeight);
-            ctx.drawImage(
-                spriteImage,
-                i * frameWidth, 0, frameWidth, frameHeight,
-                0, 0, frameWidth, frameHeight
-            );
-            
-            // Criar nova imagem do frame
-            const frameCanvas = document.createElement('canvas');
-            frameCanvas.width = frameWidth;
-            frameCanvas.height = frameHeight;
-            const frameCtx = frameCanvas.getContext('2d');
-            frameCtx.drawImage(canvas, 0, 0);
-            
-            frames.push(frameCanvas);
+            // Extrair cada frame horizontalmente
+            for (let i = 0; i < totalFrames; i++) {
+                ctx.clearRect(0, 0, frameWidth, frameHeight);
+                ctx.drawImage(
+                    spriteImage,
+                    i * frameWidth, 0, frameWidth, frameHeight,
+                    0, 0, frameWidth, frameHeight
+                );
+                
+                // Criar nova imagem do frame
+                const frameCanvas = document.createElement('canvas');
+                frameCanvas.width = frameWidth;
+                frameCanvas.height = frameHeight;
+                const frameCtx = frameCanvas.getContext('2d');
+                frameCtx.drawImage(canvas, 0, 0);
+                
+                frames.push(frameCanvas);
+            }
         }
 
         const key = `${monsterType}_${direction}`;
@@ -106,10 +111,38 @@ export class MonsterSpriteManager {
         
         if (!frames || frames.length === 0) {
             // Fallback para sprite estático
-            return this.imageManager.getImage(key);
+            const staticSprite = this.imageManager.getImage(key);
+            if (staticSprite) {
+                return staticSprite;
+            }
+            
+            // Se não encontrou sprite estático, tentar outras direções
+            const config = this.monsterConfigs[spriteType];
+            if (config) {
+                for (const altDirection of Object.keys(config.sprites)) {
+                    const altKey = `${spriteType}_${altDirection}`;
+                    const altFrames = this.animationFrames.get(altKey);
+                    if (altFrames && altFrames.length > 0) {
+                        return altFrames[0]; // Retornar primeiro frame da direção alternativa
+                    }
+                    
+                    const altStaticSprite = this.imageManager.getImage(altKey);
+                    if (altStaticSprite) {
+                        return altStaticSprite;
+                    }
+                }
+            }
+            
+            // Se ainda não encontrou nada, retornar null para usar fallback geométrico
+            return null;
         }
 
-        // Calcular frame atual baseado no tempo
+        // Se é apenas 1 frame, retornar diretamente (evita piscamento)
+        if (frames.length === 1) {
+            return frames[0];
+        }
+
+        // Calcular frame atual baseado no tempo (apenas para múltiplos frames)
         const frameIndex = Math.floor((gameTime % (this.frameDuration * frames.length)) / this.frameDuration);
         return frames[frameIndex % frames.length];
     }
@@ -128,7 +161,7 @@ export class MonsterSpriteManager {
         const spriteType = ENEMY_TYPE_TO_SPRITE[monster.type] || 'normal';
         const config = this.monsterConfigs[spriteType];
         if (!config) {
-            console.warn('⚠️ Config não encontrada para:', monster.type);
+            console.warn('⚠️ Config não encontrada para:', monster.type, 'usando fallback');
             // Fallback: desenhar círculo simples
             ctx.fillStyle = '#ff0000';
             ctx.beginPath();
@@ -143,7 +176,10 @@ export class MonsterSpriteManager {
         // Obter sprite atual
         const sprite = this.getCurrentSprite(monster.type, direction, gameTime);
         if (!sprite) {
-            console.warn('⚠️ Sprite não encontrado para:', monster.type, direction);
+            // Log detalhado para debug
+            const debugInfo = this.getSpriteDebugInfo(monster.type, direction);
+            console.warn('⚠️ Sprite não encontrado para:', debugInfo);
+            
             // Fallback: desenhar círculo simples
             ctx.fillStyle = '#ff0000';
             ctx.beginPath();
@@ -156,7 +192,25 @@ export class MonsterSpriteManager {
         const drawX = monster.x - config.size.width / 2;
         const drawY = monster.y - config.size.height / 2;
         
-        ctx.drawImage(sprite, drawX, drawY, config.size.width, config.size.height);
+        try {
+            ctx.drawImage(sprite, drawX, drawY, config.size.width, config.size.height);
+        } catch (error) {
+            console.error('❌ Erro ao desenhar sprite:', error, {
+                sprite: sprite,
+                drawX: drawX,
+                drawY: drawY,
+                width: config.size.width,
+                height: config.size.height,
+                debugInfo: this.getSpriteDebugInfo(monster.type, direction)
+            });
+            
+            // Fallback: desenhar círculo simples
+            ctx.fillStyle = '#ff0000';
+            ctx.beginPath();
+            ctx.arc(monster.x, monster.y, 15, 0, Math.PI * 2);
+            ctx.fill();
+            return;
+        }
 
         // --- Barra de vida ---
         if (monster.maxHealth && monster.health !== undefined) {
@@ -231,7 +285,58 @@ export class MonsterSpriteManager {
 
     // Verificar se um tipo de monstro está carregado
     isMonsterLoaded(monsterType) {
-        return this.monsterSprites.has(monsterType);
+        // Verificar se o tipo de monstro está na lista de monstros carregados
+        if (this.monsterSprites.has(monsterType)) {
+            return true;
+        }
+        
+        // Verificar se pelo menos uma direção do sprite está carregada
+        const config = this.monsterConfigs[monsterType];
+        if (config) {
+            for (const direction of Object.keys(config.sprites)) {
+                const key = `${monsterType}_${direction}`;
+                if (this.imageManager.isImageLoaded(key) || this.animationFrames.has(key)) {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
+
+    // Verificar se um sprite específico está disponível
+    isSpriteAvailable(monsterType, direction) {
+        const key = `${monsterType}_${direction}`;
+        return this.imageManager.isImageLoaded(key) || this.animationFrames.has(key);
+    }
+
+    // Verificar se um sprite é único (não sprite sheet)
+    isSingleFrameSprite(monsterType) {
+        const config = this.monsterConfigs[monsterType];
+        return config ? config.animationFrames === 1 : true;
+    }
+
+    // Obter informações de debug sobre um sprite
+    getSpriteDebugInfo(monsterType, direction) {
+        const spriteType = ENEMY_TYPE_TO_SPRITE[monsterType] || 'normal';
+        const key = `${spriteType}_${direction}`;
+        const config = this.monsterConfigs[spriteType];
+        const frames = this.animationFrames.get(key);
+        const staticSprite = this.imageManager.getImage(key);
+        
+        return {
+            monsterType,
+            spriteType,
+            direction,
+            key,
+            hasConfig: !!config,
+            animationFrames: config ? config.animationFrames : 0,
+            isSingleFrame: this.isSingleFrameSprite(spriteType),
+            hasFrames: !!frames,
+            framesCount: frames ? frames.length : 0,
+            hasStaticSprite: !!staticSprite,
+            availableDirections: config ? Object.keys(config.sprites) : []
+        };
     }
 
     // Obter lista de tipos de monstros disponíveis
@@ -284,5 +389,55 @@ export class MonsterSpriteManager {
     clearCache() {
         this.animationFrames.clear();
         this.monsterSprites.clear();
+    }
+
+    // Recarregar sprites de um tipo específico
+    async reloadMonsterSprites(monsterType) {
+        console.log(`🔄 Recarregando sprites para ${monsterType}...`);
+        
+        // Limpar sprites existentes deste tipo
+        const config = this.monsterConfigs[monsterType];
+        if (config) {
+            for (const direction of Object.keys(config.sprites)) {
+                const key = `${monsterType}_${direction}`;
+                this.animationFrames.delete(key);
+            }
+        }
+        this.monsterSprites.delete(monsterType);
+        
+        // Recarregar
+        return await this.loadMonsterSprites(monsterType);
+    }
+
+    // Verificar e reparar sprites corrompidos
+    async repairSprites() {
+        console.log('🔧 Verificando e reparando sprites...');
+        const monsters = this.getAvailableMonsters();
+        let repairedCount = 0;
+        
+        for (const monsterType of monsters) {
+            const config = this.monsterConfigs[monsterType];
+            if (!config) continue;
+            
+            let needsRepair = false;
+            for (const direction of Object.keys(config.sprites)) {
+                const key = `${monsterType}_${direction}`;
+                if (!this.imageManager.isImageLoaded(key) && !this.animationFrames.has(key)) {
+                    needsRepair = true;
+                    break;
+                }
+            }
+            
+            if (needsRepair) {
+                console.log(`🔧 Reparando sprites para ${monsterType}...`);
+                const success = await this.reloadMonsterSprites(monsterType);
+                if (success) {
+                    repairedCount++;
+                }
+            }
+        }
+        
+        console.log(`✅ Reparação concluída: ${repairedCount} tipos de monstros reparados`);
+        return repairedCount;
     }
 } 

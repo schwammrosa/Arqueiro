@@ -1,18 +1,5 @@
 <!DOCTYPE html>
-<!--
-🎉 OTIMIZAÇÕES IMPLEMENTADAS EM DEZEMBRO 2024:
-✅ Botões reduzidos para tamanhos mais compactos
-✅ Painel de informações otimizado (~40% menor)
-✅ Informações secundárias ocultas no mobile (Velocidade, Tempo, Pontos)
-✅ Responsividade aprimorada para Desktop/Tablet/Mobile
-✅ RESPONSIVIDADE VERTICAL CORRIGIDA:
-   📐 Cálculo dinâmico de altura disponível
-   🎮 Canvas ajusta automaticamente ao espaço
-   🏰 Torres não são mais cortadas na parte inferior
-   🔄 Sistema de reajuste automático no resize
-   📱 Otimização específica por tipo de dispositivo
-✅ Funções de teste integradas para verificação completa
--->
+
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -356,150 +343,13 @@
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
     }
     
-    /* Barra horizontal de controles */
-    .horizontal-controls {
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        gap: 6px !important;
-        padding: 10px 16px !important;
-        background: rgba(15, 23, 42, 0.95) !important;
-        border-bottom: 2px solid rgba(99, 102, 241, 0.3) !important;
-        backdrop-filter: blur(20px) !important;
-        flex-wrap: nowrap !important;
-        overflow-x: auto !important;
-        overflow-y: hidden !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
-        transition: all 0.4s ease !important;
-    }
+
     
-    .control-btn {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        justify-content: center !important;
-        gap: 3px !important;
-        padding: 8px 12px !important;
-        border: 2px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 12px !important;
-        background: linear-gradient(135deg, rgba(51, 65, 85, 0.9), rgba(71, 85, 105, 0.9)) !important;
-        color: white !important;
-        font-size: 13px !important;
-        font-weight: 600 !important;
-        cursor: pointer !important;
-        transition: all 0.3s ease !important;
-        text-decoration: none !important;
-        min-width: 100px !important;
-        max-width: 100px !important;
-        height: 55px !important;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
-        flex-shrink: 0 !important;
-    }
+
     
-    /* Scroll horizontal suave para a barra de controles */
-    .horizontal-controls::-webkit-scrollbar {
-        height: 4px !important;
-    }
+
     
-    .horizontal-controls::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.1) !important;
-        border-radius: 2px !important;
-    }
-    
-    .horizontal-controls::-webkit-scrollbar-thumb {
-        background: rgba(99, 102, 241, 0.6) !important;
-        border-radius: 2px !important;
-    }
-    
-    .horizontal-controls::-webkit-scrollbar-thumb:hover {
-        background: rgba(99, 102, 241, 0.8) !important;
-    }
-    
-    .control-btn:hover {
-        transform: translateY(-3px) scale(1.05) !important;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4) !important;
-        border-color: rgba(255, 255, 255, 0.3) !important;
-    }
-    
-    .control-btn:active {
-        transform: translateY(-1px) scale(1.02) !important;
-    }
-    
-    /* Estilos específicos por tipo de botão */
-    .control-btn#start-wave {
-        background: linear-gradient(135deg, #6366f1, #4338ca) !important;
-        border-color: rgba(99, 102, 241, 0.3) !important;
-    }
-    
-    .control-btn#start-wave:hover {
-        background: linear-gradient(135deg, #4338ca, #3730a3) !important;
-        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4) !important;
-    }
-    
-    .control-btn#pause {
-        background: linear-gradient(135deg, #64748b, #475569) !important;
-        border-color: rgba(100, 116, 139, 0.3) !important;
-    }
-    
-    .control-btn#pause:hover {
-        background: linear-gradient(135deg, #475569, #334155) !important;
-        box-shadow: 0 8px 25px rgba(100, 116, 139, 0.4) !important;
-    }
-    
-    .control-btn.speed-btn {
-        background: linear-gradient(135deg, #10b981, #047857) !important;
-        border-color: rgba(16, 185, 129, 0.3) !important;
-    }
-    
-    .control-btn.speed-btn:hover {
-        background: linear-gradient(135deg, #047857, #065f46) !important;
-        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4) !important;
-    }
-    
-    .control-btn.config-btn {
-        background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important;
-        border-color: rgba(139, 92, 246, 0.3) !important;
-    }
-    
-    .control-btn.config-btn:hover {
-        background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
-        box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4) !important;
-    }
-    
-    .control-btn.upgrade-btn {
-        background: linear-gradient(135deg, #f59e0b, #d97706) !important;
-        border-color: rgba(245, 158, 11, 0.3) !important;
-    }
-    
-    .control-btn.upgrade-btn:hover {
-        background: linear-gradient(135deg, #d97706, #b45309) !important;
-        box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4) !important;
-    }
-    
-    .control-btn.menu-btn {
-        background: linear-gradient(135deg, #6b7280, #4b5563) !important;
-        border-color: rgba(107, 114, 128, 0.3) !important;
-    }
-    
-    .control-btn.menu-btn:hover {
-        background: linear-gradient(135deg, #4b5563, #374151) !important;
-        box-shadow: 0 8px 25px rgba(107, 114, 128, 0.4) !important;
-    }
-    
-    .control-btn .btn-icon {
-        font-size: 18px !important;
-        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)) !important;
-    }
-    
-    .control-btn .btn-text {
-        font-size: 10px !important;
-        font-weight: 700 !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.3px !important;
-        text-align: center !important;
-        line-height: 1.1 !important;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
-    }
+
     
     /* Botão toggle flutuante para esconder/mostrar controles */
     .toggle-controls-btn {
@@ -540,18 +390,7 @@
         font-size: 10px !important;
     }
     
-    /* Quando os controles estão escondidos */
-    .controls-hidden .horizontal-controls {
-        height: 0 !important;
-        min-height: 0 !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        overflow: hidden !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-        transform: scaleY(0) !important;
-        transform-origin: top !important;
-    }
+
     
     .controls-hidden .toggle-controls-btn {
         opacity: 0.8 !important;
@@ -650,46 +489,12 @@
         box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4) !important;
     }
     
-    .special-skill-btn .skill-icon {
-        font-size: 2em !important;
-        margin-bottom: 4px !important;
-    }
-    
-    .special-skill-btn .skill-label {
-        font-size: 0.75em !important;
-        font-weight: 600 !important;
-        text-align: center !important;
-        line-height: 1.2 !important;
-    }
-    
-    .special-skill-btn .skill-cooldown {
-        font-size: 0.8em !important;
-        color: #ff6b6b !important;
-        font-weight: 700 !important;
-        margin-top: 2px !important;
-    }
+
     
     /* Responsividade para tablets */
     @media (max-width: 768px) {
-        .horizontal-controls {
-            gap: 6px !important;
-            padding: 10px 15px !important;
-        }
         
-        .control-btn {
-            min-width: 85px !important;
-            max-width: 85px !important;
-            height: 50px !important;
-            padding: 8px 10px !important;
-        }
-        
-        .control-btn .btn-icon {
-            font-size: 16px !important;
-        }
-        
-        .control-btn .btn-text {
-            font-size: 9px !important;
-        }
+
         
         #btnArrowRain, #btnIceStorm {
             width: 120px !important;
@@ -705,42 +510,8 @@
     
     /* Responsividade para celular - APENAS ÍCONES */
     @media (max-width: 480px) {
-        .horizontal-controls {
-            gap: 4px !important;
-            padding: 8px 10px !important;
-            justify-content: space-evenly !important;
-        }
         
-        .control-btn {
-            min-width: 48px !important;
-            max-width: 48px !important;
-            height: 48px !important;
-            padding: 6px 4px !important;
-            border-radius: 50% !important;
-            flex-direction: column !important;
-            gap: 1px !important;
-        }
-        
-        .control-btn .btn-icon {
-            font-size: 16px !important;
-        }
-        
-        /* ESCONDER TEXTO NO CELULAR - SÓ ÍCONES */
-        .control-btn .btn-text {
-            display: none !important;
-        }
-        
-        /* Exceção para o botão de velocidade - mostrar valor */
-        .control-btn.speed-btn .btn-text {
-            display: block !important;
-            font-size: 9px !important;
-            font-weight: 800 !important;
-            margin-top: -2px !important;
-        }
-        
-        .control-btn.speed-btn .btn-icon {
-            font-size: 14px !important;
-        }
+
         
         /* Habilidades especiais menores no celular */
         #btnArrowRain, #btnIceStorm {
@@ -748,45 +519,9 @@
             height: 50px !important;
         }
         
-        .special-skill-btn .skill-icon {
-            font-size: 1.5em !important;
-        }
+
         
-        .special-skill-btn .skill-label {
-            font-size: 0.6em !important;
-        }
-        
-        /* Tooltips para botões no celular */
-        .control-btn {
-            position: relative !important;
-        }
-        
-        .control-btn:hover::before {
-            content: attr(title) !important;
-            position: absolute !important;
-            bottom: 120% !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            background: rgba(0, 0, 0, 0.9) !important;
-            color: white !important;
-            padding: 4px 8px !important;
-            border-radius: 6px !important;
-            font-size: 10px !important;
-            white-space: nowrap !important;
-            z-index: 1000 !important;
-            animation: tooltipShow 0.2s ease !important;
-        }
-        
-        .control-btn:hover::after {
-            content: '' !important;
-            position: absolute !important;
-            bottom: 115% !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            border: 3px solid transparent !important;
-            border-top-color: rgba(0, 0, 0, 0.9) !important;
-            z-index: 1000 !important;
-        }
+
     }
     
     @keyframes tooltipShow {

@@ -1478,15 +1478,14 @@ function iniciarModoContinuar() {
         return;
     }
     
-
+    // ATUALIZAR GAME_CONFIG ANTES DE CALCULAR O OURO
+    GAME_CONFIG = loadGameConfig();
     
     // Calcular ouro acumulado
     const enemiesPerWave = GAME_CONFIG.enemiesPerWave || 5;
     const enemyReward = GAME_CONFIG.enemyReward || 10;
     const enemiesIncrease = GAME_CONFIG.enemiesIncrease || 2;
     const ouro = calcularOuroAteOnda(maiorOnda, enemiesPerWave, enemyReward);
-    
-
     
     // Função customizada para o modo continuar
     function getInitialGameStateContinuar() {
@@ -1500,6 +1499,7 @@ function iniciarModoContinuar() {
             isPaused: false,
             isGameOver: false,
             selectedTower: null,
+            selectedTowerType: null, // Adicionar campo faltante
             towers: [],
             enemies: [],
             projectiles: [],
@@ -1518,7 +1518,6 @@ function iniciarModoContinuar() {
             spawnInterval: 1.0 // segundos
         };
         
-    
         return newGameState;
     }
     
@@ -1531,8 +1530,34 @@ function iniciarModoContinuar() {
         gameSystem.gameState.allEnemiesSpawned = false;
     }
     
-
     gameSystem.restart(getInitialGameStateContinuar, initializeContinuarMode);
+    
+    // ATUALIZAR A VARIÁVEL GLOBAL gameState (faltava)
+    gameState = gameSystem.gameState;
+    
+    // Atualizar referências nos sistemas (faltava)
+    uiSystem.setGameState(gameState);
+    renderSystem.gameState = gameState;
+    
+    // Garantir que o sistema de torres esteja funcionando (faltava)
+    if (gameSystem.reinitializeTowers) {
+        gameSystem.reinitializeTowers();
+    }
+    
+    // Recarregar configurações e torres (faltava)
+    reloadConfigs();
+    renderTowerOptions();
+    
+    // Recarregar enemyPath para garantir que o caminho correto seja usado
+    const newEnemyPath = loadEnemyPath();
+    renderSystem.updateEnemyPath(newEnemyPath);
+    gameSystem.enemyPath = newEnemyPath;
+    
+    // Atualizar GAME_CONFIG no GameSystem também
+    gameSystem.GAME_CONFIG = GAME_CONFIG;
+    
+    // Atualizar UI (faltava)
+    uiSystem.updateUI();
     
     // Esconder menu se estiver visível
     const menu = document.getElementById('mainMenu');

@@ -479,6 +479,14 @@ function collectConfigFromFields() {
         waveBonusMultiplier: getElementValue('waveBonusMultiplier', 100),
         upgradeBonusMultiplier: getElementValue('upgradeBonusMultiplier', 25),
     
+        // Configurações dos inimigos (CAMPOS FALTANTES ADICIONADOS)
+        enemyBaseHealth: getElementValue('enemyBaseHealth', 50),
+        enemyHealthIncrease: getElementValue('enemyHealthIncrease', 15),
+        enemySpeed: getElementValue('enemySpeed', 0.5),
+        enemyReward: getElementValue('enemyReward', 10),
+        enemiesPerWave: getElementValue('enemiesPerWave', 8),
+        enemiesIncrease: getElementValue('enemiesIncrease', 3),
+        
         goldMultiplier: getElementValue('goldMultiplier', 1.0, true),
         enemyHealthMultiplier: getElementValue('enemyHealthMultiplier', 1.0, true),
         enemySpeedMultiplier: getElementValue('enemySpeedMultiplier', 1.0, true),

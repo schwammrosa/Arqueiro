@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Piscamento - Monstro Normal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #ff6b6b;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .test-section h2 {
+            color: #4ecdc4;
+            margin-top: 0;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .error {
+            background: #f44336;
+            color: white;
+        }
+        
+        .warning {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .info {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background: #45a049;
+        }
+        
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        
+        .debug-info {
+            background: #333;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        #gameCanvas {
+            border: 2px solid #444;
+            border-radius: 8px;
+            display: block;
+            margin: 20px auto;
+        }
+        
+        .fps-counter {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Teste de Piscamento - Monstro Normal</h1>
+        
+        <div class="test-section">
+            <h2>🎮 Controles</h2>
+            <div class="controls">
+                <button onclick="spawnNormal()">Spawnar Normal</button>
+                <button onclick="clearEnemies()">Limpar</button>
+                <button onclick="toggleDebug()">Alternar Debug</button>
+                <button onclick="showSpriteInfo()">Info Sprites</button>
+                <button onclick="testAnimation()">Testar Animação</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>📊 Informações de Debug</h2>
+            <div id="debugInfo" class="debug-info">Aguardando inicialização...</div>
+        </div>
+        
+        <div style="position: relative;">
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+            <div id="fpsCounter" class="fps-counter">FPS: 0</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { MonsterSpriteManager } from './js/systems/MonsterSpriteManager.js';
+        import { imageManager } from './js/systems/ImageManager.js';
+        
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const debugInfoDiv = document.getElementById('debugInfo');
+        const fpsCounter = document.getElementById('fpsCounter');
+        
+        let monsterSpriteManager;
+        let enemies = [];
+        let showDebug = false;
+        let frameCount = 0;
+        let lastTime = 0;
+        let fps = 0;
+        
+        // Simular gameState
+        const gameState = {
+            gameTime: 0,
+            enemies: enemies
+        };
+        
+        // Função de debug
+        function updateDebugInfo() {
+            if (!monsterSpriteManager) return;
+            
+            let info = '=== DEBUG INFO ===\n';
+            
+            // Informações do sistema
+            const stats = monsterSpriteManager.getStats();
+            info += `Monstros carregados: ${stats.loadedMonsters}/${stats.totalMonsters}\n`;
+            info += `Total de frames: ${stats.totalFrames}\n\n`;
+            
+            // Informações do monstro normal
+            const config = monsterSpriteManager.monsterConfigs['normal'];
+            if (config) {
+                info += `=== MONSTRO NORMAL ===\n`;
+                info += `Animation Frames: ${config.animationFrames}\n`;
+                info += `Frame Width: ${config.frameWidth}\n`;
+                info += `Frame Height: ${config.frameHeight}\n`;
+                info += `Animation Speed: ${config.animationSpeed}ms\n\n`;
+            }
+            
+            // Verificar cada direção
+            const directions = ['down', 'right', 'left', 'up'];
+            directions.forEach(direction => {
+                const debugInfo = monsterSpriteManager.getSpriteDebugInfo('normal', direction);
+                info += `=== ${direction.toUpperCase()} ===\n`;
+                info += `Key: ${debugInfo.key}\n`;
+                info += `Has Config: ${debugInfo.hasConfig}\n`;
+                info += `Animation Frames: ${debugInfo.animationFrames}\n`;
+                info += `Is Single Frame: ${debugInfo.isSingleFrame}\n`;
+                info += `Has Frames: ${debugInfo.hasFrames}\n`;
+                info += `Frames Count: ${debugInfo.framesCount}\n`;
+                info += `Has Static Sprite: ${debugInfo.hasStaticSprite}\n\n`;
+            });
+            
+            // Informações dos inimigos
+            info += `=== INIMIGOS ATIVOS ===\n`;
+            info += `Quantidade: ${enemies.length}\n`;
+            enemies.forEach((enemy, index) => {
+                info += `Inimigo ${index + 1}: ${enemy.type} (${enemy.spriteType}) - ${enemy.direction}\n`;
+            });
+            
+            debugInfoDiv.textContent = info;
+        }
+        
+        async function initializeSystem() {
+            try {
+                console.log('🚀 Iniciando teste de piscamento...');
+                
+                // Criar MonsterSpriteManager
+                monsterSpriteManager = new MonsterSpriteManager(imageManager);
+                
+                // Aguardar um pouco
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Carregar monstros
+                const success = await monsterSpriteManager.loadAllMonsters();
+                
+                if (success) {
+                    console.log('✅ Sistema inicializado com sucesso!');
+                    updateDebugInfo();
+                } else {
+                    console.log('❌ Falha ao inicializar sprites');
+                }
+                
+            } catch (error) {
+                console.error('❌ Erro:', error);
+            }
+        }
+        
+        function spawnNormal() {
+            const enemy = {
+                type: 'normal',
+                spriteType: 'normal',
+                x: 400,
+                y: 300,
+                direction: 'right',
+                health: 100,
+                maxHealth: 100,
+                size: 20,
+                color: '#dc3545',
+                isRemoved: false,
+                monsterSpriteManager: monsterSpriteManager
+            };
+            
+            enemies.push(enemy);
+            console.log('🎯 Monstro normal spawnado');
+            updateDebugInfo();
+        }
+        
+        function clearEnemies() {
+            enemies.length = 0;
+            console.log('🧹 Inimigos removidos');
+            updateDebugInfo();
+        }
+        
+        function toggleDebug() {
+            showDebug = !showDebug;
+            console.log(`🔍 Debug: ${showDebug ? 'ON' : 'OFF'}`);
+        }
+        
+        function showSpriteInfo() {
+            if (!monsterSpriteManager) return;
+            
+            console.log('=== SPRITE INFO ===');
+            const directions = ['down', 'right', 'left', 'up'];
+            directions.forEach(direction => {
+                const debugInfo = monsterSpriteManager.getSpriteDebugInfo('normal', direction);
+                console.log(`${direction}:`, debugInfo);
+            });
+            
+            updateDebugInfo();
+        }
+        
+        function testAnimation() {
+            if (!monsterSpriteManager) return;
+            
+            console.log('🎬 Testando animação...');
+            
+            // Testar diferentes tempos
+            for (let i = 0; i < 10; i++) {
+                const testTime = i * 100;
+                const sprite = monsterSpriteManager.getCurrentSprite('normal', 'right', testTime);
+                console.log(`Tempo ${testTime}ms:`, sprite ? 'Sprite encontrado' : 'Sprite não encontrado');
+            }
+        }
+        
+        function updateEnemies() {
+            enemies.forEach(enemy => {
+                // Simular movimento simples
+                enemy.x += 1;
+                if (enemy.x > 750) {
+                    enemy.x = 50;
+                }
+                
+                // Atualizar direção
+                enemy.direction = 'right';
+            });
+        }
+        
+        function drawEnemies() {
+            enemies.forEach(enemy => {
+                if (monsterSpriteManager && monsterSpriteManager.isMonsterLoaded(enemy.spriteType)) {
+                    try {
+                        monsterSpriteManager.drawMonster(ctx, enemy, gameState.gameTime);
+                        
+                        if (showDebug) {
+                            // Desenhar informações de debug
+                            ctx.fillStyle = '#ffff00';
+                            ctx.font = '12px Arial';
+                            ctx.fillText(`${enemy.type} - ${enemy.direction}`, enemy.x - 20, enemy.y - 30);
+                            ctx.fillText(`Time: ${Math.floor(gameState.gameTime)}`, enemy.x - 20, enemy.y - 15);
+                        }
+                    } catch (error) {
+                        console.error('❌ Erro ao desenhar:', error);
+                        // Fallback
+                        ctx.fillStyle = '#ff0000';
+                        ctx.beginPath();
+                        ctx.arc(enemy.x, enemy.y, enemy.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                } else {
+                    // Fallback
+                    ctx.fillStyle = '#ff0000';
+                    ctx.beginPath();
+                    ctx.arc(enemy.x, enemy.y, enemy.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+        }
+        
+        function gameLoop(currentTime) {
+            // Calcular FPS
+            frameCount++;
+            if (currentTime - lastTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastTime = currentTime;
+                fpsCounter.textContent = `FPS: ${fps}`;
+            }
+            
+            // Limpar canvas
+            ctx.fillStyle = '#2a2a2a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Atualizar tempo do jogo
+            gameState.gameTime += 16;
+            
+            // Atualizar e desenhar inimigos
+            updateEnemies();
+            drawEnemies();
+            
+            // Atualizar debug info a cada 30 frames
+            if (frameCount % 30 === 0) {
+                updateDebugInfo();
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Inicializar e iniciar
+        initializeSystem().then(() => {
+            gameLoop();
+        });
+        
+        // Funções globais
+        window.spawnNormal = spawnNormal;
+        window.clearEnemies = clearEnemies;
+        window.toggleDebug = toggleDebug;
+        window.showSpriteInfo = showSpriteInfo;
+        window.testAnimation = testAnimation;
+    </script>
+</body>
+</html> 

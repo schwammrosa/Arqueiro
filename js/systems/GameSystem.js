@@ -517,6 +517,13 @@ export class GameSystem {
         if (this.skillCheckFrameCounter >= 60) {
             this.updateSpecialSkillsVisibility();
             this.skillCheckFrameCounter = 0;
+            
+            // Verificar sprites de monstros periodicamente (a cada 5 segundos)
+            this.spriteCheckCounter = (this.spriteCheckCounter || 0) + 1;
+            if (this.spriteCheckCounter >= 5) {
+                this.checkMonsterSprites();
+                this.spriteCheckCounter = 0;
+            }
         }
         
         // Desenhar efeitos visuais
@@ -870,6 +877,35 @@ export class GameSystem {
 
         } catch (error) {
             // Erro ao salvar progresso
+        }
+    }
+
+    // Verificar e reparar sprites de monstros se necessário
+    async checkMonsterSprites() {
+        if (!this.renderSystem.monsterSpriteManager) return;
+        
+        try {
+            // Verificar se há monstros invisíveis (sem sprites)
+            const invisibleMonsters = this.gameState.enemies.filter(enemy => {
+                if (!enemy.monsterSpriteManager) return false;
+                return !enemy.monsterSpriteManager.isMonsterLoaded(enemy.spriteType);
+            });
+            
+            if (invisibleMonsters.length > 0) {
+                console.warn(`⚠️ Encontrados ${invisibleMonsters.length} monstros invisíveis, reparando sprites...`);
+                
+                // Tentar reparar sprites
+                const repairedCount = await this.renderSystem.monsterSpriteManager.repairSprites();
+                
+                if (repairedCount > 0) {
+                    console.log(`✅ ${repairedCount} tipos de monstros reparados`);
+                    this.uiSystem.showNotification(`Sprites reparados: ${repairedCount} tipos`, 'info');
+                } else {
+                    console.warn('⚠️ Não foi possível reparar sprites, usando fallback');
+                }
+            }
+        } catch (error) {
+            console.error('❌ Erro ao verificar sprites:', error);
         }
     }
 } 

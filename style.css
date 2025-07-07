@@ -641,23 +641,33 @@ a.painel-lateral-btn:active {
 }
 
 .reward-message {
-    background: linear-gradient(135deg, #f39c12, #e67e22);
+    background: linear-gradient(135deg, #e67e22 60%, #b35400 100%);
     border-radius: 10px;
     padding: 15px;
     margin: 15px 0;
     border-left: 5px solid #ff9800;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     animation: slideInUp 0.3s ease;
+    color: #fff !important;
+    font-weight: bold;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+.reward-message strong, .reward-message b {
+    color: #fff !important;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.25);
 }
 
 .motivational-message {
-    background: linear-gradient(135deg, #7f8c8d, #95a5a6);
+    background: linear-gradient(135deg, #636e72 60%, #2d3436 100%);
     border-radius: 10px;
     padding: 15px;
     margin: 15px 0;
-    border-left: 5px solid #bdc3c7;
+    border-left: 5px solid #b2bec3;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     animation: slideInUp 0.3s ease;
+    color: #fff !important;
+    font-weight: bold;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.25);
 }
 
 .game-over-content .btn-continue {
@@ -1447,12 +1457,7 @@ a.painel-lateral-btn:active {
         font-size: 0.8em;
     }
     
-    /* Melhorias para modais em celular */
-    .upgrade-modal-content {
-        padding: 16px;
-        max-width: 95vw;
-        margin: 20px;
-    }
+
     
     .upgrade-item {
         padding: 12px;
@@ -1489,19 +1494,13 @@ a.painel-lateral-btn:active {
 .horizontal-controls {
     display: flex;
     justify-content: center;
-    gap: 10px;
-    padding: 10px 20px;
-    background: rgba(0, 0, 0, 0.4);
-    border-radius: 12px;
-    flex-wrap: wrap;
-    z-index: 90;
-    margin: 8px auto 0;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 10px;
     max-width: 95%;
-    width: fit-content;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(8px);
 }
+
+
 
 .footer-tower-bar::-webkit-scrollbar {
     height: 4px;
@@ -1757,6 +1756,22 @@ a.painel-lateral-btn:active {
 }
 
 /* Container principal do painel inferior - habilidades e torres lado a lado */
+.bottom-panel {
+    position: absolute !important;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    z-index: 2000;
+    border-radius: 0 0 18px 18px !important;
+    box-shadow: 0 -2px 16px rgba(0,0,0,0.15);
+    margin: 0 !important;
+}
+
+.game-content, .game-container {
+    position: relative !important;
+    padding-bottom: 0 !important;
+}
+
 .bottom-panel {
     width: 100%;
     display: flex;
@@ -2118,115 +2133,7 @@ a.painel-lateral-btn:active {
     color: #b26a00;
 }
 
-.upgrade-modal {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.25);
-    z-index: 300;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.upgrade-modal-content {
-    background: #fffbe6;
-    border-radius: 18px;
-    padding: 32px 28px 24px 28px;
-    min-width: 320px;
-    max-width: 95vw;
-    box-shadow: 0 8px 32px rgba(255,152,0,0.18);
-    position: relative;
-    text-align: center;
-}
-.close-modal {
-    position: absolute;
-    top: 12px;
-    right: 18px;
-    font-size: 2em;
-    color: #ff9800;
-    cursor: pointer;
-    font-weight: bold;
-    transition: color 0.2s;
-}
-.close-modal:hover {
-    color: #b26a00;
-}
-#upgradePointsInfo {
-    font-size: 1.1em;
-    margin-bottom: 18px;
-    color: #b26a00;
-}
-#upgradeList {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    align-items: stretch;
-}
-.upgrade-item {
-    background: #fffde7;
-    border: 1.5px solid #ffe082;
-    border-radius: 10px;
-    padding: 14px 18px;
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    box-shadow: 0 2px 8px rgba(255,152,0,0.04);
-    opacity: 1;
-    transition: background 0.2s, border 0.2s, opacity 0.2s;
-}
-.upgrade-item.unlocked {
-    background: #e0ffe7;
-    border-color: #4caf50;
-}
-.upgrade-item.available {
-    background: #e3f2fd;
-    border-color: #2196f3;
-}
-.upgrade-item.locked {
-    opacity: 0.6;
-    background: #f8f9fa;
-    border-color: #bdbdbd;
-}
-.upgrade-btn:disabled {
-    background: #ffe0b2;
-    color: #b26a00;
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-.upgrade-title {
-    font-weight: bold;
-    color: #ff9800;
-    font-size: 1.08em;
-    margin-bottom: 2px;
-}
-.upgrade-desc {
-    color: #6c757d;
-    font-size: 0.98em;
-    margin-bottom: 2px;
-}
-.upgrade-level {
-    font-size: 1em;
-    color: #b26a00;
-    font-weight: bold;
-    margin-bottom: 2px;
-}
-.upgrade-controls {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 4px;
-}
-.upgrade-btn {
-    background: #ff9800;
-    color: #fffbe6;
-    border: none;
-    border-radius: 8px;
-    padding: 6px 18px;
-    font-size: 1em;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.2s;
-}
+
 @media (max-width: 600px) {
     .btn-upgrades {
         right: 10px;
@@ -2234,10 +2141,7 @@ a.painel-lateral-btn:active {
         font-size: 1em;
         padding: 7px 12px;
     }
-    .upgrade-modal-content {
-        min-width: 90vw;
-        padding: 16px 4vw 12px 4vw;
-    }
+
     #upgradeList {
         gap: 10px;
     }
@@ -2455,23 +2359,25 @@ a.painel-lateral-btn:active {
 
 /* Estilos para os botões de controle */
 .control-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    background: linear-gradient(145deg, #2a2a72, #1a1a4a);
-    color: #fff;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 13px;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    white-space: nowrap;
-    margin: 2px;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    padding: 3px 8px !important;
+    background: linear-gradient(145deg, #2a2a72, #1a1a4a) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 12px !important;
+    cursor: pointer !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+    min-width: 40px !important;
+    min-height: 24px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.18) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    white-space: nowrap !important;
+    margin: 2px !important;
 }
 
 .control-btn:hover {

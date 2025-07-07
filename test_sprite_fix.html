@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Correção de Sprites - Legado da Fortaleza</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #4CAF50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .test-section h2 {
+            color: #2196F3;
+            margin-top: 0;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .error {
+            background: #f44336;
+            color: white;
+        }
+        
+        .warning {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .info {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background: #45a049;
+        }
+        
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: #333;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #ccc;
+            margin-top: 5px;
+        }
+        
+        #gameCanvas {
+            border: 2px solid #444;
+            border-radius: 8px;
+            display: block;
+            margin: 20px auto;
+        }
+        
+        .log {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste de Correção de Sprites</h1>
+        
+        <div class="test-section">
+            <h2>📊 Status do Sistema</h2>
+            <div id="status" class="status info">Inicializando...</div>
+            <div id="spriteStatus" class="status warning">Aguardando carregamento...</div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🎮 Controles de Teste</h2>
+            <div class="controls">
+                <button onclick="spawnEnemy('normal')">Spawnar Normal</button>
+                <button onclick="spawnEnemy('fast')">Spawnar Rápido</button>
+                <button onclick="spawnEnemy('tank')">Spawnar Tanque</button>
+                <button onclick="spawnEnemy('elite')">Spawnar Elite</button>
+                <button onclick="clearEnemies()">Limpar Inimigos</button>
+                <button onclick="testSpriteRepair()">Testar Reparação</button>
+                <button onclick="toggleSprites()">Alternar Sprites</button>
+                <button onclick="simulateWave()">Simular Onda</button>
+                <button onclick="debugNormalSprite()">Debug Normal</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>📈 Estatísticas</h2>
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="enemyCount">0</div>
+                    <div class="stat-label">Inimigos Ativos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="loadedSprites">0</div>
+                    <div class="stat-label">Sprites Carregados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="waveCount">0</div>
+                    <div class="stat-label">Ondas Simuladas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="repairCount">0</div>
+                    <div class="stat-label">Reparações</div>
+                </div>
+            </div>
+        </div>
+        
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <div class="test-section">
+            <h2>📝 Log de Eventos</h2>
+            <div id="log" class="log"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { MonsterSpriteManager } from './js/systems/MonsterSpriteManager.js';
+        import { imageManager } from './js/systems/ImageManager.js';
+        
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const statusDiv = document.getElementById('status');
+        const spriteStatusDiv = document.getElementById('spriteStatus');
+        const logDiv = document.getElementById('log');
+        
+        let monsterSpriteManager;
+        let enemies = [];
+        let useSprites = true;
+        let monstersInitialized = false;
+        let waveCount = 0;
+        let repairCount = 0;
+        
+        // Simular gameState
+        const gameState = {
+            gameTime: 0,
+            enemies: enemies
+        };
+        
+        // Função de log
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}\n`;
+            logDiv.textContent += logEntry;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        // Simular enemyPath
+        const enemyPath = [
+            { x: 0, y: 5 }, { x: 1, y: 5 }, { x: 2, y: 5 }, { x: 3, y: 5 }, { x: 4, y: 5 },
+            { x: 5, y: 5 }, { x: 6, y: 5 }, { x: 7, y: 5 }, { x: 8, y: 5 }, { x: 9, y: 5 },
+            { x: 10, y: 5 }, { x: 11, y: 5 }, { x: 12, y: 5 }, { x: 13, y: 5 }, { x: 14, y: 5 },
+            { x: 15, y: 5 }, { x: 16, y: 5 }, { x: 17, y: 5 }, { x: 18, y: 5 }, { x: 19, y: 5 }
+        ];
+        
+        // Configuração do jogo
+        const GAME_CONFIG = {
+            gridSize: 40,
+            canvasWidth: 800,
+            canvasHeight: 600
+        };
+        
+        async function initializeSystem() {
+            try {
+                log('🚀 Iniciando teste do sistema de sprites...');
+                statusDiv.textContent = 'Inicializando sistema...';
+                statusDiv.className = 'status info';
+                
+                // Criar MonsterSpriteManager
+                monsterSpriteManager = new MonsterSpriteManager(imageManager);
+                log('✅ MonsterSpriteManager criado');
+                
+                // Aguardar um pouco
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Carregar monstros
+                log('🔄 Carregando monstros...');
+                monstersInitialized = await monsterSpriteManager.loadAllMonsters();
+                
+                if (monstersInitialized) {
+                    log('✅ Todos os monstros carregados com sucesso!', 'success');
+                    statusDiv.textContent = 'Sistema inicializado com sucesso!';
+                    statusDiv.className = 'status success';
+                    spriteStatusDiv.textContent = 'Status: Sprites habilitados';
+                    spriteStatusDiv.className = 'status success';
+                } else {
+                    log('❌ Falha ao carregar monstros', 'error');
+                    statusDiv.textContent = 'Falha ao inicializar sprites';
+                    statusDiv.className = 'status error';
+                    spriteStatusDiv.textContent = 'Status: Fallback disponível';
+                    spriteStatusDiv.className = 'status warning';
+                }
+                
+                // Mostrar estatísticas
+                const stats = monsterSpriteManager.getStats();
+                log(`📊 Estatísticas: ${JSON.stringify(stats, null, 2)}`);
+                updateStats();
+                
+            } catch (error) {
+                log(`❌ Erro: ${error.message}`, 'error');
+                statusDiv.innerHTML = `<span class="error">❌ Erro: ${error.message}</span>`;
+                statusDiv.className = 'status error';
+            }
+        }
+        
+        function spawnEnemy(type) {
+            const enemy = {
+                type: type,
+                spriteType: type,
+                x: 20,
+                y: 220,
+                direction: 'right',
+                pathIndex: 0,
+                health: 100,
+                maxHealth: 100,
+                size: 20,
+                color: '#dc3545',
+                isRemoved: false,
+                monsterSpriteManager: monsterSpriteManager
+            };
+            
+            enemies.push(enemy);
+            log(`🎯 Inimigo ${type} spawnado`);
+            updateStats();
+        }
+        
+        function clearEnemies() {
+            enemies.length = 0;
+            log('🧹 Inimigos removidos');
+            updateStats();
+        }
+        
+        function toggleSprites() {
+            useSprites = !useSprites;
+            spriteStatusDiv.textContent = `Sprites: ${useSprites ? 'Habilitados' : 'Desabilitados'}`;
+            log(`🔄 Sprites: ${useSprites ? 'ON' : 'OFF'}`);
+        }
+        
+        async function testSpriteRepair() {
+            if (!monsterSpriteManager) {
+                log('❌ MonsterSpriteManager não inicializado', 'error');
+                return;
+            }
+            
+            log('🔧 Testando reparação de sprites...');
+            const repairedCount = await monsterSpriteManager.repairSprites();
+            repairCount += repairedCount;
+            log(`✅ Reparação concluída: ${repairedCount} tipos reparados`, 'success');
+            updateStats();
+        }
+        
+        function simulateWave() {
+            waveCount++;
+            log(`🌊 Simulando onda ${waveCount}...`);
+            
+            // Spawnar diferentes tipos de inimigos
+            const types = ['normal', 'fast', 'tank', 'elite'];
+            for (let i = 0; i < 5; i++) {
+                const type = types[Math.floor(Math.random() * types.length)];
+                setTimeout(() => {
+                    spawnEnemy(type);
+                }, i * 500);
+            }
+            
+            updateStats();
+        }
+        
+        function debugNormalSprite() {
+            if (!monsterSpriteManager) {
+                log('❌ MonsterSpriteManager não inicializado', 'error');
+                return;
+            }
+            
+            log('🔍 Debugando sprite do monstro normal...');
+            
+            // Verificar configuração
+            const config = monsterSpriteManager.monsterConfigs['normal'];
+            if (config) {
+                log(`📋 Configuração do normal: animationFrames=${config.animationFrames}, frameWidth=${config.frameWidth}, frameHeight=${config.frameHeight}`);
+            }
+            
+            // Verificar sprites carregados
+            const directions = ['down', 'right', 'left', 'up'];
+            directions.forEach(direction => {
+                const debugInfo = monsterSpriteManager.getSpriteDebugInfo('normal', direction);
+                log(`🎯 ${direction}: ${JSON.stringify(debugInfo, null, 2)}`);
+            });
+            
+            // Verificar se está carregado
+            const isLoaded = monsterSpriteManager.isMonsterLoaded('normal');
+            log(`✅ Normal carregado: ${isLoaded}`);
+            
+            // Verificar estatísticas
+            const stats = monsterSpriteManager.getStats();
+            log(`📊 Estatísticas gerais: ${JSON.stringify(stats, null, 2)}`);
+        }
+        
+        function updateStats() {
+            document.getElementById('enemyCount').textContent = enemies.length;
+            document.getElementById('loadedSprites').textContent = monsterSpriteManager ? monsterSpriteManager.getStats().loadedMonsters : 0;
+            document.getElementById('waveCount').textContent = waveCount;
+            document.getElementById('repairCount').textContent = repairCount;
+        }
+        
+        function updateEnemies() {
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const enemy = enemies[i];
+                
+                // Mover inimigo
+                if (enemy.pathIndex < enemyPath.length - 1) {
+                    const targetX = enemyPath[enemy.pathIndex + 1].x * GAME_CONFIG.gridSize + GAME_CONFIG.gridSize / 2;
+                    const targetY = enemyPath[enemy.pathIndex + 1].y * GAME_CONFIG.gridSize + GAME_CONFIG.gridSize / 2;
+                    
+                    const dx = targetX - enemy.x;
+                    const dy = targetY - enemy.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    // Calcular direção
+                    if (monsterSpriteManager) {
+                        enemy.direction = monsterSpriteManager.getDirectionFromMovement(dx, dy);
+                    }
+                    
+                    if (distance < 5) {
+                        enemy.pathIndex++;
+                    } else {
+                        const speed = 2;
+                        enemy.x += (dx / distance) * speed;
+                        enemy.y += (dy / distance) * speed;
+                    }
+                } else {
+                    // Inimigo chegou ao final
+                    enemies.splice(i, 1);
+                }
+            }
+        }
+        
+        function drawEnemies() {
+            enemies.forEach(enemy => {
+                if (useSprites && monsterSpriteManager && monsterSpriteManager.isMonsterLoaded(enemy.spriteType)) {
+                    try {
+                        monsterSpriteManager.drawMonster(ctx, enemy, gameState.gameTime);
+                    } catch (error) {
+                        log(`❌ Erro ao desenhar sprite: ${error.message}`, 'error');
+                        // Fallback
+                        ctx.fillStyle = enemy.color;
+                        ctx.beginPath();
+                        ctx.arc(enemy.x, enemy.y, enemy.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                } else {
+                    // Fallback
+                    ctx.fillStyle = enemy.color;
+                    ctx.beginPath();
+                    ctx.arc(enemy.x, enemy.y, enemy.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+        }
+        
+        function gameLoop() {
+            // Limpar canvas
+            ctx.fillStyle = '#2a2a2a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Desenhar grid
+            ctx.strokeStyle = '#444';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < canvas.width; x += 40) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += 40) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Atualizar e desenhar inimigos
+            updateEnemies();
+            drawEnemies();
+            
+            // Atualizar tempo
+            gameState.gameTime += 16;
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Inicializar e iniciar
+        initializeSystem().then(() => {
+            gameLoop();
+        });
+        
+        // Funções globais para os botões
+        window.spawnEnemy = spawnEnemy;
+        window.clearEnemies = clearEnemies;
+        window.toggleSprites = toggleSprites;
+        window.testSpriteRepair = testSpriteRepair;
+        window.simulateWave = simulateWave;
+        window.debugNormalSprite = debugNormalSprite;
+    </script>
+</body>
+</html> 

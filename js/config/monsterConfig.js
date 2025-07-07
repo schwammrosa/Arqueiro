@@ -9,7 +9,7 @@ export const MONSTER_SPRITE_CONFIG = {
             'up': 'assets/monstros/Normal/goblin_brutao_subindo.png'
         },
         size: { width: 32, height: 32 },
-        animationFrames: 4,
+        animationFrames: 1, // Corrigido: 1 frame por imagem (não são sprite sheets)
         frameWidth: 32,
         frameHeight: 32,
         animationSpeed: 200, // ms por frame

@@ -172,43 +172,66 @@ export class Enemy {
 
         // Tentar usar sprite se disponível
         if (this.monsterSpriteManager && this.monsterSpriteManager.isMonsterLoaded(this.spriteType)) {
-            // Usar sprite animado
-            this.monsterSpriteManager.drawMonster(ctx, {
-                type: this.spriteType,
-                x: this.x,
-                y: this.y,
-                direction: this.direction
-            }, this.gameState.gameTime);
+            try {
+                // Usar sprite animado
+                this.monsterSpriteManager.drawMonster(ctx, {
+                    type: this.spriteType,
+                    x: this.x,
+                    y: this.y,
+                    direction: this.direction,
+                    health: this.health,
+                    maxHealth: this.maxHealth,
+                    slowUntil: this.slowUntil,
+                    slowStartTime: this.slowStartTime,
+                    freezeBonus: this.freezeBonus,
+                    isFrozen: this.isFrozen
+                }, this.gameState.gameTime);
+            } catch (error) {
+                console.error('❌ Erro ao desenhar sprite do monstro:', error, {
+                    type: this.type,
+                    spriteType: this.spriteType,
+                    direction: this.direction
+                });
+                // Fallback para desenho simples
+                this.drawFallback(ctx);
+            }
         } else {
             // Fallback para desenho simples
-            ctx.save();
-            
-            // Efeito visual de slow - inimigos lentos ficam azulados
-            let fillColor = this.color;
-            let strokeColor = '#000000';
-            
-            if (this.slowUntil && Date.now() < this.slowUntil) {
-                // Aplicar efeito azulado para inimigos lentos
-                fillColor = this.color;
-                strokeColor = '#36b9cc';
-                ctx.lineWidth = 3;
-                
-                // Adicionar brilho azul
-                ctx.shadowColor = '#36b9cc';
-                ctx.shadowBlur = 8;
-            } else {
-                ctx.lineWidth = 2;
-            }
-            
-            ctx.fillStyle = fillColor;
-            ctx.strokeStyle = strokeColor;
-            
-            // Desenhar círculo do inimigo
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.stroke();
+            this.drawFallback(ctx);
         }
+    }
+
+    // Método de fallback para desenho simples
+    drawFallback(ctx) {
+        ctx.save();
+        
+        // Efeito visual de slow - inimigos lentos ficam azulados
+        let fillColor = this.color;
+        let strokeColor = '#000000';
+        
+        if (this.slowUntil && Date.now() < this.slowUntil) {
+            // Aplicar efeito azulado para inimigos lentos
+            fillColor = this.color;
+            strokeColor = '#36b9cc';
+            ctx.lineWidth = 3;
+            
+            // Adicionar brilho azul
+            ctx.shadowColor = '#36b9cc';
+            ctx.shadowBlur = 8;
+        } else {
+            ctx.lineWidth = 2;
+        }
+        
+        ctx.fillStyle = fillColor;
+        ctx.strokeStyle = strokeColor;
+        
+        // Desenhar círculo do inimigo
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        
+        ctx.restore();
         
         // Desenhar barra de vida
         const barWidth = this.size * 2;
@@ -237,9 +260,10 @@ export class Enemy {
             const slowBarHeight = 3;
             
             // Calcular progresso do slow
-            const slowStartTime = this.slowUntil - (this.freezeBonus || 1) * 1000;
-            const slowProgress = (Date.now() - slowStartTime) / (this.slowUntil - slowStartTime);
-            const remainingProgress = Math.max(0, 1 - slowProgress);
+            const slowStart = this.slowStartTime || (this.slowUntil - (this.freezeBonus || 1) * 1000);
+            const totalSlowDuration = this.slowUntil - slowStart;
+            const elapsed = Math.max(0, Math.min(totalSlowDuration, Date.now() - slowStart));
+            const remainingProgress = 1 - (elapsed / totalSlowDuration);
             
             // Fundo da barra de slow
             ctx.fillStyle = 'rgba(54, 185, 204, 0.3)';
@@ -267,7 +291,5 @@ export class Enemy {
         if (this.type === 'elite') icon = '👑';
         ctx.strokeText(icon, this.x, this.y + 5);
         ctx.fillText(icon, this.x, this.y + 5);
-        
-        ctx.restore();
     }
 } 

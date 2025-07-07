@@ -46,8 +46,20 @@ export class RenderSystem {
             
             if (success) {
                 console.log('✅ Sistema de sprites de monstros inicializado com sucesso!');
+                
+                // Verificar estatísticas
+                const stats = this.monsterSpriteManager.getStats();
+                console.log('📊 Estatísticas dos sprites:', stats);
             } else {
                 console.warn('⚠️ Falha ao inicializar sprites de monstros - usando fallback');
+                
+                // Tentar reparar sprites corrompidos
+                console.log('🔧 Tentando reparar sprites...');
+                const repairedCount = await this.monsterSpriteManager.repairSprites();
+                if (repairedCount > 0) {
+                    console.log(`✅ ${repairedCount} tipos de monstros reparados`);
+                    this.monstersInitialized = true;
+                }
             }
         } catch (error) {
             console.error('❌ Erro ao inicializar sprites de monstros:', error);
