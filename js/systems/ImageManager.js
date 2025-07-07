@@ -1,11 +1,44 @@
 // Sistema de Gerenciamento de Imagens
 export class ImageManager {
+    // Constantes para cores e configurações
+    static COLORS = {
+        GRASS: {
+            PRIMARY: '#4a7c59',
+            DETAIL: '#5e8f6f'
+        },
+        PATH: {
+            PRIMARY: '#8b7355',
+            BORDER: '#6b5635',
+            DETAIL: '#7a654a'
+        },
+        STONE: {
+            PRIMARY: '#6c757d',
+            DETAIL: '#5a6169'
+        },
+        MARKERS: {
+            START: '#4CAF50',
+            END: '#f44336',
+            TEXT: '#ffffff'
+        }
+    };
+
+    static TILE_CONFIG = {
+        DEFAULT_SIZE: 40,
+        PATH_WIDTH: 16,
+        PATH_OFFSET: 8,
+        BORDER_WIDTH: 3,
+        DETAIL_COUNT: {
+            GRASS: 8,
+            PATH: 5,
+            CORNER: 3,
+            STONE: 6
+        }
+    };
+
     constructor() {
         this.images = new Map();
         this.loadingPromises = new Map();
         this.defaultImages = {
-            background: null,
-            pathTile: null,
             grassTile: null,
             stoneTile: null
         };
@@ -60,8 +93,6 @@ export class ImageManager {
             const successCount = results.filter(r => r !== null).length;
             const totalCount = Object.keys(imageMap).length;
             
-
-            
             // Considerar sucesso se pelo menos 80% das imagens carregaram
             return successCount >= totalCount * 0.8;
         } catch (error) {
@@ -80,255 +111,167 @@ export class ImageManager {
         return this.images.has(key);
     }
 
+    // Métodos auxiliares para criação de tiles
+    _createBaseTile(ctx, size, color) {
+        ctx.fillStyle = color;
+        ctx.fillRect(0, 0, size, size);
+    }
+
+    _addRandomDetails(ctx, size, color, count, detailSize = 2) {
+        ctx.fillStyle = color;
+        for (let i = 0; i < count; i++) {
+            const x = Math.random() * (size - detailSize);
+            const y = Math.random() * (size - detailSize);
+            ctx.fillRect(x, y, detailSize, detailSize);
+        }
+    }
+
+    _createPathTile(ctx, size) {
+        this._createBaseTile(ctx, size, ImageManager.COLORS.PATH.PRIMARY);
+        this._addRandomDetails(ctx, size, ImageManager.COLORS.PATH.DETAIL, ImageManager.TILE_CONFIG.DETAIL_COUNT.PATH, 3);
+    }
+
+    _createPathBorders(ctx, size, isHorizontal) {
+        ctx.fillStyle = ImageManager.COLORS.PATH.BORDER;
+        if (isHorizontal) {
+            ctx.fillRect(0, 0, size, ImageManager.TILE_CONFIG.BORDER_WIDTH);
+            ctx.fillRect(0, size - ImageManager.TILE_CONFIG.BORDER_WIDTH, size, ImageManager.TILE_CONFIG.BORDER_WIDTH);
+        } else {
+            ctx.fillRect(0, 0, ImageManager.TILE_CONFIG.BORDER_WIDTH, size);
+            ctx.fillRect(size - ImageManager.TILE_CONFIG.BORDER_WIDTH, 0, ImageManager.TILE_CONFIG.BORDER_WIDTH, size);
+        }
+    }
+
+    _createCornerPath(ctx, size, horizontalRect, verticalRect) {
+        this._createBaseTile(ctx, size, ImageManager.COLORS.PATH.PRIMARY);
+        
+        // Desenhar caminho em L
+        ctx.fillStyle = ImageManager.COLORS.PATH.DETAIL;
+        ctx.fillRect(...horizontalRect);
+        ctx.fillRect(...verticalRect);
+        
+        // Adicionar detalhes
+        this._addRandomDetails(ctx, size, ImageManager.COLORS.PATH.BORDER, ImageManager.TILE_CONFIG.DETAIL_COUNT.CORNER, 2);
+    }
+
+    _createCornerBorders(ctx, size, borderPaths) {
+        ctx.strokeStyle = ImageManager.COLORS.PATH.BORDER;
+        ctx.lineWidth = ImageManager.TILE_CONFIG.BORDER_WIDTH;
+        
+        borderPaths.forEach(path => {
+            ctx.beginPath();
+            ctx.moveTo(...path[0]);
+            ctx.lineTo(...path[1]);
+            ctx.lineTo(...path[2]);
+            ctx.stroke();
+        });
+    }
+
+    _createMarkerTile(ctx, size, color, text) {
+        this._createBaseTile(ctx, size, ImageManager.COLORS.PATH.PRIMARY);
+        
+        // Marcador
+        ctx.fillStyle = color;
+        ctx.fillRect(size/4, size/4, size/2, size/2);
+        
+        // Texto
+        ctx.fillStyle = ImageManager.COLORS.MARKERS.TEXT;
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(text, size/2, size/2 + 4);
+    }
+
     // Criar imagem padrão (tiles procedurais)
-    createDefaultTile(type, size = 40) {
+    createDefaultTile(type, size = ImageManager.TILE_CONFIG.DEFAULT_SIZE) {
         const canvas = document.createElement('canvas');
         canvas.width = size;
         canvas.height = size;
         const ctx = canvas.getContext('2d');
 
+        const { PATH_WIDTH, PATH_OFFSET } = ImageManager.TILE_CONFIG;
+
         switch(type) {
             case 'grass':
-                // Textura de grama
-                ctx.fillStyle = '#4a7c59';
-                ctx.fillRect(0, 0, size, size);
-                
-                // Adicionar alguns detalhes
-                ctx.fillStyle = '#5e8f6f';
-                for (let i = 0; i < 8; i++) {
-                    const x = Math.random() * size;
-                    const y = Math.random() * size;
-                    ctx.fillRect(x, y, 2, 2);
-                }
+                this._createBaseTile(ctx, size, ImageManager.COLORS.GRASS.PRIMARY);
+                this._addRandomDetails(ctx, size, ImageManager.COLORS.GRASS.DETAIL, ImageManager.TILE_CONFIG.DETAIL_COUNT.GRASS);
                 break;
 
             case 'path_horizontal':
-                // Textura de caminho horizontal
-                ctx.fillStyle = '#8b7355';
-                ctx.fillRect(0, 0, size, size);
-                
-                // Bordas horizontais mais escuras
-                ctx.fillStyle = '#6b5635';
-                ctx.fillRect(0, 0, size, 3);
-                ctx.fillRect(0, size-3, size, 3);
-                
-                // Adicionar algumas pedras pequenas
-                ctx.fillStyle = '#7a654a';
-                for (let i = 0; i < 5; i++) {
-                    const x = Math.random() * (size - 4);
-                    const y = Math.random() * (size - 4);
-                    ctx.fillRect(x, y, 3, 3);
-                }
+                this._createPathTile(ctx, size);
+                this._createPathBorders(ctx, size, true);
                 break;
 
             case 'path_vertical':
-                // Textura de caminho vertical
-                ctx.fillStyle = '#8b7355';
-                ctx.fillRect(0, 0, size, size);
-                
-                // Bordas verticais mais escuras
-                ctx.fillStyle = '#6b5635';
-                ctx.fillRect(0, 0, 3, size);
-                ctx.fillRect(size-3, 0, 3, size);
-                
-                // Adicionar algumas pedras pequenas
-                ctx.fillStyle = '#7a654a';
-                for (let i = 0; i < 5; i++) {
-                    const x = Math.random() * (size - 4);
-                    const y = Math.random() * (size - 4);
-                    ctx.fillRect(x, y, 3, 3);
-                }
+                this._createPathTile(ctx, size);
+                this._createPathBorders(ctx, size, false);
                 break;
 
             case 'path_corner_tl':
-                // Curva superior esquerda (conecta esquerda -> baixo ou cima -> direita)
-                ctx.fillStyle = '#8b7355';
-                ctx.fillRect(0, 0, size, size);
-                
-                // Desenhar caminho em L invertido
-                ctx.fillStyle = '#7a654a';
-                ctx.fillRect(0, size/2 - 8, size/2 + 8, 16);  // Horizontal
-                ctx.fillRect(size/2 - 8, size/2 - 8, 16, size/2 + 8);  // Vertical
-                
-                // Bordas da curva
-                ctx.strokeStyle = '#6b5635';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(0, size/2 - 8);
-                ctx.lineTo(size/2 - 8, size/2 - 8);
-                ctx.lineTo(size/2 - 8, size);
-                ctx.stroke();
-                
-                ctx.beginPath();
-                ctx.moveTo(0, size/2 + 8);
-                ctx.lineTo(size/2 + 8, size/2 + 8);
-                ctx.lineTo(size/2 + 8, size);
-                ctx.stroke();
-                
-                // Pedras pequenas
-                ctx.fillStyle = '#6b5635';
-                for (let i = 0; i < 3; i++) {
-                    const x = Math.random() * (size - 8) + 4;
-                    const y = Math.random() * (size - 8) + 4;
-                    ctx.fillRect(x, y, 2, 2);
-                }
+                this._createCornerPath(ctx, size, 
+                    [0, size/2 - PATH_OFFSET, size/2 + PATH_OFFSET, PATH_WIDTH],
+                    [size/2 - PATH_OFFSET, size/2 - PATH_OFFSET, PATH_WIDTH, size/2 + PATH_OFFSET]
+                );
+                this._createCornerBorders(ctx, size, [
+                    [[0, size/2 - PATH_OFFSET], [size/2 - PATH_OFFSET, size/2 - PATH_OFFSET], [size/2 - PATH_OFFSET, size]],
+                    [[0, size/2 + PATH_OFFSET], [size/2 + PATH_OFFSET, size/2 + PATH_OFFSET], [size/2 + PATH_OFFSET, size]]
+                ]);
                 break;
 
             case 'path_corner_tr':
-                // Curva superior direita (conecta direita -> baixo ou cima -> esquerda)
-                ctx.fillStyle = '#8b7355';
-                ctx.fillRect(0, 0, size, size);
-                
-                // Desenhar caminho em L
-                ctx.fillStyle = '#7a654a';
-                ctx.fillRect(size/2 - 8, size/2 - 8, size/2 + 8, 16);  // Horizontal
-                ctx.fillRect(size/2 - 8, size/2 - 8, 16, size/2 + 8);  // Vertical
-                
-                // Bordas da curva
-                ctx.strokeStyle = '#6b5635';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(size, size/2 - 8);
-                ctx.lineTo(size/2 + 8, size/2 - 8);
-                ctx.lineTo(size/2 + 8, size);
-                ctx.stroke();
-                
-                ctx.beginPath();
-                ctx.moveTo(size, size/2 + 8);
-                ctx.lineTo(size/2 - 8, size/2 + 8);
-                ctx.lineTo(size/2 - 8, size);
-                ctx.stroke();
-                
-                // Pedras pequenas
-                ctx.fillStyle = '#6b5635';
-                for (let i = 0; i < 3; i++) {
-                    const x = Math.random() * (size - 8) + 4;
-                    const y = Math.random() * (size - 8) + 4;
-                    ctx.fillRect(x, y, 2, 2);
-                }
+                this._createCornerPath(ctx, size,
+                    [size/2 - PATH_OFFSET, size/2 - PATH_OFFSET, size/2 + PATH_OFFSET, PATH_WIDTH],
+                    [size/2 - PATH_OFFSET, size/2 - PATH_OFFSET, PATH_WIDTH, size/2 + PATH_OFFSET]
+                );
+                this._createCornerBorders(ctx, size, [
+                    [[size, size/2 - PATH_OFFSET], [size/2 + PATH_OFFSET, size/2 - PATH_OFFSET], [size/2 + PATH_OFFSET, size]],
+                    [[size, size/2 + PATH_OFFSET], [size/2 - PATH_OFFSET, size/2 + PATH_OFFSET], [size/2 - PATH_OFFSET, size]]
+                ]);
                 break;
 
             case 'path_corner_bl':
-                // Curva inferior esquerda (conecta esquerda -> cima ou baixo -> direita)
-                ctx.fillStyle = '#8b7355';
-                ctx.fillRect(0, 0, size, size);
-                
-                // Desenhar caminho em L
-                ctx.fillStyle = '#7a654a';
-                ctx.fillRect(0, size/2 - 8, size/2 + 8, 16);  // Horizontal
-                ctx.fillRect(size/2 - 8, 0, 16, size/2 + 8);  // Vertical
-                
-                // Bordas da curva
-                ctx.strokeStyle = '#6b5635';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(0, size/2 - 8);
-                ctx.lineTo(size/2 - 8, size/2 - 8);
-                ctx.lineTo(size/2 - 8, 0);
-                ctx.stroke();
-                
-                ctx.beginPath();
-                ctx.moveTo(0, size/2 + 8);
-                ctx.lineTo(size/2 + 8, size/2 + 8);
-                ctx.lineTo(size/2 + 8, 0);
-                ctx.stroke();
-                
-                // Pedras pequenas
-                ctx.fillStyle = '#6b5635';
-                for (let i = 0; i < 3; i++) {
-                    const x = Math.random() * (size - 8) + 4;
-                    const y = Math.random() * (size - 8) + 4;
-                    ctx.fillRect(x, y, 2, 2);
-                }
+                this._createCornerPath(ctx, size,
+                    [0, size/2 - PATH_OFFSET, size/2 + PATH_OFFSET, PATH_WIDTH],
+                    [size/2 - PATH_OFFSET, 0, PATH_WIDTH, size/2 + PATH_OFFSET]
+                );
+                this._createCornerBorders(ctx, size, [
+                    [[0, size/2 - PATH_OFFSET], [size/2 - PATH_OFFSET, size/2 - PATH_OFFSET], [size/2 - PATH_OFFSET, 0]],
+                    [[0, size/2 + PATH_OFFSET], [size/2 + PATH_OFFSET, size/2 + PATH_OFFSET], [size/2 + PATH_OFFSET, 0]]
+                ]);
                 break;
 
             case 'path_corner_br':
-                // Curva inferior direita (conecta direita -> cima ou baixo -> esquerda)
-                ctx.fillStyle = '#8b7355';
-                ctx.fillRect(0, 0, size, size);
-                
-                // Desenhar caminho em L invertido
-                ctx.fillStyle = '#7a654a';
-                ctx.fillRect(size/2 - 8, size/2 - 8, size/2 + 8, 16);  // Horizontal
-                ctx.fillRect(size/2 - 8, 0, 16, size/2 + 8);  // Vertical
-                
-                // Bordas da curva
-                ctx.strokeStyle = '#6b5635';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(size, size/2 - 8);
-                ctx.lineTo(size/2 + 8, size/2 - 8);
-                ctx.lineTo(size/2 + 8, 0);
-                ctx.stroke();
-                
-                ctx.beginPath();
-                ctx.moveTo(size, size/2 + 8);
-                ctx.lineTo(size/2 - 8, size/2 + 8);
-                ctx.lineTo(size/2 - 8, 0);
-                ctx.stroke();
-                
-                // Pedras pequenas
-                ctx.fillStyle = '#6b5635';
-                for (let i = 0; i < 3; i++) {
-                    const x = Math.random() * (size - 8) + 4;
-                    const y = Math.random() * (size - 8) + 4;
-                    ctx.fillRect(x, y, 2, 2);
-                }
+                this._createCornerPath(ctx, size,
+                    [size/2 - PATH_OFFSET, size/2 - PATH_OFFSET, size/2 + PATH_OFFSET, PATH_WIDTH],
+                    [size/2 - PATH_OFFSET, 0, PATH_WIDTH, size/2 + PATH_OFFSET]
+                );
+                this._createCornerBorders(ctx, size, [
+                    [[size, size/2 - PATH_OFFSET], [size/2 + PATH_OFFSET, size/2 - PATH_OFFSET], [size/2 + PATH_OFFSET, 0]],
+                    [[size, size/2 + PATH_OFFSET], [size/2 - PATH_OFFSET, size/2 + PATH_OFFSET], [size/2 - PATH_OFFSET, 0]]
+                ]);
                 break;
 
             case 'path_start':
-                // Início do caminho
-                ctx.fillStyle = '#8b7355';
-                ctx.fillRect(0, 0, size, size);
-                
-                // Marcador de início
-                ctx.fillStyle = '#4CAF50';
-                ctx.fillRect(size/4, size/4, size/2, size/2);
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '12px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('I', size/2, size/2 + 4);
+                this._createMarkerTile(ctx, size, ImageManager.COLORS.MARKERS.START, 'I');
                 break;
 
             case 'path_end':
-                // Fim do caminho
-                ctx.fillStyle = '#8b7355';
-                ctx.fillRect(0, 0, size, size);
-                
-                // Marcador de fim
-                ctx.fillStyle = '#f44336';
-                ctx.fillRect(size/4, size/4, size/2, size/2);
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '12px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('F', size/2, size/2 + 4);
+                this._createMarkerTile(ctx, size, ImageManager.COLORS.MARKERS.END, 'F');
                 break;
 
             case 'stone':
-                // Textura de pedra
-                ctx.fillStyle = '#6c757d';
-                ctx.fillRect(0, 0, size, size);
-                
-                // Adicionar variações de cor
-                ctx.fillStyle = '#5a6169';
-                for (let i = 0; i < 6; i++) {
-                    const x = Math.random() * size;
-                    const y = Math.random() * size;
-                    ctx.fillRect(x, y, 3, 3);
-                }
+                this._createBaseTile(ctx, size, ImageManager.COLORS.STONE.PRIMARY);
+                this._addRandomDetails(ctx, size, ImageManager.COLORS.STONE.DETAIL, ImageManager.TILE_CONFIG.DETAIL_COUNT.STONE, 3);
                 break;
 
             default:
-                // Tile padrão (grama)
-                ctx.fillStyle = '#4a7c59';
-                ctx.fillRect(0, 0, size, size);
+                this._createBaseTile(ctx, size, ImageManager.COLORS.GRASS.PRIMARY);
         }
 
         return canvas;
     }
 
     // Inicializar imagens padrão
-    async initializeDefault(gridSize = 40) {
+    async initializeDefault(gridSize = ImageManager.TILE_CONFIG.DEFAULT_SIZE) {
         try {
             // Primeiro tentar carregar imagens reais
             const imageMap = {
@@ -347,7 +290,6 @@ export class ImageManager {
             const loadSuccess = await this.loadImages(imageMap);
             
             if (loadSuccess) {
-        
                 return true;
             } else {
                 console.warn('⚠️ Falha ao carregar imagens reais, usando texturas procedurais como fallback');
@@ -360,35 +302,24 @@ export class ImageManager {
     }
 
     // Inicializar imagens procedurais (fallback)
-    async initializeProcedural(gridSize = 40) {
+    async initializeProcedural(gridSize = ImageManager.TILE_CONFIG.DEFAULT_SIZE) {
         try {
-            // Criar tiles padrão
-            this.defaultImages.grassTile = this.createDefaultTile('grass', gridSize);
-            this.defaultImages.stoneTile = this.createDefaultTile('stone', gridSize);
-            
-            // Criar todos os tipos de caminho
-            this.defaultImages.pathHorizontal = this.createDefaultTile('path_horizontal', gridSize);
-            this.defaultImages.pathVertical = this.createDefaultTile('path_vertical', gridSize);
-            this.defaultImages.pathCornerTL = this.createDefaultTile('path_corner_tl', gridSize);
-            this.defaultImages.pathCornerTR = this.createDefaultTile('path_corner_tr', gridSize);
-            this.defaultImages.pathCornerBL = this.createDefaultTile('path_corner_bl', gridSize);
-            this.defaultImages.pathCornerBR = this.createDefaultTile('path_corner_br', gridSize);
-            this.defaultImages.pathStart = this.createDefaultTile('path_start', gridSize);
-            this.defaultImages.pathEnd = this.createDefaultTile('path_end', gridSize);
-            
-            // Registrar como imagens carregadas
-            this.images.set('grass', this.defaultImages.grassTile);
-            this.images.set('stone', this.defaultImages.stoneTile);
-            this.images.set('path_horizontal', this.defaultImages.pathHorizontal);
-            this.images.set('path_vertical', this.defaultImages.pathVertical);
-            this.images.set('path_corner_tl', this.defaultImages.pathCornerTL);
-            this.images.set('path_corner_tr', this.defaultImages.pathCornerTR);
-            this.images.set('path_corner_bl', this.defaultImages.pathCornerBL);
-            this.images.set('path_corner_br', this.defaultImages.pathCornerBR);
-            this.images.set('path_start', this.defaultImages.pathStart);
-            this.images.set('path_end', this.defaultImages.pathEnd);
-            
-    
+            const tileTypes = [
+                'grass', 'stone', 'path_horizontal', 'path_vertical',
+                'path_corner_tl', 'path_corner_tr', 'path_corner_bl', 'path_corner_br',
+                'path_start', 'path_end'
+            ];
+
+            // Criar e registrar todos os tiles
+            tileTypes.forEach(type => {
+                const tile = this.createDefaultTile(type, gridSize);
+                this.images.set(type, tile);
+                
+                // Manter referência para tiles básicos
+                if (type === 'grass') this.defaultImages.grassTile = tile;
+                if (type === 'stone') this.defaultImages.stoneTile = tile;
+            });
+
             return true;
         } catch (error) {
             console.error('Erro ao inicializar imagens procedurais:', error);
@@ -461,7 +392,6 @@ export class ImageManager {
         const dirY2 = dy2 > 0 ? 1 : (dy2 < 0 ? -1 : 0);
         
         // Determinar o tipo de curva baseado na combinação das direções
-        // Formato: [dirX1, dirY1, dirX2, dirY2]
         const directionKey = `${dirX1},${dirY1},${dirX2},${dirY2}`;
         
         const curveMap = {
