@@ -3,6 +3,26 @@ import { imageManager } from './ImageManager.js';
 import { MonsterSpriteManager } from './MonsterSpriteManager.js';
 
 export class RenderSystem {
+    // Constantes para configurações visuais
+    static COLORS = {
+        BACKGROUND_FALLBACK: '#4a7c59',
+        PATH_FALLBACK: '#6c757d',
+        PATH_GUIDE: 'rgba(139, 115, 85, 0.3)',
+        GRID: 'rgba(255, 255, 255, 0.1)',
+        TOWER_PREVIEW: {
+            archer: { color: '#4e73df', icon: '🏹' },
+            cannon: { color: '#e74a3b', icon: '🚀' },
+            magic: { color: '#36b9cc', icon: '🔮' },
+            tesla: { color: '#7d5fff', icon: '⚡' }
+        }
+    };
+
+    static EFFECTS = {
+        EXPLOSION: { color: 'rgba(255, 100, 0,', borderColor: 'rgba(255, 100, 0,', fillAlpha: 0.3 },
+        SLOW: { color: 'rgba(54, 185, 204,', borderColor: 'rgba(54, 185, 204,', fillAlpha: 0.6 },
+        ELECTRIC: { color: 'rgba(0, 207, 255,', borderColor: 'rgba(0, 207, 255,', fillAlpha: 0.8 }
+    };
+
     constructor(ctx, GAME_CONFIG, enemyPath) {
         this.ctx = ctx;
         this.GAME_CONFIG = GAME_CONFIG;
@@ -101,7 +121,7 @@ export class RenderSystem {
     drawBackground() {
         if (!this.imagesInitialized) {
             // Fallback para fundo simples se imagens não carregaram
-            this.ctx.fillStyle = '#4a7c59';
+            this.ctx.fillStyle = RenderSystem.COLORS.BACKGROUND_FALLBACK;
             this.ctx.fillRect(0, 0, this.GAME_CONFIG.canvasWidth, this.GAME_CONFIG.canvasHeight);
             return;
         }
@@ -119,7 +139,7 @@ export class RenderSystem {
     // Desenhar grid do jogo (opcional, mais sutil)
     drawGrid() {
         // Grid mais sutil quando usamos texturas
-        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        this.ctx.strokeStyle = RenderSystem.COLORS.GRID;
         this.ctx.lineWidth = 1;
 
         for (let x = 0; x <= this.GAME_CONFIG.canvasWidth; x += this.GAME_CONFIG.gridSize) {
@@ -139,46 +159,42 @@ export class RenderSystem {
 
     // Desenhar caminho dos inimigos (linha guia sutil)
     drawPath() {
-        if (!this.imagesInitialized) {
-            // Fallback para caminho simples se imagens não carregaram
-            this.ctx.strokeStyle = '#6c757d';
-            this.ctx.lineWidth = 3;
-            this.ctx.beginPath();
-            
-            for (let i = 0; i < this.enemyPath.length; i++) {
-                const x = this.enemyPath[i].x * this.GAME_CONFIG.gridSize + this.GAME_CONFIG.gridSize / 2;
-                const y = this.enemyPath[i].y * this.GAME_CONFIG.gridSize + this.GAME_CONFIG.gridSize / 2;
-                
-                if (i === 0) {
-                    this.ctx.moveTo(x, y);
-                } else {
-                    this.ctx.lineTo(x, y);
-                }
-            }
-            
-            this.ctx.stroke();
-            return;
-        }
+        const pathPoints = this.enemyPath.map(point => ({
+            x: point.x * this.GAME_CONFIG.gridSize + this.GAME_CONFIG.gridSize / 2,
+            y: point.y * this.GAME_CONFIG.gridSize + this.GAME_CONFIG.gridSize / 2
+        }));
 
-        // Desenhar uma linha guia sutil sobre o caminho texturizado
-        this.ctx.strokeStyle = 'rgba(139, 115, 85, 0.3)'; // Cor mais sutil
-        this.ctx.lineWidth = 2;
-        this.ctx.setLineDash([5, 5]); // Linha tracejada
-        this.ctx.beginPath();
-        
-        for (let i = 0; i < this.enemyPath.length; i++) {
-            const x = this.enemyPath[i].x * this.GAME_CONFIG.gridSize + this.GAME_CONFIG.gridSize / 2;
-            const y = this.enemyPath[i].y * this.GAME_CONFIG.gridSize + this.GAME_CONFIG.gridSize / 2;
-            
-            if (i === 0) {
-                this.ctx.moveTo(x, y);
-            } else {
-                this.ctx.lineTo(x, y);
-            }
+        if (!this.imagesInitialized) {
+            this._drawSimplePath(pathPoints);
+        } else {
+            this._drawTexturedPath(pathPoints);
         }
-        
+    }
+
+    _drawSimplePath(pathPoints) {
+        this.ctx.strokeStyle = RenderSystem.COLORS.PATH_FALLBACK;
+        this.ctx.lineWidth = 3;
+        this._drawPathLine(pathPoints);
+    }
+
+    _drawTexturedPath(pathPoints) {
+        this.ctx.strokeStyle = RenderSystem.COLORS.PATH_GUIDE;
+        this.ctx.lineWidth = 2;
+        this.ctx.setLineDash([5, 5]);
+        this._drawPathLine(pathPoints);
+        this.ctx.setLineDash([]);
+    }
+
+    _drawPathLine(pathPoints) {
+        this.ctx.beginPath();
+        pathPoints.forEach((point, index) => {
+            if (index === 0) {
+                this.ctx.moveTo(point.x, point.y);
+            } else {
+                this.ctx.lineTo(point.x, point.y);
+            }
+        });
         this.ctx.stroke();
-        this.ctx.setLineDash([]); // Resetar linha tracejada
     }
 
     // Obter posição do grid baseada na posição do mouse
@@ -195,38 +211,31 @@ export class RenderSystem {
 
     // Verificar se pode colocar torre em uma posição
     canPlaceTower(x, y, gameState) {
+        const gridX = Math.floor(x / this.GAME_CONFIG.gridSize);
+        const gridY = Math.floor(y / this.GAME_CONFIG.gridSize);
+
         // Verificar se está no caminho
-        for (let point of this.enemyPath) {
-            if (point.x === Math.floor(x / this.GAME_CONFIG.gridSize) && 
-                point.y === Math.floor(y / this.GAME_CONFIG.gridSize)) {
-                return false;
-            }
+        if (this.enemyPath.some(point => point.x === gridX && point.y === gridY)) {
+            return false;
         }
 
         // Verificar se já existe uma torre
-        for (let tower of gameState.towers) {
-            if (tower.x === x && tower.y === y) {
-                return false;
-            }
-        }
-
-        return true;
+        return !gameState.towers.some(tower => tower.x === x && tower.y === y);
     }
 
     // Obter torre em uma posição específica
     getTowerAtPosition(x, y, gameState) {
-        const padding = 2; // Facilita o hover na borda
-        for (let tower of gameState.towers) {
-            const towerLeft = tower.x - this.GAME_CONFIG.gridSize / 2 - padding;
-            const towerRight = tower.x + this.GAME_CONFIG.gridSize / 2 + padding;
-            const towerTop = tower.y - this.GAME_CONFIG.gridSize / 2 - padding;
-            const towerBottom = tower.y + this.GAME_CONFIG.gridSize / 2 + padding;
+        const padding = 2;
+        const halfGrid = this.GAME_CONFIG.gridSize / 2;
+        
+        return gameState.towers.find(tower => {
+            const towerLeft = tower.x - halfGrid - padding;
+            const towerRight = tower.x + halfGrid + padding;
+            const towerTop = tower.y - halfGrid - padding;
+            const towerBottom = tower.y + halfGrid + padding;
 
-            if (x >= towerLeft && x <= towerRight && y >= towerTop && y <= towerBottom) {
-                return tower;
-            }
-        }
-        return null;
+            return x >= towerLeft && x <= towerRight && y >= towerTop && y <= towerBottom;
+        }) || null;
     }
 
     // Desenhar preview da Chuva de Flechas
@@ -247,48 +256,43 @@ export class RenderSystem {
         const image = this.imageManager.getImage(towerType);
         
         if (image) {
-            this.ctx.globalAlpha = 0.7;
-            this.ctx.drawImage(
-                image,
-                mouseX - this.GAME_CONFIG.gridSize / 2,
-                mouseY - this.GAME_CONFIG.gridSize / 2,
-                this.GAME_CONFIG.gridSize,
-                this.GAME_CONFIG.gridSize
-            );
-            this.ctx.globalAlpha = 1.0;
+            this._drawTowerImage(mouseX, mouseY, image);
         } else {
-            // Fallback: quadrado colorido
-            // Usar configurações padrão das torres
-            const towerConfigs = {
-                archer: { color: '#4e73df', icon: '🏹' },
-                cannon: { color: '#e74a3b', icon: '🚀' },
-                magic: { color: '#36b9cc', icon: '🔮' },
-                tesla: { color: '#7d5fff', icon: '⚡' }
-            };
-            
-            const config = towerConfigs[towerType] || { color: '#888', icon: '❓' };
-            
-            this.ctx.fillStyle = config.color;
-            this.ctx.globalAlpha = 0.5;
-            this.ctx.fillRect(
-                mouseX - this.GAME_CONFIG.gridSize / 2,
-                mouseY - this.GAME_CONFIG.gridSize / 2,
-                this.GAME_CONFIG.gridSize,
-                this.GAME_CONFIG.gridSize
-            );
-            
-            // Adicionar ícone no centro
-            this.ctx.font = '16px Arial';
-            this.ctx.fillStyle = 'white';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText(
-                config.icon,
-                mouseX,
-                mouseY + 4
-            );
-            
-            this.ctx.globalAlpha = 1.0;
+            this._drawTowerFallback(mouseX, mouseY, towerType);
         }
+    }
+
+    _drawTowerImage(mouseX, mouseY, image) {
+        this.ctx.globalAlpha = 0.7;
+        this.ctx.drawImage(
+            image,
+            mouseX - this.GAME_CONFIG.gridSize / 2,
+            mouseY - this.GAME_CONFIG.gridSize / 2,
+            this.GAME_CONFIG.gridSize,
+            this.GAME_CONFIG.gridSize
+        );
+        this.ctx.globalAlpha = 1.0;
+    }
+
+    _drawTowerFallback(mouseX, mouseY, towerType) {
+        const config = RenderSystem.COLORS.TOWER_PREVIEW[towerType] || { color: '#888', icon: '❓' };
+        
+        this.ctx.fillStyle = config.color;
+        this.ctx.globalAlpha = 0.5;
+        this.ctx.fillRect(
+            mouseX - this.GAME_CONFIG.gridSize / 2,
+            mouseY - this.GAME_CONFIG.gridSize / 2,
+            this.GAME_CONFIG.gridSize,
+            this.GAME_CONFIG.gridSize
+        );
+        
+        // Adicionar ícone no centro
+        this.ctx.font = '16px Arial';
+        this.ctx.fillStyle = 'white';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText(config.icon, mouseX, mouseY + 4);
+        
+        this.ctx.globalAlpha = 1.0;
     }
     
     // Desenhar monstros com sprites animados
@@ -298,20 +302,18 @@ export class RenderSystem {
         for (const enemy of gameState.enemies) {
             if (!enemy || enemy.isRemoved) continue;
             
-            // Calcular direção baseada no próximo segmento do caminho
-            if (enemy.pathIndex >= 0 && enemy.pathIndex < this.enemyPath.length - 1) {
-                const from = this.enemyPath[enemy.pathIndex];
-                const to = this.enemyPath[enemy.pathIndex + 1];
-                const dx = to.x - from.x;
-                const dy = to.y - from.y;
-                const dir = this.monsterSpriteManager.getDirectionFromMovement(dx, dy);
-                // LOG DETALHADO
-                // console.log('[VIRADA] id:', enemy.id || '-', 'pathIndex:', enemy.pathIndex, 'pos:', {x: enemy.x, y: enemy.y}, 'from:', from, 'to:', to, 'dx:', dx, 'dy:', dy, 'novaDirecao:', dir);
-                enemy.direction = dir;
-            }
-            
-            // Desenhar monstro com sprite
+            this._updateEnemyDirection(enemy);
             this.monsterSpriteManager.drawMonster(this.ctx, enemy, gameState.gameTime);
+        }
+    }
+
+    _updateEnemyDirection(enemy) {
+        if (enemy.pathIndex >= 0 && enemy.pathIndex < this.enemyPath.length - 1) {
+            const from = this.enemyPath[enemy.pathIndex];
+            const to = this.enemyPath[enemy.pathIndex + 1];
+            const dx = to.x - from.x;
+            const dy = to.y - from.y;
+            enemy.direction = this.monsterSpriteManager.getDirectionFromMovement(dx, dy);
         }
     }
 
@@ -319,113 +321,124 @@ export class RenderSystem {
     drawVisualEffects(gameState) {
         if (!gameState.visualEffects) return;
         
-        const currentTime = Date.now();
-        
         // Desenhar preview da torre selecionada
         if (gameState.selectedTower && gameState.selectedTowerType && gameState.mouseX !== undefined && gameState.mouseY !== undefined) {
-            // Sempre tentar desenhar o preview, mesmo se as imagens não estiverem totalmente inicializadas
             this.drawTowerPreview(gameState.mouseX, gameState.mouseY, gameState.selectedTowerType);
         }
         
-        for (let i = gameState.visualEffects.length - 1; i >= 0; i--) {
-            const effect = gameState.visualEffects[i];
+        this._processVisualEffects(gameState.visualEffects);
+    }
+
+    _processVisualEffects(visualEffects) {
+        const currentTime = Date.now();
+        
+        for (let i = visualEffects.length - 1; i >= 0; i--) {
+            const effect = visualEffects[i];
             const elapsed = currentTime - effect.startTime;
             const progress = elapsed / effect.duration;
             
             if (progress >= 1) {
-                // Remover efeito expirado
-                gameState.visualEffects.splice(i, 1);
+                visualEffects.splice(i, 1);
                 continue;
             }
             
-            // Efeito de explosão do canhão
-            if (effect.radius) {
-                this.ctx.save();
-                
-                // Calcular alpha baseado no progresso
-                const alpha = effect.alpha * (1 - progress);
-                
-                // Área de explosão com fade out
-                this.ctx.fillStyle = `rgba(255, 100, 0, ${alpha * 0.3})`;
-                this.ctx.beginPath();
-                this.ctx.arc(effect.x, effect.y, effect.radius, 0, Math.PI * 2);
-                this.ctx.fill();
-                
-                // Borda da explosão
-                this.ctx.strokeStyle = `rgba(255, 100, 0, ${alpha})`;
-                this.ctx.lineWidth = 3 * (1 - progress * 0.5);
-                this.ctx.beginPath();
-                this.ctx.arc(effect.x, effect.y, effect.radius, 0, Math.PI * 2);
-                this.ctx.stroke();
-                
-                this.ctx.restore();
-            }
+            this._drawEffect(effect, progress);
+        }
+    }
+
+    _drawEffect(effect, progress) {
+        this.ctx.save();
+        
+        if (effect.radius) {
+            this._drawExplosionEffect(effect, progress);
+        } else if (effect.duration && !effect.radius) {
+            this._drawSlowEffect(effect, progress);
+        } else if (effect.type === 'electric') {
+            this._drawElectricEffect(effect, progress);
+        }
+        
+        this.ctx.restore();
+    }
+
+    _drawExplosionEffect(effect, progress) {
+        const alpha = effect.alpha * (1 - progress);
+        const effects = RenderSystem.EFFECTS.EXPLOSION;
+        
+        // Área de explosão
+        this.ctx.fillStyle = `${effects.color}${alpha * effects.fillAlpha})`;
+        this.ctx.beginPath();
+        this.ctx.arc(effect.x, effect.y, effect.radius, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // Borda da explosão
+        this.ctx.strokeStyle = `${effects.borderColor}${alpha})`;
+        this.ctx.lineWidth = 3 * (1 - progress * 0.5);
+        this.ctx.beginPath();
+        this.ctx.arc(effect.x, effect.y, effect.radius, 0, Math.PI * 2);
+        this.ctx.stroke();
+    }
+
+    _drawSlowEffect(effect, progress) {
+        const alpha = effect.alpha * (1 - progress);
+        const effects = RenderSystem.EFFECTS.SLOW;
+        
+        // Círculo de slow
+        this.ctx.strokeStyle = `${effects.color}${alpha})`;
+        this.ctx.lineWidth = 2 * (1 - progress * 0.5);
+        this.ctx.setLineDash([5, 5]);
+        this.ctx.beginPath();
+        this.ctx.arc(effect.x, effect.y, 20 + progress * 10, 0, Math.PI * 2);
+        this.ctx.stroke();
+        this.ctx.setLineDash([]);
+        
+        // Partículas de gelo
+        this._drawParticles(effect, progress, alpha, effects, 8, 15, 5);
+    }
+
+    _drawElectricEffect(effect, progress) {
+        const alpha = effect.alpha * (1 - progress);
+        const effects = RenderSystem.EFFECTS.ELECTRIC;
+        
+        // Círculo de choque elétrico
+        this.ctx.strokeStyle = `${effects.color}${alpha})`;
+        this.ctx.lineWidth = 3 * (1 - progress * 0.5);
+        this.ctx.setLineDash([3, 3]);
+        this.ctx.beginPath();
+        this.ctx.arc(effect.x, effect.y, 15 + progress * 10, 0, Math.PI * 2);
+        this.ctx.stroke();
+        this.ctx.setLineDash([]);
+        
+        // Raios elétricos
+        this._drawElectricRays(effect, progress, alpha, effects);
+    }
+
+    _drawParticles(effect, progress, alpha, effects, count, baseRadius, radiusIncrement) {
+        for (let i = 0; i < count; i++) {
+            const angle = (i / count) * Math.PI * 2;
+            const radius = baseRadius + progress * radiusIncrement;
+            const particleX = effect.x + Math.cos(angle) * radius;
+            const particleY = effect.y + Math.sin(angle) * radius;
             
-            // Efeito de slow da torre mágica
-            if (effect.duration && !effect.radius) {
-                this.ctx.save();
-                
-                // Calcular alpha baseado no progresso
-                const alpha = effect.alpha * (1 - progress);
-                
-                // Círculo de slow com fade out
-                this.ctx.strokeStyle = `rgba(54, 185, 204, ${alpha})`;
-                this.ctx.lineWidth = 2 * (1 - progress * 0.5);
-                this.ctx.setLineDash([5, 5]);
-                this.ctx.beginPath();
-                this.ctx.arc(effect.x, effect.y, 20 + progress * 10, 0, Math.PI * 2);
-                this.ctx.stroke();
-                this.ctx.setLineDash([]);
-                
-                // Partículas de gelo
-                for (let i = 0; i < 8; i++) {
-                    const angle = (i / 8) * Math.PI * 2;
-                    const radius = 15 + progress * 5;
-                    const particleX = effect.x + Math.cos(angle) * radius;
-                    const particleY = effect.y + Math.sin(angle) * radius;
-                    
-                    this.ctx.fillStyle = `rgba(54, 185, 204, ${alpha * 0.6})`;
-                    this.ctx.beginPath();
-                    this.ctx.arc(particleX, particleY, 2 * (1 - progress), 0, Math.PI * 2);
-                    this.ctx.fill();
-                }
-                
-                this.ctx.restore();
-            }
+            this.ctx.fillStyle = `${effects.color}${alpha * effects.fillAlpha})`;
+            this.ctx.beginPath();
+            this.ctx.arc(particleX, particleY, 2 * (1 - progress), 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+    }
+
+    _drawElectricRays(effect, progress, alpha, effects) {
+        for (let i = 0; i < 6; i++) {
+            const angle = (i / 6) * Math.PI * 2;
+            const radius = 20 + progress * 15;
+            const rayX = effect.x + Math.cos(angle) * radius;
+            const rayY = effect.y + Math.sin(angle) * radius;
             
-            // Efeito de choque elétrico da Tesla
-            if (effect.type === 'electric') {
-                this.ctx.save();
-                
-                // Calcular alpha baseado no progresso
-                const alpha = effect.alpha * (1 - progress);
-                
-                // Círculo de choque elétrico
-                this.ctx.strokeStyle = `rgba(0, 207, 255, ${alpha})`;
-                this.ctx.lineWidth = 3 * (1 - progress * 0.5);
-                this.ctx.setLineDash([3, 3]);
-                this.ctx.beginPath();
-                this.ctx.arc(effect.x, effect.y, 15 + progress * 10, 0, Math.PI * 2);
-                this.ctx.stroke();
-                this.ctx.setLineDash([]);
-                
-                // Raios elétricos
-                for (let i = 0; i < 6; i++) {
-                    const angle = (i / 6) * Math.PI * 2;
-                    const radius = 20 + progress * 15;
-                    const rayX = effect.x + Math.cos(angle) * radius;
-                    const rayY = effect.y + Math.sin(angle) * radius;
-                    
-                    this.ctx.strokeStyle = `rgba(0, 207, 255, ${alpha * 0.8})`;
-                    this.ctx.lineWidth = 2 * (1 - progress);
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(effect.x, effect.y);
-                    this.ctx.lineTo(rayX, rayY);
-                    this.ctx.stroke();
-                }
-                
-                this.ctx.restore();
-            }
+            this.ctx.strokeStyle = `${effects.color}${alpha * effects.fillAlpha})`;
+            this.ctx.lineWidth = 2 * (1 - progress);
+            this.ctx.beginPath();
+            this.ctx.moveTo(effect.x, effect.y);
+            this.ctx.lineTo(rayX, rayY);
+            this.ctx.stroke();
         }
     }
 } 
