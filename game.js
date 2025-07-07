@@ -29,9 +29,63 @@ import { GameSystem } from './js/systems/GameSystem.js';
 // Importar a função da árvore de habilidades
 import { initSkillTreePanel } from './js/systems/SkillTreeSystem.js';
 
-// --- Árvore de Habilidades ---
+// ============================================================================
+// CONFIGURAÇÕES E CONSTANTES
+// ============================================================================
+
+// --- Chaves de Armazenamento ---
 const SKILL_TREE_KEY = 'arqueiroSkillTree';
 const SKILL_POINTS_KEY = 'arqueiroUpgradePoints';
+const TUTORIAL_COMPLETED_KEY = 'tutorialCompleted';
+const ENEMY_PATH_KEY = 'enemyPath';
+const ARQUEIRO_CONFIG_KEY = 'arqueiroConfig';
+const MAIOR_ONDA_KEY = 'maiorOndaAtingida';
+
+// --- Configurações de UI ---
+const UI_CONSTANTS = {
+    SKILL_TREE_ROW_HEIGHT: '110px',
+    SKILL_TREE_GAP: '32px',
+    TOOLTIP_PADDING: 12,
+    SAFETY_MARGIN_MOBILE: 40,
+    SAFETY_MARGIN_TABLET: 30,
+    SAFETY_MARGIN_DESKTOP: 20,
+    CANVAS_SCALE_MOBILE: 0.8,
+    CANVAS_SCALE_TABLET: 0.9,
+    CANVAS_SCALE_DESKTOP: 1.0
+};
+
+// --- Configurações de Jogo ---
+const GAME_CONSTANTS = {
+    DEFAULT_SELL_PERCENTAGE: 50,
+    DEFAULT_WAVE_DELAY: 5,
+    DEFAULT_SPAWN_INTERVAL: 1.0,
+    DEFAULT_ENEMIES_PER_WAVE: 5,
+    DEFAULT_ENEMY_REWARD: 10,
+    DEFAULT_ENEMIES_INCREASE: 2,
+    BASE_ARROW_RAIN_DAMAGE: 40,
+    ARROW_RAIN_RADIUS: 90,
+    ICE_STORM_BASE_DURATION: 3,
+    ICE_STORM_SLOW_SPEED: 0.01
+};
+
+// --- Configurações de Responsividade ---
+const RESPONSIVE_BREAKPOINTS = {
+    MOBILE: 480,
+    TABLET: 768
+};
+
+// --- Configurações de Árvore de Habilidades ---
+const SKILL_BONUSES = {
+    VIDA_BONUS: 1,
+    DEFESA_BONUS: 0.10,
+    DANO_GLOBAL_BONUS: 0.05,
+    DANO_ESPECIFICO_BONUS: 0.10,
+    VELOCIDADE_BONUS: 0.10,
+    AREA_CANHAO_BONUS: 0.15,
+    CONGELAMENTO_BONUS: 1.0,
+    CHUVA_FLECHAS_BONUS: 0.25,
+    OURO_EXTRA_BONUS: 0.10
+};
 
 const SKILL_TREE = [
     // Camada 1 (base)
@@ -87,92 +141,134 @@ function canUnlockSkill(node) {
     return skillTree[node.parent] > 0;
 }
 
-function renderSkillTreePanel(branch, containerId) {
-    const tree = SKILL_TREE.filter(node => node.branch === branch || node.id === branch);
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    container.innerHTML = '';
-
-    // Agrupar por camadas (row)
+// Função para agrupar nós da árvore por camadas
+function groupNodesByLayers(tree) {
     const layers = {};
     tree.forEach(node => {
         if (!layers[node.row]) layers[node.row] = [];
         layers[node.row].push(node);
     });
-    const maxRow = Math.max(...tree.map(n => n.row));
+    return layers;
+}
 
+// Função para criar um nó individual da árvore de habilidades
+function createSkillNode(node, nodeDivs) {
+    const nodeDiv = document.createElement('div');
+    nodeDiv.className = 'skill-node';
+    
+    const level = skillTree[node.id] || 0;
+    const unlocked = level > 0;
+    const available = !unlocked && canUnlockSkill(node);
+    
+    // Adicionar cadeado se bloqueado
+    let iconHtml = SKILL_ICONS[node.id] || '❔';
+    if (!unlocked && !available) {
+        iconHtml += ' <span class="skill-lock">🔒</span>';
+        nodeDiv.classList.add('locked');
+    }
+    
+    nodeDiv.innerHTML = `<div class="skill-icon">${iconHtml}</div>`;
+    nodeDiv.style.position = 'relative';
+    nodeDiv.style.zIndex = 2;
+    nodeDivs[node.id] = nodeDiv;
+    
+    // Criar tooltip
+    const tooltip = document.createElement('div');
+    tooltip.className = 'skill-tooltip';
+    tooltip.innerHTML = `<b>${node.name}</b><br>${node.desc}<br><span style='color:#b26a00;font-size:0.95em;'>${unlocked ? 'Desbloqueada' : available ? 'Disponível' : 'Bloqueada'}</span><br>Custo: ${node.cost}<br>Nível: ${level}/${node.max}`;
+    nodeDiv.appendChild(tooltip);
+    
+    // Event listeners do tooltip
+    nodeDiv.onmouseenter = () => { tooltip.style.display = 'block'; };
+    nodeDiv.onmouseleave = () => { tooltip.style.display = 'none'; };
+    
+    return nodeDiv;
+}
+
+// Função para criar uma linha da árvore de habilidades
+function createSkillTreeRow(layer, nodeDivs) {
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'skill-tree-row';
+    rowDiv.style.display = 'flex';
+    rowDiv.style.justifyContent = 'center';
+    rowDiv.style.gap = UI_CONSTANTS.SKILL_TREE_GAP;
+    rowDiv.style.position = 'relative';
+    rowDiv.style.height = UI_CONSTANTS.SKILL_TREE_ROW_HEIGHT;
+    
+    layer.forEach(node => {
+        const nodeDiv = createSkillNode(node, nodeDivs);
+        rowDiv.appendChild(nodeDiv);
+    });
+    
+    return rowDiv;
+}
+
+// Função para desenhar conexões SVG entre os nós
+function drawSkillTreeConnections(tree, nodeDivs, container) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.classList.add('skill-conn');
+    svg.setAttribute('width', container.offsetWidth);
+    svg.setAttribute('height', container.offsetHeight);
+    svg.style.position = 'absolute';
+    svg.style.left = '0';
+    svg.style.top = '0';
+    svg.style.pointerEvents = 'none';
+    svg.style.zIndex = 1;
+    
+    // Desenhar linhas de conexão
+    tree.forEach(node => {
+        if (!node.parent) return;
+        
+        const from = nodeDivs[node.parent];
+        const to = nodeDivs[node.id];
+        if (!from || !to) return;
+        
+        const fromRect = from.getBoundingClientRect();
+        const toRect = to.getBoundingClientRect();
+        const contRect = container.getBoundingClientRect();
+        
+        const x1 = fromRect.left + fromRect.width/2 - contRect.left;
+        const y1 = fromRect.top + fromRect.height - contRect.top;
+        const x2 = toRect.left + toRect.width/2 - contRect.left;
+        const y2 = toRect.top - contRect.top;
+        
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', x1);
+        line.setAttribute('y1', y1);
+        line.setAttribute('x2', x2);
+        line.setAttribute('y2', y2);
+        svg.appendChild(line);
+    });
+    
+    // Remover SVG antigo se existir
+    const oldSvg = container.querySelector('.skill-conn');
+    if (oldSvg) oldSvg.remove();
+    
+    return svg;
+}
+
+function renderSkillTreePanel(branch, containerId) {
+    const tree = SKILL_TREE.filter(node => node.branch === branch || node.id === branch);
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    // Agrupar nós por camadas
+    const layers = groupNodesByLayers(tree);
+    const maxRow = Math.max(...tree.map(n => n.row));
+    
     // Renderizar nós centralizados por camada
     const nodeDivs = {};
     for (let row = 1; row <= maxRow; row++) {
         const layer = layers[row] || [];
-        const rowDiv = document.createElement('div');
-        rowDiv.className = 'skill-tree-row';
-        rowDiv.style.display = 'flex';
-        rowDiv.style.justifyContent = 'center';
-        rowDiv.style.gap = '32px';
-        rowDiv.style.position = 'relative';
-        rowDiv.style.height = '110px';
-        layer.forEach(node => {
-            const nodeDiv = document.createElement('div');
-            nodeDiv.className = 'skill-node';
-            const level = skillTree[node.id] || 0;
-            const unlocked = level > 0;
-            const available = !unlocked && canUnlockSkill(node);
-            // Adicionar cadeado se bloqueado
-            let iconHtml = SKILL_ICONS[node.id] || '❔';
-            if (!unlocked && !available) {
-                iconHtml += ' <span class="skill-lock">🔒</span>';
-                nodeDiv.classList.add('locked');
-            }
-            nodeDiv.innerHTML = `<div class="skill-icon">${iconHtml}</div>`;
-            nodeDiv.style.position = 'relative';
-            nodeDiv.style.zIndex = 2;
-            nodeDivs[node.id] = nodeDiv;
-            // Tooltip
-            const tooltip = document.createElement('div');
-            tooltip.className = 'skill-tooltip';
-            tooltip.innerHTML = `<b>${node.name}</b><br>${node.desc}<br><span style='color:#b26a00;font-size:0.95em;'>${unlocked ? 'Desbloqueada' : available ? 'Disponível' : 'Bloqueada'}</span><br>Custo: ${node.cost}<br>Nível: ${level}/${node.max}`;
-            nodeDiv.appendChild(tooltip);
-            nodeDiv.onmouseenter = () => { tooltip.style.display = 'block'; };
-            nodeDiv.onmouseleave = () => { tooltip.style.display = 'none'; };
-            rowDiv.appendChild(nodeDiv);
-        });
+        const rowDiv = createSkillTreeRow(layer, nodeDivs);
         container.appendChild(rowDiv);
     }
+    
     // Desenhar conexões SVG entre os nós (após renderizar)
     setTimeout(() => {
-        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svg.classList.add('skill-conn');
-        svg.setAttribute('width', container.offsetWidth);
-        svg.setAttribute('height', container.offsetHeight);
-        svg.style.position = 'absolute';
-        svg.style.left = '0';
-        svg.style.top = '0';
-        svg.style.pointerEvents = 'none';
-        svg.style.zIndex = 1;
-        // Para cada nó, se tiver parent, desenhar linha do centro do parent até o centro do filho
-        tree.forEach(node => {
-            if (!node.parent) return;
-            const from = nodeDivs[node.parent];
-            const to = nodeDivs[node.id];
-            if (!from || !to) return;
-            const fromRect = from.getBoundingClientRect();
-            const toRect = to.getBoundingClientRect();
-            const contRect = container.getBoundingClientRect();
-            const x1 = fromRect.left + fromRect.width/2 - contRect.left;
-            const y1 = fromRect.top + fromRect.height - contRect.top;
-            const x2 = toRect.left + toRect.width/2 - contRect.left;
-            const y2 = toRect.top - contRect.top;
-            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            line.setAttribute('x1', x1);
-            line.setAttribute('y1', y1);
-            line.setAttribute('x2', x2);
-            line.setAttribute('y2', y2);
-            svg.appendChild(line);
-        });
-        // Remover SVG antigo se existir
-        const oldSvg = container.querySelector('.skill-conn');
-        if (oldSvg) oldSvg.remove();
+        const svg = drawSkillTreeConnections(tree, nodeDivs, container);
         container.appendChild(svg);
     }, 10);
 }
@@ -181,6 +277,10 @@ function renderSkillTreePanel(branch, containerId) {
 renderSkillTreePanel('vida', 'skill-tree-vida');
 renderSkillTreePanel('dano', 'skill-tree-dano');
 renderSkillTreePanel('esp', 'skill-tree-especial');
+
+// ============================================================================
+// FUNÇÕES DE CONFIGURAÇÃO E INICIALIZAÇÃO
+// ============================================================================
 
 // Exibir painel de upgrades usando o sistema modularizado
 function showUpgradeModal() {
@@ -206,6 +306,10 @@ document.getElementById('closeUpgradeModal').addEventListener('click', () => {
     document.getElementById('upgradeModal').style.display = 'none';
 });
 
+// ============================================================================
+// VARIÁVEIS GLOBAIS
+// ============================================================================
+
 // Variáveis globais para configurações (serão atualizadas dinamicamente)
 let GAME_CONFIG = loadGameConfig();
 let TOWER_TYPES = loadTowerConfig();
@@ -218,24 +322,27 @@ function showDifficultyModal() {
 // Função para aplicar os efeitos da árvore de habilidades ao GAME_CONFIG
 function applySkillTreeEffects(gameConfig, skillTree) {
     // Vida/Suporte
-    gameConfig.initialHealth += (skillTree['vida'] || 0);
-    gameConfig.defenseBonus = (skillTree['defesa'] || 0) * 0.10; // 10% por nível
-    gameConfig.passiveHeal = (skillTree['cura'] || 0); // 1 por nível
+    gameConfig.initialHealth += (skillTree['vida'] || 0) * SKILL_BONUSES.VIDA_BONUS;
+    gameConfig.defenseBonus = (skillTree['defesa'] || 0) * SKILL_BONUSES.DEFESA_BONUS;
+    gameConfig.passiveHeal = (skillTree['cura'] || 0);
+    
     // Ataque/Dano
-    gameConfig.globalDamageBonus = 1 + (skillTree['dano'] || 0) * 0.05;
-    gameConfig.archerDamageBonus = 1 + (skillTree['dano_arq'] || 0) * 0.10;
-    gameConfig.archerSpeedBonus = 1 + (skillTree['vel_arq'] || 0) * 0.10;
-    gameConfig.cannonDamageBonus = 1 + (skillTree['dano_can'] || 0) * 0.10;
-            gameConfig.cannonAreaBonus = 1 + (skillTree['alc_can'] || 0) * 0.15;
-    gameConfig.mageDamageBonus = 1 + (skillTree['dano_mag'] || 0) * 0.10;
-    gameConfig.mageFreezeBonus = (skillTree['cong_mag'] || 0) * 1.0; // +1s por nível
-    gameConfig.teslaDamageBonus = 1 + (skillTree['dano_tes'] || 0) * 0.10;
-    gameConfig.teslaChainBonus = (skillTree['enc_tes'] || 0); // +1 inimigo
+    gameConfig.globalDamageBonus = 1 + (skillTree['dano'] || 0) * SKILL_BONUSES.DANO_GLOBAL_BONUS;
+    gameConfig.archerDamageBonus = 1 + (skillTree['dano_arq'] || 0) * SKILL_BONUSES.DANO_ESPECIFICO_BONUS;
+    gameConfig.archerSpeedBonus = 1 + (skillTree['vel_arq'] || 0) * SKILL_BONUSES.VELOCIDADE_BONUS;
+    gameConfig.cannonDamageBonus = 1 + (skillTree['dano_can'] || 0) * SKILL_BONUSES.DANO_ESPECIFICO_BONUS;
+    gameConfig.cannonAreaBonus = 1 + (skillTree['alc_can'] || 0) * SKILL_BONUSES.AREA_CANHAO_BONUS;
+    gameConfig.mageDamageBonus = 1 + (skillTree['dano_mag'] || 0) * SKILL_BONUSES.DANO_ESPECIFICO_BONUS;
+    gameConfig.mageFreezeBonus = (skillTree['cong_mag'] || 0) * SKILL_BONUSES.CONGELAMENTO_BONUS;
+    gameConfig.teslaDamageBonus = 1 + (skillTree['dano_tes'] || 0) * SKILL_BONUSES.DANO_ESPECIFICO_BONUS;
+    gameConfig.teslaChainBonus = (skillTree['enc_tes'] || 0);
+    
     // Especial
     gameConfig.arrowRainBonus = (skillTree['chuva'] || 0);
     gameConfig.iceStorm = (skillTree['gelo'] || 0) > 0;
-    gameConfig.goldPerWaveBonus = 1 + (skillTree['ouro'] || 0) * 0.10;
+    gameConfig.goldPerWaveBonus = 1 + (skillTree['ouro'] || 0) * SKILL_BONUSES.OURO_EXTRA_BONUS;
     gameConfig.specialTowerUnlocked = (skillTree['torre'] || 0) > 0;
+    
     window.GAME_CONFIG = gameConfig;
 }
 
@@ -335,12 +442,58 @@ function reloadConfigs() {
     }
 }
 
+// Função para calcular altura usada pelos elementos da UI
+function calculateUsedHeight() {
+    let usedHeight = 0;
+    const elements = [
+        document.querySelector('.top-panel'),
+        document.querySelector('.horizontal-controls'),
+        document.getElementById('specialSkillsFixedBar') || document.querySelector('.skills-container'),
+        document.querySelector('.footer-tower-bar')
+    ];
+    
+    elements.forEach(element => {
+        if (element && element.offsetWidth > 0) {
+            usedHeight += element.getBoundingClientRect().height + 20; // 20px margin
+        }
+    });
+    
+    return usedHeight;
+}
+
+// Função para determinar margem de segurança baseada no tamanho da tela
+function getSafetyMargin(screenWidth) {
+    if (screenWidth <= RESPONSIVE_BREAKPOINTS.MOBILE) {
+        return UI_CONSTANTS.SAFETY_MARGIN_MOBILE;
+    } else if (screenWidth <= RESPONSIVE_BREAKPOINTS.TABLET) {
+        return UI_CONSTANTS.SAFETY_MARGIN_TABLET;
+    }
+    return UI_CONSTANTS.SAFETY_MARGIN_DESKTOP;
+}
+
+// Função para calcular escala baseada no tamanho da tela
+function calculateCanvasScale(screenWidth, screenHeight, baseWidth, baseHeight, availableHeight) {
+    if (screenWidth <= RESPONSIVE_BREAKPOINTS.MOBILE) {
+        // Celular - ajustar para caber na tela
+        const availableWidth = screenWidth * 0.95;
+        return Math.min(availableWidth / baseWidth, availableHeight / baseHeight, UI_CONSTANTS.CANVAS_SCALE_MOBILE);
+    } else if (screenWidth <= RESPONSIVE_BREAKPOINTS.TABLET) {
+        // Tablet - escala moderada
+        const availableWidth = screenWidth * 0.9;
+        return Math.min(availableWidth / baseWidth, availableHeight / baseHeight, UI_CONSTANTS.CANVAS_SCALE_TABLET);
+    } else {
+        // Desktop - verificar se precisa escalar
+        const availableWidth = screenWidth - 300; // Espaço para painel lateral
+        return Math.min(availableWidth / baseWidth, availableHeight / baseHeight, UI_CONSTANTS.CANVAS_SCALE_DESKTOP);
+    }
+}
+
 // Função para ajustar o tamanho do canvas responsivamente
 function adjustCanvasSize() {
     const canvas = document.getElementById('gameCanvas');
     if (!canvas) return;
     
-    // Usar dimensões das configurações salvas (não valores fixos!)
+    // Usar dimensões das configurações salvas
     const baseWidth = GAME_CONFIG.canvasWidth || 800;
     const baseHeight = GAME_CONFIG.canvasHeight || 600;
     
@@ -348,56 +501,20 @@ function adjustCanvasSize() {
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
     
-    // 🎯 CALCULAR ALTURA DISPONÍVEL DINAMICAMENTE
-    let usedHeight = 0;
-    
     // Calcular altura usada pelos elementos
-    const topPanel = document.querySelector('.top-panel');
-    const horizontalControls = document.querySelector('.horizontal-controls');
-    const skillsBar = document.getElementById('specialSkillsFixedBar') || document.querySelector('.skills-container');
-    const towerBar = document.querySelector('.footer-tower-bar');
-    
-    if (topPanel) {
-        usedHeight += topPanel.getBoundingClientRect().height;
-    }
-    
-    if (horizontalControls) {
-        usedHeight += horizontalControls.getBoundingClientRect().height + 20; // 20px margin
-    }
-    
-    if (skillsBar && skillsBar.offsetWidth > 0) {
-        usedHeight += skillsBar.getBoundingClientRect().height + 20; // 20px margin
-    }
-    
-    if (towerBar && towerBar.offsetWidth > 0) {
-        usedHeight += towerBar.getBoundingClientRect().height + 20; // 20px margin
-    }
+    const usedHeight = calculateUsedHeight();
     
     // Adicionar margem de segurança
-    const safetyMargin = screenWidth <= 480 ? 40 : screenWidth <= 768 ? 30 : 20;
-    usedHeight += safetyMargin;
+    const safetyMargin = getSafetyMargin(screenWidth);
+    const totalUsedHeight = usedHeight + safetyMargin;
     
     // Calcular altura disponível real
-    const availableHeight = Math.max(200, screenHeight - usedHeight);
+    const availableHeight = Math.max(200, screenHeight - totalUsedHeight);
     
-    // Calcular fator de escala considerando ambas as dimensões
-    let scale = 1;
+    // Calcular fator de escala
+    const scale = calculateCanvasScale(screenWidth, screenHeight, baseWidth, baseHeight, availableHeight);
     
-    if (screenWidth <= 480) {
-        // Celular - ajustar para caber na tela
-        const availableWidth = screenWidth * 0.95;
-        scale = Math.min(availableWidth / baseWidth, availableHeight / baseHeight, 0.8);
-    } else if (screenWidth <= 768) {
-        // Tablet - escala moderada
-        const availableWidth = screenWidth * 0.9;
-        scale = Math.min(availableWidth / baseWidth, availableHeight / baseHeight, 0.9);
-    } else {
-        // Desktop - verificar se precisa escalar
-        const availableWidth = screenWidth - 300; // Espaço para painel lateral
-        scale = Math.min(availableWidth / baseWidth, availableHeight / baseHeight, 1.0);
-    }
-    
-    // Aplicar dimensões configuradas (não fixas!)
+    // Aplicar dimensões configuradas
     canvas.width = baseWidth;
     canvas.height = baseHeight;
     
@@ -408,10 +525,8 @@ function adjustCanvasSize() {
     canvas.style.width = finalWidth + 'px';
     canvas.style.height = finalHeight + 'px';
     
-
-    
     // Força reposicionamento se necessário
-    if (screenWidth <= 768) {
+    if (screenWidth <= RESPONSIVE_BREAKPOINTS.TABLET) {
         canvas.style.margin = '0 auto';
         canvas.style.display = 'block';
     }
@@ -441,12 +556,11 @@ onConfigChanged((newConfig) => {
 // Carregar caminho dos inimigos
 function loadEnemyPath() {
     // Primeiro, tentar carregar do enemyPath separado (templates)
-    const savedPath = localStorage.getItem('enemyPath');
+    const savedPath = localStorage.getItem(ENEMY_PATH_KEY);
     if (savedPath) {
         try {
             const path = JSON.parse(savedPath);
             if (path && path.length > 0) {
-        
                 return path;
             }
         } catch (e) {
@@ -455,19 +569,17 @@ function loadEnemyPath() {
     }
     
     // Fallback: carregar do arqueiroConfig
-    const savedConfig = localStorage.getItem('arqueiroConfig');
+    const savedConfig = localStorage.getItem(ARQUEIRO_CONFIG_KEY);
     if (savedConfig) {
         try {
             const config = JSON.parse(savedConfig);
             if (config.enemyPath && config.enemyPath.length > 0) {
-        
                 return config.enemyPath;
             }
         } catch (e) {
             console.error('Erro ao carregar caminho dos inimigos:', e);
         }
     }
-    
     
     return GAME_CONFIG.enemyPath;
 }
@@ -479,9 +591,6 @@ const renderSystem = new RenderSystem(ctx, GAME_CONFIG, enemyPath);
 
 // Garantir que o gameState seja a mesma referência
 renderSystem.gameState = gameState;
-
-// Log para debug
-// RenderSystem criado, status dos monstros: ${renderSystem.monstersInitialized}
 
 // Inicializar sistema de interface do usuário
 const uiSystem = new UISystem(gameState);
@@ -506,96 +615,129 @@ gameSystem.updateSpeedUI();
 // Tornar gameSystem acessível globalmente para o menu
 
 
+// ============================================================================
+// FUNÇÕES UTILITÁRIAS
+// ============================================================================
+
 // Função para verificar se está em dispositivo mobile
 function isMobile() {
-    return window.innerWidth <= 480;
+    return window.innerWidth <= RESPONSIVE_BREAKPOINTS.MOBILE;
 }
 
+// ============================================================================
+// FUNÇÕES DE INTERFACE DO USUÁRIO (UI)
+// ============================================================================
+
 // Função para mostrar informações da torre
-function showTowerInfo(tower) {
+// Função para atualizar informações básicas da torre
+function updateTowerBasicInfo(tower) {
+    const elements = {
+        title: document.getElementById('towerInfoTitle'),
+        level: document.getElementById('towerLevel'),
+        damage: document.getElementById('towerDamage'),
+        range: document.getElementById('towerRange'),
+        fireRate: document.getElementById('towerFireRate'),
+        icon: document.getElementById('towerIconDisplay')
+    };
     
+    if (elements.title) elements.title.textContent = tower.name;
+    if (elements.level) elements.level.textContent = tower.level;
+    if (elements.damage) elements.damage.textContent = tower.damage;
+    if (elements.range) elements.range.textContent = tower.range;
+    
+    // Converter taxa de tiro para segundos
+    const fireRateSeconds = (tower.fireRate / 1000).toFixed(1);
+    if (elements.fireRate) elements.fireRate.textContent = `${fireRateSeconds}s`;
+    
+    // Mostrar ícone da torre
+    const towerIcon = TOWER_TYPES[tower.type]?.icon || '🏰';
+    if (elements.icon) elements.icon.textContent = towerIcon;
+}
+
+// Função para calcular custos da torre
+function calculateTowerCosts(tower) {
+    const upgradeCost = tower.getUpgradeCost();
+    const sellPercentage = localStorage.getItem(ARQUEIRO_CONFIG_KEY) ? 
+        JSON.parse(localStorage.getItem(ARQUEIRO_CONFIG_KEY)).sellPercentage : GAME_CONSTANTS.DEFAULT_SELL_PERCENTAGE;
+    const sellValue = Math.floor(tower.totalCost * (sellPercentage / 100));
+    
+    return { upgradeCost, sellValue };
+}
+
+// Função para atualizar valores de custo na UI
+function updateTowerCostInfo(upgradeCost, sellValue) {
+    const upgradeCostElement = document.getElementById('upgradeCost');
+    const sellValueElement = document.getElementById('sellValue');
+    
+    if (upgradeCostElement) upgradeCostElement.textContent = upgradeCost;
+    if (sellValueElement) sellValueElement.textContent = sellValue;
+}
+
+// Função para configurar botões da torre
+function configureTowerButtons(tower, upgradeCost) {
+    const upgradeBtn = document.getElementById('upgradeTower');
+    const sellBtn = document.getElementById('sellTower');
+    
+    if (!upgradeBtn || !sellBtn) return;
+    
+    const isMaxLevel = tower.level >= tower.getMaxLevel();
+    upgradeBtn.disabled = gameState.gold < upgradeCost || isMaxLevel;
+    
+    // Atualizar texto do botão se estiver no nível máximo
+    if (isMaxLevel) {
+        upgradeBtn.innerHTML = `
+            <span class="btn-icon">⬆️</span>
+            <span class="btn-text">Nível Máximo</span>
+            <span class="btn-cost">--</span>
+        `;
+    } else {
+        upgradeBtn.innerHTML = `
+            <span class="btn-icon">⬆️</span>
+            <span class="btn-text">Evoluir</span>
+            <span class="btn-cost" id="upgradeCost">${upgradeCost}</span>
+        `;
+    }
+    
+    sellBtn.disabled = false;
+}
+
+// Função para configurar modal da torre
+function setupTowerModal(tower) {
+    gameState.selectedTowerForInfo = tower;
+    const modal = document.getElementById('towerInfoPanel');
+    
+    if (!modal) return;
+    
+    modal.style.display = 'flex';
+    
+    // Adicionar evento para fechar ao clicar fora
+    const handleOutsideClick = function(e) {
+        if (e.target === modal) {
+            closeTowerInfo();
+            modal.removeEventListener('click', handleOutsideClick);
+        }
+    };
+    modal.addEventListener('click', handleOutsideClick);
+}
+
+function showTowerInfo(tower) {
+    // Aplicar bônus e selecionar torre
     if (tower.applyBonuses) tower.applyBonuses();
     gameState.towers.forEach(t => t.isSelected = false);
     tower.isSelected = true;
     
-    // Atualizar informações da torre (com verificações de segurança)
-    const towerInfoTitle = document.getElementById('towerInfoTitle');
-    const towerLevel = document.getElementById('towerLevel');
-    const towerDamage = document.getElementById('towerDamage');
-    const towerRange = document.getElementById('towerRange');
-    const towerFireRate = document.getElementById('towerFireRate');
-    const towerIconDisplay = document.getElementById('towerIconDisplay');
+    // Atualizar informações básicas
+    updateTowerBasicInfo(tower);
     
-    if (towerInfoTitle) towerInfoTitle.textContent = tower.name;
-    if (towerLevel) towerLevel.textContent = tower.level;
-    if (towerDamage) towerDamage.textContent = tower.damage;
-    if (towerRange) towerRange.textContent = tower.range;
+    // Calcular e atualizar custos
+    const { upgradeCost, sellValue } = calculateTowerCosts(tower);
+    updateTowerCostInfo(upgradeCost, sellValue);
     
-    // Converter taxa de tiro para segundos
-    const fireRateSeconds = (tower.fireRate / 1000).toFixed(1);
-    if (towerFireRate) towerFireRate.textContent = `${fireRateSeconds}s`;
+    // Configurar botões
+    configureTowerButtons(tower, upgradeCost);
     
-    // Mostrar ícone da torre
-    const towerIcon = TOWER_TYPES[tower.type]?.icon || '🏰';
-    if (towerIconDisplay) towerIconDisplay.textContent = towerIcon;
-    
-    // Calcular custos
-    const upgradeCost = tower.getUpgradeCost();
-    const sellValue = Math.floor(tower.totalCost * ((localStorage.getItem('arqueiroConfig') ? JSON.parse(localStorage.getItem('arqueiroConfig')).sellPercentage : 50) / 100));
-    
-    // Atualizar valores de custo (verificar se os elementos existem primeiro)
-    const upgradeCostElement = document.getElementById('upgradeCost');
-    const sellValueElement = document.getElementById('sellValue');
-    
-    if (upgradeCostElement) {
-        upgradeCostElement.textContent = upgradeCost;
-    }
-    if (sellValueElement) {
-        sellValueElement.textContent = sellValue;
-    }
-    
-    // Configurar botões (com verificações de segurança)
-    const upgradeBtn = document.getElementById('upgradeTower');
-    const sellBtn = document.getElementById('sellTower');
-    
-    if (upgradeBtn && sellBtn) {
-        // Verificar se a torre está no nível máximo
-        const isMaxLevel = tower.level >= tower.getMaxLevel();
-        upgradeBtn.disabled = gameState.gold < upgradeCost || isMaxLevel;
-        
-        // Atualizar texto do botão se estiver no nível máximo
-        if (isMaxLevel) {
-            upgradeBtn.innerHTML = `
-                <span class="btn-icon">⬆️</span>
-                <span class="btn-text">Nível Máximo</span>
-                <span class="btn-cost">--</span>
-            `;
-        } else {
-            upgradeBtn.innerHTML = `
-                <span class="btn-icon">⬆️</span>
-                <span class="btn-text">Evoluir</span>
-                <span class="btn-cost" id="upgradeCost">${upgradeCost}</span>
-            `;
-        }
-        
-        sellBtn.disabled = false;
-    }
-    
-    // Armazenar referência da torre e mostrar modal
-    gameState.selectedTowerForInfo = tower;
-    const modal = document.getElementById('towerInfoPanel');
-    if (modal) {
-        modal.style.display = 'flex';
-        
-        // Adicionar evento para fechar ao clicar fora (removendo listeners anteriores)
-        const handleOutsideClick = function(e) {
-            if (e.target === modal) {
-                hideTowerInfo();
-                modal.removeEventListener('click', handleOutsideClick);
-            }
-        };
-        modal.addEventListener('click', handleOutsideClick);
-    }
+    // Configurar modal
+    setupTowerModal(tower);
 }
 
 // Fechar painel de informações da torre
@@ -614,67 +756,68 @@ function closeTowerInfo() {
     }
 }
 
-// Alias para closeTowerInfo para melhor semântica
-function hideTowerInfo() {
-    closeTowerInfo();
-}
-
-function updateUI() {
-    // Verificar se gameState existe
-    if (!gameState) return;
+// Função para atualizar estatísticas básicas do jogo
+function updateGameStats() {
+    const elements = {
+        health: document.getElementById('health'),
+        gold: document.getElementById('gold'),
+        wave: document.getElementById('wave'),
+        score: document.getElementById('score'),
+        monsters: document.getElementById('monsters')
+    };
     
-    // Obter elementos com verificações de segurança
-    const healthElement = document.getElementById('health');
-    const goldElement = document.getElementById('gold');
-    const waveElement = document.getElementById('wave');
-    const scoreElement = document.getElementById('score');
-    const monstersElement = document.getElementById('monsters');
-    const gameTimeElement = document.getElementById('gameTime');
-    const nextWaveTimerElement = document.getElementById('nextWaveTimer');
-    const startBtn = document.getElementById('start-wave');
-    
-    // Atualizar elementos se existirem
-    if (healthElement) healthElement.textContent = gameState.health;
-    if (goldElement) goldElement.textContent = gameState.gold;
-    if (waveElement) waveElement.textContent = gameState.wave;
-    if (scoreElement) scoreElement.textContent = gameState.score;
+    if (elements.health) elements.health.textContent = gameState.health;
+    if (elements.gold) elements.gold.textContent = gameState.gold;
+    if (elements.wave) elements.wave.textContent = gameState.wave;
+    if (elements.score) elements.score.textContent = gameState.score;
     
     // Exibir monstros total/eliminados
-    if (monstersElement) {
-        monstersElement.textContent = `${gameState.monstersThisWave || 0}/${gameState.monstersDefeated || 0}`;
+    if (elements.monsters) {
+        elements.monsters.textContent = `${gameState.monstersThisWave || 0}/${gameState.monstersDefeated || 0}`;
     }
+}
+
+// Função para atualizar tempo do jogo
+function updateGameTime() {
+    const gameTimeElement = document.getElementById('gameTime');
+    if (!gameTimeElement) return;
     
-    // Atualizar tempo do jogo
-    if (gameTimeElement) {
-        const minutes = Math.floor(gameState.gameTime / 60);
-        const seconds = Math.floor(gameState.gameTime % 60);
-        gameTimeElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    const minutes = Math.floor(gameState.gameTime / 60);
+    const seconds = Math.floor(gameState.gameTime % 60);
+    gameTimeElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// Função para atualizar timer da próxima onda
+function updateNextWaveTimer() {
+    const nextWaveTimerElement = document.getElementById('nextWaveTimer');
+    if (!nextWaveTimerElement) return;
+    
+    if (gameState.waveInProgress) {
+        nextWaveTimerElement.textContent = 'Em andamento';
+    } else if (gameState.nextWaveTimer > 0) {
+        const seconds = Math.ceil(gameState.nextWaveTimer);
+        nextWaveTimerElement.textContent = `${seconds}s`;
+    } else if (gameState.wave > 0) {
+        nextWaveTimerElement.textContent = 'Pronta';
+    } else {
+        nextWaveTimerElement.textContent = '--';
     }
+}
+
+// Função para atualizar botão de iniciar onda
+function updateStartButton() {
+    const startBtn = document.getElementById('start-wave');
+    if (!startBtn) return;
     
-    // Atualizar timer da próxima onda
-    if (nextWaveTimerElement) {
-        if (gameState.waveInProgress) {
-            nextWaveTimerElement.textContent = 'Em andamento';
-        } else if (gameState.nextWaveTimer > 0) {
-            const seconds = Math.ceil(gameState.nextWaveTimer);
-            nextWaveTimerElement.textContent = `${seconds}s`;
-        } else if (gameState.wave > 0) {
-            nextWaveTimerElement.textContent = 'Pronta';
-        } else {
-            nextWaveTimerElement.textContent = '--';
-        }
-    }
+    const shouldDisable = gameState.waveInProgress || 
+                         gameState.nextWaveTimer <= 0 || 
+                         gameState.enemies.length > 0;
     
-    // Atualizar botão de iniciar onda
-    if (startBtn) {
-        if (gameState.waveInProgress || gameState.nextWaveTimer <= 0 || gameState.enemies.length > 0) {
-            startBtn.disabled = true;
-        } else {
-            startBtn.disabled = false;
-        }
-    }
-    
-    // Atualizar botões de torre
+    startBtn.disabled = shouldDisable;
+}
+
+// Função para atualizar botões de torre
+function updateTowerButtons() {
     document.querySelectorAll('.tower-btn').forEach(btn => {
         const cost = parseInt(btn.dataset.cost);
         if (gameState.gold < cost) {
@@ -683,6 +826,18 @@ function updateUI() {
             btn.classList.remove('disabled');
         }
     });
+}
+
+function updateUI() {
+    // Verificar se gameState existe
+    if (!gameState) return;
+    
+    // Atualizar todas as seções da UI
+    updateGameStats();
+    updateGameTime();
+    updateNextWaveTimer();
+    updateStartButton();
+    updateTowerButtons();
 }
 
 // Gerar dinamicamente as opções de torres no painel lateral
@@ -787,7 +942,6 @@ function onReady() {
     renderTowerOptions();
     
     // Configurar event listeners da dificuldade
-    // setupDifficultyEventListeners(); // Removido - agora implementado no index.html
     
     // Garantir que as habilidades especiais sejam verificadas na inicialização
     setTimeout(() => {
@@ -805,6 +959,10 @@ if (document.readyState === 'loading') {
 } else {
     onReady();
 }
+
+// ============================================================================
+// SISTEMA DE TUTORIAL
+// ============================================================================
 
 // Sistema de Tutorial
 let tutorialState = {
@@ -826,7 +984,6 @@ function hideTutorial() {
 }
 
 function updateTutorialStep() {
-    // Esconder todos os passos
     for (let i = 1; i <= tutorialState.totalSteps; i++) {
         const step = document.getElementById(`tutorialStep${i}`);
         if (step) {
@@ -871,11 +1028,11 @@ function prevTutorialStep() {
 function finishTutorial() {
     hideTutorial();
     // Salvar que o tutorial foi visto
-    localStorage.setItem('tutorialCompleted', 'true');
+    localStorage.setItem(TUTORIAL_COMPLETED_KEY, 'true');
 }
 
 function checkFirstTimeUser() {
-    const tutorialCompleted = localStorage.getItem('tutorialCompleted');
+    const tutorialCompleted = localStorage.getItem(TUTORIAL_COMPLETED_KEY);
     if (!tutorialCompleted) {
         // Mostrar tutorial automaticamente para novos usuários
         setTimeout(() => {
@@ -952,6 +1109,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// ============================================================================
+// EVENT LISTENERS E INTERAÇÕES
+// ============================================================================
+
 // Event listeners
 canvas.addEventListener('click', (e) => {
     if (gameState.isGameOver) return;
@@ -1001,7 +1162,6 @@ canvas.addEventListener('click', (e) => {
             gameState.gold -= cost;
             
             // MANTER a torre selecionada para facilitar a colocação de múltiplas torres
-            // gameState.selectedTower = null; // Removido - manter seleção
             
             // Atualizar UI
             uiSystem.updateUI();
@@ -1077,27 +1237,33 @@ document.getElementById('sellTower').addEventListener('click', () => {
 
 document.getElementById('closeTowerInfo').addEventListener('click', closeTowerInfo);
 
+// ============================================================================
+// HABILIDADES ESPECIAIS
+// ============================================================================
+
 // --- Habilidade Especial: Chuva de Flechas ---
-const ARROW_RAIN_BASE_DAMAGE = 40; // Reduzido de 60 para 40
-const ARROW_RAIN_RADIUS = 90; // px
 let arrowRainSelecting = false;
 let arrowRainPreview = null; // {x, y} ou null
 
 function activateArrowRainMode() {
     if (!gameSystem.useSpecialSkill('arrowRain')) return;
+    
     // Aplicar bônus da árvore de habilidades
     const bonus = (GAME_CONFIG.arrowRainBonus || 0);
-    const totalDamage = ARROW_RAIN_BASE_DAMAGE * (1 + 0.25 * bonus); // +25% por nível
+    const totalDamage = GAME_CONSTANTS.BASE_ARROW_RAIN_DAMAGE * (1 + SKILL_BONUSES.CHUVA_FLECHAS_BONUS * bonus);
+    
     let hits = 0;
     [...gameState.enemies].forEach(enemy => {
         enemy.takeDamage(totalDamage);
         hits++;
     });
+    
     uiSystem.showNotification(`Chuva de Flechas: ${hits} inimigos atingidos!`, 'success');
-    // Efeito visual simples em todos os monstros
+    
     [...gameState.enemies].forEach(enemy => {
         showArrowRainEffect(enemy.x, enemy.y);
     });
+    
     // Garantir que o botão volte ao normal
     const btn = document.getElementById('btnArrowRain');
     if (btn) btn.classList.remove('selected');
@@ -1108,9 +1274,10 @@ function showArrowRainEffect(x, y) {
     // Desenhar círculos ou flechas caindo (placeholder)
     const ctx = gameState.ctx;
     if (!ctx) return;
+    
     ctx.save();
     ctx.beginPath();
-    ctx.arc(x, y, ARROW_RAIN_RADIUS, 0, 2 * Math.PI);
+    ctx.arc(x, y, GAME_CONSTANTS.ARROW_RAIN_RADIUS, 0, 2 * Math.PI);
     ctx.strokeStyle = '#ff9800';
     ctx.lineWidth = 4;
     ctx.globalAlpha = 0.5;
@@ -1127,8 +1294,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Função para configurar event listeners das habilidades especiais
 function setupSpecialSkillEventListeners() {
-
-    
     const btnArrow = document.getElementById('btnArrowRain');
     if (btnArrow) {
         // Remover listener antigo se existir
@@ -1136,7 +1301,6 @@ function setupSpecialSkillEventListeners() {
         
         // Criar novo handler e armazenar referência
         btnArrow._arrowRainHandler = () => {
-            
             activateArrowRainMode();
         };
         
@@ -1145,10 +1309,6 @@ function setupSpecialSkillEventListeners() {
         
         // Também adicionar onclick como fallback
         btnArrow.onclick = btnArrow._arrowRainHandler;
-        
-        
-    } else {
-        
     }
     
     const btnIce = document.getElementById('btnIceStorm');
@@ -1158,7 +1318,6 @@ function setupSpecialSkillEventListeners() {
         
         // Criar novo handler e armazenar referência
         btnIce._iceStormHandler = () => {
-            
             activateIceStorm();
         };
         
@@ -1167,10 +1326,6 @@ function setupSpecialSkillEventListeners() {
         
         // Também adicionar onclick como fallback
         btnIce.onclick = btnIce._iceStormHandler;
-        
-        
-    } else {
-        
     }
     
     // Configurar botão de velocidade
@@ -1181,7 +1336,6 @@ function setupSpecialSkillEventListeners() {
         
         // Criar novo handler e armazenar referência
         speedBtn._speedHandler = () => {
-            
             if (gameSystem) {
                 gameSystem.toggleGameSpeed();
             }
@@ -1192,10 +1346,6 @@ function setupSpecialSkillEventListeners() {
         
         // Também adicionar onclick como fallback
         speedBtn.onclick = speedBtn._speedHandler;
-        
-        
-    } else {
-        
     }
 }
 
@@ -1245,7 +1395,7 @@ window.renderGame = function() {
         const ctx = gameState.ctx;
         ctx.save();
         ctx.beginPath();
-        ctx.arc(arrowRainPreview.x, arrowRainPreview.y, ARROW_RAIN_RADIUS, 0, 2 * Math.PI);
+        ctx.arc(arrowRainPreview.x, arrowRainPreview.y, GAME_CONSTANTS.ARROW_RAIN_RADIUS, 0, 2 * Math.PI);
         ctx.fillStyle = 'rgba(255, 152, 0, 0.18)';
         ctx.strokeStyle = '#ff9800';
         ctx.lineWidth = 2;
@@ -1262,14 +1412,8 @@ uiSystem.updateUI();
 
 
 
-// Sempre que alterar arrowRainSelecting ou arrowRainPreview, sincronizar com window
-function setArrowRainSelecting(val) {
-    arrowRainSelecting = val;
-    
-}
 function setArrowRainPreview(val) {
     arrowRainPreview = val;
-    
 }
 
 // Função utilitária para mostrar/esconder tooltip
@@ -1277,12 +1421,19 @@ function showInfoTooltip(html, x, y) {
     const tooltip = document.getElementById('infoTooltip');
     tooltip.innerHTML = html;
     tooltip.style.display = 'block';
+    
     // Ajustar posição para não sair da tela
-    const pad = 12;
+    const pad = UI_CONSTANTS.TOOLTIP_PADDING;
     let left = x + pad;
     let top = y + pad;
-    if (left + tooltip.offsetWidth > window.innerWidth) left = x - tooltip.offsetWidth - pad;
-    if (top + tooltip.offsetHeight > window.innerHeight) top = y - tooltip.offsetHeight - pad;
+    
+    if (left + tooltip.offsetWidth > window.innerWidth) {
+        left = x - tooltip.offsetWidth - pad;
+    }
+    if (top + tooltip.offsetHeight > window.innerHeight) {
+        top = y - tooltip.offsetHeight - pad;
+    }
+    
     tooltip.style.left = left + 'px';
     tooltip.style.top = top + 'px';
 }
@@ -1357,27 +1508,26 @@ canvas.addEventListener('mouseleave', () => {
 });
 
 // --- Tempestade de Gelo ---
-const ICE_STORM_BASE_DURATION = 3; // segundos
 function getIceStormDuration() {
     // Duração base + bônus da árvore (cong_mag)
-    return ICE_STORM_BASE_DURATION + (GAME_CONFIG.mageFreezeBonus || 0);
+    return GAME_CONSTANTS.ICE_STORM_BASE_DURATION + (GAME_CONFIG.mageFreezeBonus || 0);
 }
 
 function activateIceStorm() {
     if (!gameSystem.useSpecialSkill('iceStorm')) return;
-    // Congelar todos os inimigos
+    
     const duration = getIceStormDuration();
     const enemiesAffected = gameState.enemies.length;
+    
     gameState.enemies.forEach(enemy => {
         enemy.slowUntil = Date.now() + duration * 1000;
         enemy.originalSpeed = enemy.originalSpeed || enemy.speed;
-        enemy.speed = 0.01; // praticamente parado
+        enemy.speed = GAME_CONSTANTS.ICE_STORM_SLOW_SPEED; // praticamente parado
         enemy.isFrozen = true;
     });
     
     uiSystem.showNotification(`Tempestade de Gelo: ${enemiesAffected} inimigos congelados por ${duration.toFixed(1)}s!`, 'success');
     
-    // Feedback visual: todos os inimigos ficam azulados
     setTimeout(() => {
         gameState.enemies.forEach(enemy => {
             if (enemy.isFrozen) {
@@ -1401,6 +1551,10 @@ function activateIceStorm() {
 // gameState.gold += goldBonus;
 // uiSystem.showNotification(`Onda ${gameState.wave + 1} completada! +${waveBonus} pontos! +${goldBonus} ouro extra!`, 'success');
 
+// ============================================================================
+// SISTEMA DE ÁRVORE DE HABILIDADES - FUNÇÕES DE ATUALIZAÇÃO
+// ============================================================================
+
 // Sempre que skillTree for alterada, reaplicar efeitos e atualizar torres
 function updateSkillTreeAndConfig() {
     skillTree = loadSkillTree();
@@ -1421,7 +1575,6 @@ function onSkillTreeUpgrade() {
     
     // Atualizar botões das habilidades especiais
     if (gameSystem) {
-
         gameSystem.updateSpecialSkillsVisibility(); // Verificar se devem ser desbloqueadas
         gameSystem.updateSpecialSkillUI('arrowRain');
         gameSystem.updateSpecialSkillUI('iceStorm');
@@ -1429,7 +1582,6 @@ function onSkillTreeUpgrade() {
         // Verificar estado atual
         const arrowUnlocked = gameSystem.isSpecialSkillUnlocked('arrowRain');
         const iceUnlocked = gameSystem.isSpecialSkillUnlocked('iceStorm');
-
     }
     
     // Recarregar GAME_CONFIG e skillTree do localStorage antes de atualizar o menu de torres
@@ -1437,14 +1589,10 @@ function onSkillTreeUpgrade() {
     applySkillTreeEffects(GAME_CONFIG, updatedSkillTree);
     
     renderTowerOptions(); // Atualiza o menu de torres ao desbloquear habilidades
-    
 }
 
 document.addEventListener('skillTreeChanged', (event) => {
-
-    
     if (gameSystem) {
-
         gameSystem.updateSpecialSkillsVisibility(); // Verificar se devem ser desbloqueadas
         gameSystem.updateSpecialSkillUI('arrowRain');
         gameSystem.updateSpecialSkillUI('iceStorm');
@@ -1452,14 +1600,12 @@ document.addEventListener('skillTreeChanged', (event) => {
         // Log do estado atual
         const arrowUnlocked = gameSystem.isSpecialSkillUnlocked('arrowRain');
         const iceUnlocked = gameSystem.isSpecialSkillUnlocked('iceStorm');
-
-    } else {
-
     }
 });
 
-// Função para verificar elementos
-
+// ============================================================================
+// FUNÇÕES DE PROGRESSO E SALVAMENTO
+// ============================================================================
 
 // Função utilitária para calcular ouro acumulado até uma onda
 function calcularOuroAteOnda(onda, enemiesPerWave, enemyReward) {
@@ -1474,13 +1620,11 @@ function calcularOuroAteOnda(onda, enemiesPerWave, enemyReward) {
 
 // Salvar maior onda atingida ao perder
 function salvarMaiorOnda(onda) {
-    const key = 'maiorOndaAtingida';
-    const atual = parseInt(localStorage.getItem(key) || '1');
-    if (onda > atual) localStorage.setItem(key, onda);
+    const atual = parseInt(localStorage.getItem(MAIOR_ONDA_KEY) || '1');
+    if (onda > atual) localStorage.setItem(MAIOR_ONDA_KEY, onda);
     
     // Salvar progresso por dificuldade
     const selectedDifficulty = localStorage.getItem('selectedDifficulty') || 'normal';
-    // Salvar diretamente no localStorage
     const progressKey = `progress_${selectedDifficulty}`;
     localStorage.setItem(progressKey, onda.toString());
 }
@@ -1489,7 +1633,6 @@ function salvarMaiorOnda(onda) {
 function adicionarBotaoContinuarMenu() {
     const difficulties = ['easy', 'normal', 'hard'];
     let maxProgress = 0;
-    let maxDifficulty = '';
     
     // Verificar progresso de todas as dificuldades
     difficulties.forEach(diff => {
@@ -1497,7 +1640,6 @@ function adicionarBotaoContinuarMenu() {
         const progress = parseInt(localStorage.getItem(progressKey) || '0');
         if (progress > maxProgress) {
             maxProgress = progress;
-            maxDifficulty = diff;
         }
     });
     
