@@ -2,6 +2,43 @@
 // ---------------------------------
 // Estrutura dos upgrades globais do jogo Legado da Fortaleza
 
+// Constantes
+const STORAGE_KEYS = {
+    SKILL_TREE: 'arqueiroSkillTree',
+    UPGRADE_POINTS: 'arqueiroUpgradePoints'
+};
+
+const UI_IDS = {
+    UPGRADE_POINTS: 'upgradePoints',
+    GLOBAL_SKILL_POINTS: 'globalSkillPoints',
+    SKILL_TREE_PANEL: 'skill-tree-multi-panel'
+};
+
+const BRANCHES = [
+    { title: 'Vida', branch: 'vida', gridId: 'skill-tree-vida' },
+    { title: 'Dano', branch: 'dano', gridId: 'skill-tree-dano' },
+    { title: 'Especial', branch: 'esp', gridId: 'skill-tree-especial' }
+];
+
+const GRADIENT_CONFIGS = {
+    unlocked: {
+        id: 'unlockedGradient',
+        stops: [
+            { offset: '0%', color: '#4fdfff', opacity: '0.8' },
+            { offset: '50%', color: '#00bfff', opacity: '1' },
+            { offset: '100%', color: '#4fdfff', opacity: '0.8' }
+        ]
+    },
+    locked: {
+        id: 'lockedGradient',
+        stops: [
+            { offset: '0%', color: '#666', opacity: '0.3' },
+            { offset: '50%', color: '#999', opacity: '0.5' },
+            { offset: '100%', color: '#666', opacity: '0.3' }
+        ]
+    }
+};
+
 export const SKILL_TREE = [
     // VIDA (coluna 1)
     { id: 'defesa', name: 'Defesa', desc: 'Reduz dano recebido em 10% por nível', max: 3, cost: 2, parent: 'cura', branch: 'vida', children: [], row: 1, col: 1 },
@@ -33,6 +70,150 @@ export const SKILL_ICONS = {
     esp: '✨', chuva: '🏹', gelo: '❄️', ouro: '💰', torre: '🌟'
 };
 
+// Funções auxiliares
+function canUnlockSkill(node, skillTree) {
+    if (!node.parent) return true;
+    const parentLevel = skillTree[node.parent] || 0;
+    return parentLevel > 0;
+}
+
+function getNodeState(node, skillTree, skillPoints) {
+    const level = skillTree[node.id] || 0;
+    const canUpgrade = (level < node.max) && (skillPoints >= node.cost) && canUnlockSkill(node, skillTree);
+    const unlocked = level > 0;
+    const locked = !canUpgrade && level < node.max;
+    const atMax = level >= node.max;
+    
+    return { level, canUpgrade, unlocked, locked, atMax };
+}
+
+function getStatusInfo(node, skillTree, skillPoints) {
+    const { level, canUpgrade, unlocked, atMax } = getNodeState(node, skillTree, skillPoints);
+    
+    let statusText = '';
+    let lockReason = '';
+    
+    if (atMax) {
+        statusText = 'Máximo';
+    } else if (unlocked) {
+        statusText = 'Desbloqueada';
+    } else if (canUpgrade) {
+        statusText = 'Disponível';
+    } else {
+        statusText = 'Bloqueada';
+        if (level < node.max && skillPoints < node.cost) {
+            lockReason = 'Pontos insuficientes';
+        } else if (!canUnlockSkill(node, skillTree)) {
+            lockReason = 'Pré-requisito não atendido';
+        } else {
+            lockReason = 'Bloqueada';
+        }
+    }
+    
+    return { statusText, lockReason, level };
+}
+
+function createSkillNode(node, skillTree, skillPoints) {
+    const nodeDiv = document.createElement('div');
+    nodeDiv.className = 'skill-node';
+    nodeDiv.innerHTML = `<div class="skill-icon-box"><span class="skill-icon">${SKILL_ICONS[node.id] || '❔'}</span></div>`;
+    nodeDiv.style.position = 'relative';
+    nodeDiv.style.zIndex = 2;
+    
+    const { canUpgrade, unlocked, locked, atMax } = getNodeState(node, skillTree, skillPoints);
+    
+    // Aplicar classes CSS baseado no estado
+    if (atMax) {
+        nodeDiv.classList.add('maxed');
+    } else if (unlocked) {
+        nodeDiv.classList.add('unlocked');
+    } else if (canUpgrade) {
+        nodeDiv.classList.add('available');
+    } else {
+        nodeDiv.classList.add('locked');
+    }
+    
+    return { nodeDiv, canUpgrade, locked, unlocked };
+}
+
+function createTooltip(node, skillTree, skillPoints) {
+    const { statusText, lockReason, level } = getStatusInfo(node, skillTree, skillPoints);
+    
+    const tooltip = document.createElement('div');
+    tooltip.className = 'skill-tooltip';
+    tooltip.innerHTML = `<b>${node.name}</b><br>${node.desc}<br><span style='color:#b26a00;font-size:0.95em;'>${statusText}</span><br>Custo: ${node.cost}<br>Nível: ${level}/${node.max}` + 
+                       (lockReason ? `<br><span style='color:#888;font-size:0.9em;'>${lockReason}</span>` : '');
+    
+    return tooltip;
+}
+
+function createLockIcon() {
+    const lockIcon = document.createElement('div');
+    lockIcon.className = 'skill-lock-icon';
+    lockIcon.innerHTML = '🔒';
+    lockIcon.style.position = 'absolute';
+    lockIcon.style.top = '50%';
+    lockIcon.style.left = '50%';
+    lockIcon.style.transform = 'translate(-50%, -50%)';
+    lockIcon.style.fontSize = '1.5em';
+    lockIcon.style.pointerEvents = 'none';
+    lockIcon.style.zIndex = '10';
+    
+    return lockIcon;
+}
+
+function handleSkillUpgrade(node, skillTree, skillPoints) {
+    const newSkillTree = { ...skillTree };
+    newSkillTree[node.id] = (newSkillTree[node.id] || 0) + 1;
+    const newPoints = skillPoints - node.cost;
+    
+    // Salvar no localStorage
+    localStorage.setItem(STORAGE_KEYS.SKILL_TREE, JSON.stringify(newSkillTree));
+    localStorage.setItem(STORAGE_KEYS.UPGRADE_POINTS, newPoints);
+    
+    // Recarregar do localStorage para garantir estado atualizado
+    const updatedSkillTree = JSON.parse(localStorage.getItem(STORAGE_KEYS.SKILL_TREE));
+    const updatedPoints = parseInt(localStorage.getItem(STORAGE_KEYS.UPGRADE_POINTS) || '0');
+    
+    // Atualizar exibição dos pontos se existir
+    const upgradePointsEl = document.getElementById(UI_IDS.UPGRADE_POINTS);
+    const globalSkillPointsEl = document.getElementById(UI_IDS.GLOBAL_SKILL_POINTS);
+    
+    if (upgradePointsEl) upgradePointsEl.textContent = updatedPoints;
+    if (globalSkillPointsEl) globalSkillPointsEl.textContent = updatedPoints;
+    
+    // Re-renderizar árvore com estado atualizado
+    initSkillTreePanel(UI_IDS.SKILL_TREE_PANEL, updatedSkillTree, updatedPoints);
+    
+    // Disparar evento para notificar mudança na skill tree
+    document.dispatchEvent(new CustomEvent('skillTreeChanged', { 
+        detail: { 
+            nodeId: node.id, 
+            newLevel: newSkillTree[node.id],
+            skillTree: updatedSkillTree 
+        } 
+    }));
+}
+
+function createGradientElement(config) {
+    const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+    gradient.setAttribute('id', config.id);
+    gradient.setAttribute('x1', '0%');
+    gradient.setAttribute('y1', '0%');
+    gradient.setAttribute('x2', '100%');
+    gradient.setAttribute('y2', '0%');
+    
+    config.stops.forEach(stopConfig => {
+        const stop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        stop.setAttribute('offset', stopConfig.offset);
+        stop.setAttribute('stop-color', stopConfig.color);
+        stop.setAttribute('stop-opacity', stopConfig.opacity);
+        gradient.appendChild(stop);
+    });
+    
+    return gradient;
+}
+
 /**
  * Inicializa o painel da árvore de habilidades em um container.
  * @param {string} containerId - ID do container onde o painel será renderizado
@@ -42,19 +223,14 @@ export const SKILL_ICONS = {
 export function initSkillTreePanel(containerId, skillTree, skillPoints) {
     const container = document.getElementById(containerId);
     if (!container) return;
+    
     container.innerHTML = '';
-    // Painel principal: flexbox horizontal
     container.style.display = 'flex';
     container.style.flexDirection = 'row';
     container.style.justifyContent = 'center';
     container.style.gap = '32px';
-    // Renderizar as três colunas (Vida, Dano, Especial)
-    const branches = [
-        { title: 'Vida', branch: 'vida', gridId: 'skill-tree-vida' },
-        { title: 'Dano', branch: 'dano', gridId: 'skill-tree-dano' },
-        { title: 'Especial', branch: 'esp', gridId: 'skill-tree-especial' }
-    ];
-    branches.forEach(({ title, branch, gridId }) => {
+    
+    BRANCHES.forEach(({ title, branch, gridId }) => {
         const panel = document.createElement('div');
         panel.className = 'skill-tree-panel';
         panel.style.display = 'flex';
@@ -63,10 +239,12 @@ export function initSkillTreePanel(containerId, skillTree, skillPoints) {
         panel.style.width = '340px';
         panel.style.minWidth = '260px';
         panel.style.maxWidth = '340px';
+        
         const titleDiv = document.createElement('div');
         titleDiv.className = 'skill-tree-title';
         titleDiv.textContent = title;
         panel.appendChild(titleDiv);
+        
         const grid = document.createElement('div');
         grid.className = 'skill-tree-grid';
         grid.id = gridId;
@@ -76,26 +254,28 @@ export function initSkillTreePanel(containerId, skillTree, skillPoints) {
         grid.style.width = '100%';
         panel.appendChild(grid);
         container.appendChild(panel);
+        
         renderSkillTreeColumn(branch, gridId, skillTree, skillPoints);
     });
 }
 
-// Corrigir renderSkillTreeColumn para NÃO criar linhas horizontais extras, apenas empilhar os nós verticalmente
 function renderSkillTreeColumn(branch, containerId, skillTree, skillPoints) {
     const tree = SKILL_TREE.filter(node => node.branch === branch || node.id === branch);
     const container = document.getElementById(containerId);
     if (!container) return;
+    
     container.innerHTML = '';
+    
     // Agrupar por camadas (row)
     const layers = {};
     tree.forEach(node => {
         if (!layers[node.row]) layers[node.row] = [];
         layers[node.row].push(node);
     });
+    
     const maxRow = Math.max(...tree.map(n => n.row));
-    // Renderizar cada camada: se houver mais de um nó, centralizar em flex row
     const nodeDivs = {};
-    const rowDivs = {};
+    
     for (let row = 1; row <= maxRow; row++) {
         const layer = layers[row] || [];
         const rowDiv = document.createElement('div');
@@ -105,103 +285,26 @@ function renderSkillTreeColumn(branch, containerId, skillTree, skillPoints) {
         rowDiv.style.gap = '16px';
         rowDiv.style.position = 'relative';
         rowDiv.style.height = '80px';
-        rowDivs[row] = rowDiv;
+        
         layer.forEach(node => {
-            const nodeDiv = document.createElement('div');
-            nodeDiv.className = 'skill-node';
-            nodeDiv.innerHTML = `<div class="skill-icon-box"><span class="skill-icon">${SKILL_ICONS[node.id] || '❔'}</span></div>`;
-            nodeDiv.style.position = 'relative';
-            nodeDiv.style.zIndex = 2;
+            const { nodeDiv, canUpgrade, locked, unlocked } = createSkillNode(node, skillTree, skillPoints);
             nodeDivs[node.id] = nodeDiv;
             
-            // Determinar estado do nó
-            const level = skillTree[node.id] || 0;
-            const canUpgrade = (level < node.max) && (skillPoints >= node.cost) && canUnlockSkill(node, skillTree);
-            const unlocked = level > 0;
-            const locked = !canUpgrade && level < node.max;
-            const atMax = level >= node.max;
-            
-            // Aplicar classes CSS baseado no estado
-            if (atMax) {
-                nodeDiv.classList.add('maxed');
-            } else if (unlocked) {
-                nodeDiv.classList.add('unlocked');
-            } else if (canUpgrade) {
-                nodeDiv.classList.add('available');
-            } else {
-                nodeDiv.classList.add('locked');
-            }
-            
-            let statusText = '';
-            let lockReason = '';
-            if (atMax) {
-                statusText = 'Máximo';
-            } else if (unlocked) {
-                statusText = 'Desbloqueada';
-            } else if (canUpgrade) {
-                statusText = 'Disponível';
-            } else {
-                statusText = 'Bloqueada';
-                // Motivo do bloqueio
-                if (level < node.max && skillPoints < node.cost) {
-                    lockReason = 'Pontos insuficientes';
-                } else if (!canUnlockSkill(node, skillTree)) {
-                    lockReason = 'Pré-requisito não atendido';
-                } else {
-                    lockReason = 'Bloqueada';
-                }
-            }
-            const tooltip = document.createElement('div');
-            tooltip.className = 'skill-tooltip';
-            tooltip.innerHTML = `<b>${node.name}</b><br>${node.desc}<br><span style='color:#b26a00;font-size:0.95em;'>${statusText}</span><br>Custo: ${node.cost}<br>Nível: ${level}/${node.max}` + (lockReason ? `<br><span style='color:#888;font-size:0.9em;'>${lockReason}</span>` : '');
+            const tooltip = createTooltip(node, skillTree, skillPoints);
             nodeDiv.appendChild(tooltip);
             nodeDiv.onmouseenter = () => { tooltip.style.display = 'block'; };
             nodeDiv.onmouseleave = () => { tooltip.style.display = 'none'; };
             
             // Ícone de cadeado se bloqueado
             if (locked && !unlocked) {
-                const lockIcon = document.createElement('div');
-                lockIcon.className = 'skill-lock-icon';
-                lockIcon.innerHTML = '🔒';
-                lockIcon.style.position = 'absolute';
-                lockIcon.style.top = '50%';
-                lockIcon.style.left = '50%';
-                lockIcon.style.transform = 'translate(-50%, -50%)';
-                lockIcon.style.fontSize = '1.5em';
-                lockIcon.style.pointerEvents = 'none';
-                lockIcon.style.zIndex = '10';
+                const lockIcon = createLockIcon();
                 nodeDiv.appendChild(lockIcon);
             }
             
             // Evento de clique para evoluir
             if (canUpgrade) {
                 nodeDiv.style.cursor = 'pointer';
-                nodeDiv.onclick = () => {
-                    // Atualizar skillTree e pontos
-                    const newSkillTree = { ...skillTree };
-                    newSkillTree[node.id] = (newSkillTree[node.id] || 0) + 1;
-                    let newPoints = skillPoints - node.cost;
-                    // Salvar no localStorage
-                    localStorage.setItem('arqueiroSkillTree', JSON.stringify(newSkillTree));
-                    localStorage.setItem('arqueiroUpgradePoints', newPoints);
-                    // Recarregar do localStorage para garantir estado atualizado
-                    const updatedSkillTree = JSON.parse(localStorage.getItem('arqueiroSkillTree'));
-                    const updatedPoints = parseInt(localStorage.getItem('arqueiroUpgradePoints') || '0');
-                    // Atualizar exibição dos pontos se existir
-                    if (document.getElementById('upgradePoints')) document.getElementById('upgradePoints').textContent = updatedPoints;
-                    if (document.getElementById('globalSkillPoints')) document.getElementById('globalSkillPoints').textContent = updatedPoints;
-                    // Re-renderizar árvore com estado atualizado
-                    initSkillTreePanel('skill-tree-multi-panel', updatedSkillTree, updatedPoints);
-                    
-                    // DISPARAR EVENTO PARA NOTIFICAR MUDANÇA NA SKILL TREE
-                    document.dispatchEvent(new CustomEvent('skillTreeChanged', { 
-                        detail: { 
-                            nodeId: node.id, 
-                            newLevel: newSkillTree[node.id],
-                            skillTree: updatedSkillTree 
-                        } 
-                    }));
-                };
+                nodeDiv.onclick = () => handleSkillUpgrade(node, skillTree, skillPoints);
             } else {
                 nodeDiv.style.cursor = 'default';
                 nodeDiv.onclick = null;
@@ -209,8 +312,10 @@ function renderSkillTreeColumn(branch, containerId, skillTree, skillPoints) {
             
             rowDiv.appendChild(nodeDiv);
         });
+        
         container.appendChild(rowDiv);
     }
+    
     // Desenhar conexões SVG entre os nós (após renderizar)
     setTimeout(() => {
         drawSkillConnections(container, tree, nodeDivs, skillTree);
@@ -241,63 +346,9 @@ function drawSkillConnections(container, tree, nodeDivs, skillTree) {
 
     // Definir gradientes para as linhas
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-    
-    // Gradiente para linhas desbloqueadas
-    const unlockedGradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-    unlockedGradient.setAttribute('id', 'unlockedGradient');
-    unlockedGradient.setAttribute('x1', '0%');
-    unlockedGradient.setAttribute('y1', '0%');
-    unlockedGradient.setAttribute('x2', '100%');
-    unlockedGradient.setAttribute('y2', '0%');
-    
-    const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    stop1.setAttribute('offset', '0%');
-    stop1.setAttribute('stop-color', '#4fdfff');
-    stop1.setAttribute('stop-opacity', '0.8');
-    
-    const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    stop2.setAttribute('offset', '50%');
-    stop2.setAttribute('stop-color', '#00bfff');
-    stop2.setAttribute('stop-opacity', '1');
-    
-    const stop3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    stop3.setAttribute('offset', '100%');
-    stop3.setAttribute('stop-color', '#4fdfff');
-    stop3.setAttribute('stop-opacity', '0.8');
-    
-    unlockedGradient.appendChild(stop1);
-    unlockedGradient.appendChild(stop2);
-    unlockedGradient.appendChild(stop3);
-    defs.appendChild(unlockedGradient);
-
-    // Gradiente para linhas bloqueadas
-    const lockedGradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-    lockedGradient.setAttribute('id', 'lockedGradient');
-    lockedGradient.setAttribute('x1', '0%');
-    lockedGradient.setAttribute('y1', '0%');
-    lockedGradient.setAttribute('x2', '100%');
-    lockedGradient.setAttribute('y2', '0%');
-    
-    const stop1Locked = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    stop1Locked.setAttribute('offset', '0%');
-    stop1Locked.setAttribute('stop-color', '#666');
-    stop1Locked.setAttribute('stop-opacity', '0.3');
-    
-    const stop2Locked = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    stop2Locked.setAttribute('offset', '50%');
-    stop2Locked.setAttribute('stop-color', '#999');
-    stop2Locked.setAttribute('stop-opacity', '0.5');
-    
-    const stop3Locked = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    stop3Locked.setAttribute('offset', '100%');
-    stop3Locked.setAttribute('stop-color', '#666');
-    stop3Locked.setAttribute('stop-opacity', '0.3');
-    
-    lockedGradient.appendChild(stop1Locked);
-    lockedGradient.appendChild(stop2Locked);
-    lockedGradient.appendChild(stop3Locked);
-    defs.appendChild(lockedGradient);
-
+    Object.values(GRADIENT_CONFIGS).forEach(config => {
+        defs.appendChild(createGradientElement(config));
+    });
     svg.appendChild(defs);
 
     // Desenhar linhas de conexão
@@ -312,11 +363,11 @@ function drawSkillConnections(container, tree, nodeDivs, skillTree) {
         const toRect = to.getBoundingClientRect();
         const contRect = container.getBoundingClientRect();
 
-        // Calcular pontos de conexão - ajustar para conectar topo do pai com baixo do filho
+        // Calcular pontos de conexão
         const x1 = fromRect.left + fromRect.width/2 - contRect.left;
-        const y1 = fromRect.top - contRect.top - 2; // Pequena margem para cima
+        const y1 = fromRect.top - contRect.top - 2;
         const x2 = toRect.left + toRect.width/2 - contRect.left;
-        const y2 = toRect.top + toRect.height - contRect.top + 2; // Pequena margem para baixo
+        const y2 = toRect.top + toRect.height - contRect.top + 2;
 
         // Verificar se o nó pai está desbloqueado
         const parentLevel = skillTree[node.parent] || 0;
@@ -348,11 +399,4 @@ function drawSkillConnections(container, tree, nodeDivs, skillTree) {
     });
 
     container.appendChild(svg);
-}
-
-// Função para checar se pode desbloquear uma habilidade
-function canUnlockSkill(node, skillTree) {
-    if (!node.parent) return true;
-    const parentLevel = skillTree[node.parent] || 0;
-    return parentLevel > 0;
 } 
