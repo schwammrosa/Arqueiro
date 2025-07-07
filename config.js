@@ -3,20 +3,15 @@ import {
     DEFAULT_GAME_CONFIG, 
     loadGameConfig, 
     saveGameConfig, 
-    resetGameConfig, 
-    exportGameConfig, 
-    importGameConfig,
     notifyConfigChanged
 } from './js/config/gameConfig.js';
 
 import { 
-    DEFAULT_TOWER_TYPES, 
     loadTowerConfig, 
     saveTowerConfig 
 } from './js/config/towerConfig.js';
 
 import { 
-    DEFAULT_ENEMY_CONFIG, 
     loadEnemyConfig, 
     saveEnemyConfig 
 } from './js/config/enemyConfig.js';
@@ -124,7 +119,7 @@ const PATH_TEMPLATES = {
     }
 };
 
-// Função para validar templates de caminho (removida por não ser utilizada)
+
 
 // Estado atual das configurações
 let currentConfig = { ...DEFAULT_GAME_CONFIG };
@@ -197,6 +192,18 @@ let pathGrid = [];
 const GRID_WIDTH = 20;
 const GRID_HEIGHT = 15;
 
+// Função utilitária para obter vizinhos válidos
+function getNeighbors(x, y, visited = null) {
+    const dirs = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+    return dirs.map(([dx, dy]) => [x + dx, y + dy])
+        .filter(([nx, ny]) =>
+            nx >= 0 && nx < GRID_WIDTH && 
+            ny >= 0 && ny < GRID_HEIGHT && 
+            pathGrid[ny] && pathGrid[ny][nx] &&
+            (!visited || !visited[ny][nx])
+        );
+}
+
 // Estado do editor de caminho
 let pathEditorState = {
     isDrawing: false,
@@ -212,31 +219,31 @@ const SKILL_TREE_KEY = 'arqueiroSkillTree';
 
 function updateGlobalSkillPointsConfig() {
     const points = parseInt(localStorage.getItem(SKILL_POINTS_KEY) || '0');
-    // Atualiza tanto o input quanto o texto, se existirem
+    
     const input = document.getElementById('globalSkillPointsInput');
     if (input) input.value = points;
+    
     const span = document.getElementById('globalSkillPoints');
     if (span) span.textContent = points;
 }
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
-
-    
+    // Carregar configurações
     loadConfig();
+    
+    // Configurar editor de caminho
     createPathGrid();
-    createPathTemplates(); // Criar templates antes do editor
-    setupPathEditor(); // Mover para antes de updatePathDisplay
+    createPathTemplates();
+    setupPathEditor();
+    updatePathDisplay();
+    
+    // Configurar eventos e interface
     setupEventListeners();
-    updatePathDisplay(); // Mover para depois de setupPathEditor
     updateGlobalSkillPointsConfig();
     detectCurrentPreset();
     
-    // Testar templates (apenas em modo debug)
-    if (window.location.search.includes('debug=true')) {
-        // testAllTemplates(); // Removido - função não utilizada
-    }
-    // Salvamento automático dos pontos de upgrade globais
+    // Configurar pontos de upgrade globais
     const skillPointsInput = document.getElementById('globalSkillPointsInput');
     if (skillPointsInput) {
         skillPointsInput.value = localStorage.getItem(SKILL_POINTS_KEY) || '0';
@@ -247,44 +254,48 @@ document.addEventListener('DOMContentLoaded', () => {
             skillPointsInput.value = val;
             localStorage.setItem(SKILL_POINTS_KEY, val);
             updateGlobalSkillPointsConfig();
-            // Se quiser, pode disparar um evento customizado para atualizar a árvore em tempo real
             document.dispatchEvent(new CustomEvent('skillPointsChanged', { detail: { value: val } }));
         });
     }
-    // Resetar árvore e pontos
+    
+    // Configurar reset da árvore de habilidades
     const resetBtn = document.getElementById('resetSkillTree');
     if (resetBtn) {
         resetBtn.onclick = () => {
             if (confirm('Tem certeza que deseja resetar todos os upgrades globais e pontos?')) {
                 localStorage.setItem(SKILL_POINTS_KEY, '0');
                 localStorage.setItem(SKILL_TREE_KEY, '{}');
-                localStorage.setItem('arqueiroLastRewardedWave', '0'); // Resetar progresso de recompensas
+                localStorage.setItem('arqueiroLastRewardedWave', '0');
                 updateGlobalSkillPointsConfig();
                 alert('Árvore de habilidades, pontos e progresso de recompensas resetados!');
             }
         };
     }
-    // Carregar e salvar configs das habilidades especiais
+    
+    // Configurar habilidades especiais
     const arrowRainCooldownInput = document.getElementById('arrowRainCooldownConfig');
     const arrowRainDamageInput = document.getElementById('arrowRainDamageConfig');
     const arrowRainRadiusInput = document.getElementById('arrowRainRadiusConfig');
     const iceStormCooldownInput = document.getElementById('iceStormCooldownConfig');
     const iceStormDurationInput = document.getElementById('iceStormDurationConfig');
     const iceStormDamageInput = document.getElementById('iceStormDamageConfig');
-    // Carregar valores salvos
-    if (arrowRainCooldownInput) arrowRainCooldownInput.value = localStorage.getItem('arrowRainCooldown') || '15';
-    if (arrowRainDamageInput) arrowRainDamageInput.value = localStorage.getItem('arrowRainDamage') || '60';
-    if (arrowRainRadiusInput) arrowRainRadiusInput.value = localStorage.getItem('arrowRainRadius') || '90';
-    if (iceStormCooldownInput) iceStormCooldownInput.value = localStorage.getItem('iceStormCooldown') || '30';
-    if (iceStormDurationInput) iceStormDurationInput.value = localStorage.getItem('iceStormDuration') || '4';
-    if (iceStormDamageInput) iceStormDamageInput.value = localStorage.getItem('iceStormDamage') || '100';
-    // Salvar ao alterar
-    if (arrowRainCooldownInput) arrowRainCooldownInput.onchange = () => localStorage.setItem('arrowRainCooldown', arrowRainCooldownInput.value);
-    if (arrowRainDamageInput) arrowRainDamageInput.onchange = () => localStorage.setItem('arrowRainDamage', arrowRainDamageInput.value);
-    if (arrowRainRadiusInput) arrowRainRadiusInput.onchange = () => localStorage.setItem('arrowRainRadius', arrowRainRadiusInput.value);
-    if (iceStormCooldownInput) iceStormCooldownInput.onchange = () => localStorage.setItem('iceStormCooldown', iceStormCooldownInput.value);
-    if (iceStormDurationInput) iceStormDurationInput.onchange = () => localStorage.setItem('iceStormDuration', iceStormDurationInput.value);
-    if (iceStormDamageInput) iceStormDamageInput.onchange = () => localStorage.setItem('iceStormDamage', iceStormDamageInput.value);
+    // Configurar valores padrão e carregar valores salvos
+    const specialSkillsConfig = {
+        arrowRainCooldown: { input: arrowRainCooldownInput, key: 'arrowRainCooldown', default: '15' },
+        arrowRainDamage: { input: arrowRainDamageInput, key: 'arrowRainDamage', default: '60' },
+        arrowRainRadius: { input: arrowRainRadiusInput, key: 'arrowRainRadius', default: '90' },
+        iceStormCooldown: { input: iceStormCooldownInput, key: 'iceStormCooldown', default: '30' },
+        iceStormDuration: { input: iceStormDurationInput, key: 'iceStormDuration', default: '4' },
+        iceStormDamage: { input: iceStormDamageInput, key: 'iceStormDamage', default: '100' }
+    };
+    
+    // Aplicar configurações
+    Object.values(specialSkillsConfig).forEach(config => {
+        if (config.input) {
+            config.input.value = localStorage.getItem(config.key) || config.default;
+            config.input.onchange = () => localStorage.setItem(config.key, config.input.value);
+        }
+    });
 });
 
 // Carregar configurações salvas
@@ -295,143 +306,180 @@ function loadConfig() {
 
 // Aplicar configurações aos campos do formulário
 function applyConfigToFields() {
-    // Configurações gerais
-    let el;
-    el = document.getElementById('initialHealth'); if (el) el.value = currentConfig.initialHealth;
-    el = document.getElementById('initialGold'); if (el) el.value = currentConfig.initialGold;
-    el = document.getElementById('gridSize'); if (el) el.value = currentConfig.gridSize;
-    // waveDelay removido, agora usado waveDelaySeconds
-            el = document.getElementById('upgradeBaseCost'); if (el) el.value = currentConfig.upgradeBaseCost || 50;
-        el = document.getElementById('upgradePercentage'); if (el) el.value = currentConfig.upgradePercentage || 50;
-    el = document.getElementById('sellPercentage'); if (el) el.value = currentConfig.sellPercentage || 50;
-    el = document.getElementById('pointsPerKill'); if (el) el.value = currentConfig.pointsPerKill || 8;
-    el = document.getElementById('waveBonusMultiplier'); if (el) el.value = currentConfig.waveBonusMultiplier || 40;
-    el = document.getElementById('upgradeBonusMultiplier'); if (el) el.value = currentConfig.upgradeBonusMultiplier || 20;
-    el = document.getElementById('waveDelaySeconds'); if (el) el.value = currentConfig.waveDelaySeconds || 5;
+    // Configurações gerais do jogo
+    const generalConfig = {
+        initialHealth: currentConfig.initialHealth,
+        initialGold: currentConfig.initialGold,
+        gridSize: currentConfig.gridSize,
+        upgradeBaseCost: currentConfig.upgradeBaseCost || 50,
+        upgradePercentage: currentConfig.upgradePercentage || 50,
+        sellPercentage: currentConfig.sellPercentage || 50,
+        pointsPerKill: currentConfig.pointsPerKill || 8,
+        waveBonusMultiplier: currentConfig.waveBonusMultiplier || 40,
+        upgradeBonusMultiplier: currentConfig.upgradeBonusMultiplier || 20,
+        waveDelaySeconds: currentConfig.waveDelaySeconds || 5
+    };
+    
+    // Aplicar configurações gerais
+    Object.entries(generalConfig).forEach(([key, value]) => {
+        const el = document.getElementById(key);
+        if (el) el.value = value;
+    });
 
-    el = document.getElementById('goldMultiplier'); if (el) el.value = currentConfig.goldMultiplier;
-    el = document.getElementById('enemyHealthMultiplier'); if (el) el.value = currentConfig.enemyHealthMultiplier;
-    el = document.getElementById('enemySpeedMultiplier'); if (el) el.value = currentConfig.enemySpeedMultiplier;
-    el = document.getElementById('enemySpawnRate'); if (el) el.value = currentConfig.enemySpawnRate;
+    // Configurações de multiplicadores
+    const multiplierConfig = {
+        goldMultiplier: currentConfig.goldMultiplier,
+        enemyHealthMultiplier: currentConfig.enemyHealthMultiplier,
+        enemySpeedMultiplier: currentConfig.enemySpeedMultiplier,
+        enemySpawnRate: currentConfig.enemySpawnRate
+    };
+    
+    // Aplicar multiplicadores
+    Object.entries(multiplierConfig).forEach(([key, value]) => {
+        const el = document.getElementById(key);
+        if (el) el.value = value;
+    });
     
     // Configurações das torres
     const towerConfig = loadTowerConfig();
-    el = document.getElementById('archerCost'); if (el) el.value = towerConfig.archer.cost;
-    el = document.getElementById('archerRange'); if (el) el.value = towerConfig.archer.range;
-    el = document.getElementById('archerDamage'); if (el) el.value = towerConfig.archer.damage;
-    el = document.getElementById('archerFireRate'); if (el) el.value = towerConfig.archer.fireRate;
-    el = document.getElementById('archerUpgradeDamage'); if (el) el.value = towerConfig.archer.upgradeDamage || 30;
-    el = document.getElementById('archerUpgradeRange'); if (el) el.value = towerConfig.archer.upgradeRange || 10;
-    el = document.getElementById('archerUpgradeSpeed'); if (el) el.value = towerConfig.archer.upgradeSpeed || -10;
     
-    el = document.getElementById('cannonCost'); if (el) el.value = towerConfig.cannon.cost;
-    el = document.getElementById('cannonRange'); if (el) el.value = towerConfig.cannon.range;
-    el = document.getElementById('cannonDamage'); if (el) el.value = towerConfig.cannon.damage;
-    el = document.getElementById('cannonFireRate'); if (el) el.value = towerConfig.cannon.fireRate;
-    el = document.getElementById('cannonUpgradeDamage'); if (el) el.value = towerConfig.cannon.upgradeDamage || 30;
-    el = document.getElementById('cannonUpgradeRange'); if (el) el.value = towerConfig.cannon.upgradeRange || 10;
-    el = document.getElementById('cannonUpgradeSpeed'); if (el) el.value = towerConfig.cannon.upgradeSpeed || -10;
+    // Configuração base das torres
+    const towerTypes = ['archer', 'cannon', 'magic', 'tesla'];
+    const towerProperties = ['cost', 'range', 'damage', 'fireRate'];
+    const upgradeProperties = ['upgradeDamage', 'upgradeRange', 'upgradeSpeed'];
     
-    el = document.getElementById('magicCost'); if (el) el.value = towerConfig.magic.cost;
-    el = document.getElementById('magicRange'); if (el) el.value = towerConfig.magic.range;
-    el = document.getElementById('magicDamage'); if (el) el.value = towerConfig.magic.damage;
-    el = document.getElementById('magicFireRate'); if (el) el.value = towerConfig.magic.fireRate;
-    el = document.getElementById('magicUpgradeDamage'); if (el) el.value = towerConfig.magic.upgradeDamage || 30;
-    el = document.getElementById('magicUpgradeRange'); if (el) el.value = towerConfig.magic.upgradeRange || 10;
-    el = document.getElementById('magicUpgradeSpeed'); if (el) el.value = towerConfig.magic.upgradeSpeed || -10;
-    
-    // Tesla
-    if (towerConfig.tesla) {
-        el = document.getElementById('teslaCost'); if (el) el.value = towerConfig.tesla.cost;
-        el = document.getElementById('teslaRange'); if (el) el.value = towerConfig.tesla.range;
-        el = document.getElementById('teslaDamage'); if (el) el.value = towerConfig.tesla.damage;
-        el = document.getElementById('teslaFireRate'); if (el) el.value = towerConfig.tesla.fireRate;
-        el = document.getElementById('teslaUpgradeDamage'); if (el) el.value = towerConfig.tesla.upgradeDamage || 30;
-        el = document.getElementById('teslaUpgradeRange'); if (el) el.value = towerConfig.tesla.upgradeRange || 10;
-        el = document.getElementById('teslaUpgradeSpeed'); if (el) el.value = towerConfig.tesla.upgradeSpeed || -10;
-    }
+    // Aplicar configurações base das torres
+    towerTypes.forEach(towerType => {
+        if (towerConfig[towerType]) {
+            towerProperties.forEach(prop => {
+                const el = document.getElementById(`${towerType}${prop.charAt(0).toUpperCase() + prop.slice(1)}`);
+                if (el) el.value = towerConfig[towerType][prop];
+            });
+            
+            // Aplicar configurações de upgrade
+            upgradeProperties.forEach(upgradeProp => {
+                const el = document.getElementById(`${towerType}${upgradeProp.charAt(0).toUpperCase() + upgradeProp.slice(1)}`);
+                if (el) el.value = towerConfig[towerType][upgradeProp] || (upgradeProp === 'upgradeSpeed' ? -10 : 30);
+            });
+        }
+    });
     
     // Configurações dos inimigos
     const enemyConfig = loadEnemyConfig();
-    el = document.getElementById('enemyBaseHealth'); if (el) el.value = enemyConfig.enemyBaseHealth;
-    el = document.getElementById('enemyHealthIncrease'); if (el) el.value = enemyConfig.enemyHealthIncrease;
-    el = document.getElementById('enemySpeed'); if (el) el.value = enemyConfig.enemySpeed;
-    el = document.getElementById('enemyReward'); if (el) el.value = enemyConfig.enemyReward;
-    el = document.getElementById('enemiesPerWave'); if (el) el.value = enemyConfig.enemiesPerWave;
-    el = document.getElementById('enemiesIncrease'); if (el) el.value = enemyConfig.enemiesIncrease;
+    const enemyConfigFields = {
+        enemyBaseHealth: enemyConfig.enemyBaseHealth,
+        enemyHealthIncrease: enemyConfig.enemyHealthIncrease,
+        enemySpeed: enemyConfig.enemySpeed,
+        enemyReward: enemyConfig.enemyReward,
+        enemiesPerWave: enemyConfig.enemiesPerWave,
+        enemiesIncrease: enemyConfig.enemiesIncrease
+    };
+    
+    // Aplicar configurações dos inimigos
+    Object.entries(enemyConfigFields).forEach(([key, value]) => {
+        const el = document.getElementById(key);
+        if (el) el.value = value;
+    });
     
     // Configurações visuais
-    el = document.getElementById('canvasWidth'); if (el) el.value = currentConfig.canvasWidth;
-    el = document.getElementById('canvasHeight'); if (el) el.value = currentConfig.canvasHeight;
-    el = document.getElementById('projectileSpeed'); if (el) el.value = currentConfig.projectileSpeed;
-    el = document.getElementById('projectileSize'); if (el) el.value = currentConfig.projectileSize;
-    el = document.getElementById('damageNumberLifetime'); if (el) el.value = currentConfig.damageNumberLifetime || 60;
-    el = document.getElementById('damageNumberSpeed'); if (el) el.value = currentConfig.damageNumberSpeed || 1;
+    const visualConfig = {
+        canvasWidth: currentConfig.canvasWidth,
+        canvasHeight: currentConfig.canvasHeight,
+        projectileSpeed: currentConfig.projectileSpeed,
+        projectileSize: currentConfig.projectileSize,
+        damageNumberLifetime: currentConfig.damageNumberLifetime || 60,
+        damageNumberSpeed: currentConfig.damageNumberSpeed || 1
+    };
+    
+    // Aplicar configurações visuais
+    Object.entries(visualConfig).forEach(([key, value]) => {
+        const el = document.getElementById(key);
+        if (el) el.value = value;
+    });
     
     // Configurações de tipos especiais de inimigos
-    const enemyTypes = currentConfig.enemyTypes || DEFAULT_CONFIG.enemyTypes;
+    let enemyTypes = currentConfig.enemyTypes;
+    if (!enemyTypes || typeof enemyTypes !== 'object') enemyTypes = {};
+    // Preencher faltantes com defaults
+    const defaultEnemyTypes = (DEFAULT_CONFIG.enemyTypes || {});
+    ['normal','fast','tank','elite'].forEach(type => {
+        if (!enemyTypes[type]) enemyTypes[type] = defaultEnemyTypes[type] ? { ...defaultEnemyTypes[type] } : {};
+    });
+    const enemyTypeConfigs = {
+        normal: { scoreMultiplier: 1 },
+        fast: { scoreMultiplier: 0.8 },
+        tank: { scoreMultiplier: 2.5 },
+        elite: { scoreMultiplier: 5 }
+    };
     
-    // Normal
-    el = document.getElementById('normalHealthMultiplier'); if (el) el.value = enemyTypes.normal.healthMultiplier;
-    el = document.getElementById('normalSpeedMultiplier'); if (el) el.value = enemyTypes.normal.speedMultiplier;
-    el = document.getElementById('normalRewardMultiplier'); if (el) el.value = enemyTypes.normal.rewardMultiplier;
-    el = document.getElementById('normalSpawnChance'); if (el) el.value = enemyTypes.normal.spawnChance;
-    el = document.getElementById('normalScoreMultiplier'); if (el) el.value = enemyTypes.normal.scoreMultiplier || 1;
-    
-    // Rápido
-    el = document.getElementById('fastHealthMultiplier'); if (el) el.value = enemyTypes.fast.healthMultiplier;
-    el = document.getElementById('fastSpeedMultiplier'); if (el) el.value = enemyTypes.fast.speedMultiplier;
-    el = document.getElementById('fastRewardMultiplier'); if (el) el.value = enemyTypes.fast.rewardMultiplier;
-    el = document.getElementById('fastSpawnChance'); if (el) el.value = enemyTypes.fast.spawnChance;
-    el = document.getElementById('fastScoreMultiplier'); if (el) el.value = enemyTypes.fast.scoreMultiplier || 0.8;
-    
-    // Tanque
-    el = document.getElementById('tankHealthMultiplier'); if (el) el.value = enemyTypes.tank.healthMultiplier;
-    el = document.getElementById('tankSpeedMultiplier'); if (el) el.value = enemyTypes.tank.speedMultiplier;
-    el = document.getElementById('tankRewardMultiplier'); if (el) el.value = enemyTypes.tank.rewardMultiplier;
-    el = document.getElementById('tankSpawnChance'); if (el) el.value = enemyTypes.tank.spawnChance;
-    el = document.getElementById('tankScoreMultiplier'); if (el) el.value = enemyTypes.tank.scoreMultiplier || 2.5;
-    
-    // Elite
-    el = document.getElementById('eliteHealthMultiplier'); if (el) el.value = enemyTypes.elite.healthMultiplier;
-    el = document.getElementById('eliteSpeedMultiplier'); if (el) el.value = enemyTypes.elite.speedMultiplier;
-    el = document.getElementById('eliteRewardMultiplier'); if (el) el.value = enemyTypes.elite.rewardMultiplier;
-    el = document.getElementById('eliteSpawnChance'); if (el) el.value = enemyTypes.elite.spawnChance;
-    el = document.getElementById('eliteScoreMultiplier'); if (el) el.value = enemyTypes.elite.scoreMultiplier || 5;
+    // Aplicar configurações de tipos de inimigos
+    Object.entries(enemyTypeConfigs).forEach(([type, defaults]) => {
+        const typeData = enemyTypes[type] || defaults;
+        const properties = ['healthMultiplier', 'speedMultiplier', 'rewardMultiplier', 'spawnChance', 'scoreMultiplier'];
+        properties.forEach(prop => {
+            const el = document.getElementById(`${type}${prop.charAt(0).toUpperCase() + prop.slice(1)}`);
+            if (el) el.value = (typeData[prop] !== undefined ? typeData[prop] : defaults[prop] || 1);
+        });
+    });
 
-    // Canhão - parâmetros especiais
-    if (towerConfig.cannon) {
-        el = document.getElementById('cannonAreaRadius'); if (el) el.value = towerConfig.cannon.areaRadius || 48;
-        el = document.getElementById('cannonAreaDamageMultiplier'); if (el) el.value = towerConfig.cannon.areaDamageMultiplier || 100;
-    }
-    // Mágica - parâmetro especial
-    if (towerConfig.magic) {
-        el = document.getElementById('magicSlowEffect'); if (el) el.value = towerConfig.magic.slowEffect || 50;
-        el = document.getElementById('magicFreezeDuration'); if (el) el.value = towerConfig.magic.freezeDuration || 1;
-    }
-    // Tesla - parâmetros especiais
-    if (towerConfig.tesla) {
-        el = document.getElementById('teslaChainMax'); if (el) el.value = towerConfig.tesla.chainMax || 5;
-        el = document.getElementById('teslaChainRadius'); if (el) el.value = towerConfig.tesla.chainRadius || 1.2;
-    }
+    // Parâmetros especiais das torres
+    const specialTowerParams = {
+        cannon: {
+            areaRadius: { id: 'cannonAreaRadius', default: 48 },
+            areaDamageMultiplier: { id: 'cannonAreaDamageMultiplier', default: 100 }
+        },
+        magic: {
+            slowEffect: { id: 'magicSlowEffect', default: 50 },
+            freezeDuration: { id: 'magicFreezeDuration', default: 1 }
+        },
+        tesla: {
+            chainMax: { id: 'teslaChainMax', default: 5 },
+            chainRadius: { id: 'teslaChainRadius', default: 1.2 }
+        }
+    };
+    
+    // Aplicar parâmetros especiais
+    Object.entries(specialTowerParams).forEach(([towerType, params]) => {
+        if (towerConfig[towerType]) {
+            Object.entries(params).forEach(([param, config]) => {
+                const el = document.getElementById(config.id);
+                if (el) el.value = towerConfig[towerType][param] || config.default;
+            });
+        }
+    });
 
     // Torre Especial
     if (towerConfig.special) {
-        el = document.getElementById('specialCost'); if (el) el.value = towerConfig.special.cost;
-        el = document.getElementById('specialRange'); if (el) el.value = towerConfig.special.range;
-        el = document.getElementById('specialDamage'); if (el) el.value = towerConfig.special.damage;
-        el = document.getElementById('specialFireRate'); if (el) el.value = towerConfig.special.fireRate;
-        el = document.getElementById('specialColor'); if (el) el.value = towerConfig.special.color || '#8e44ad';
-        el = document.getElementById('specialEffect'); if (el) el.value = towerConfig.special.effect || '';
+        const specialTowerFields = {
+            specialCost: towerConfig.special.cost,
+            specialRange: towerConfig.special.range,
+            specialDamage: towerConfig.special.damage,
+            specialFireRate: towerConfig.special.fireRate,
+            specialColor: towerConfig.special.color || '#8e44ad',
+            specialEffect: towerConfig.special.effect || ''
+        };
+        
+        Object.entries(specialTowerFields).forEach(([key, value]) => {
+            const el = document.getElementById(key);
+            if (el) el.value = value;
+        });
     }
     
     // Configurações de habilidades especiais
-    el = document.getElementById('arrowRainCooldownConfig'); if (el) el.value = currentConfig.arrowRainCooldown || 25;
-    el = document.getElementById('arrowRainDamageConfig'); if (el) el.value = currentConfig.arrowRainDamage || 40;
-    el = document.getElementById('arrowRainRadiusConfig'); if (el) el.value = currentConfig.arrowRainRadius || 90;
-    el = document.getElementById('iceStormCooldownConfig'); if (el) el.value = currentConfig.iceStormCooldown || 30;
-    el = document.getElementById('iceStormDurationConfig'); if (el) el.value = currentConfig.iceStormDuration || 2;
-    el = document.getElementById('iceStormDamageConfig'); if (el) el.value = currentConfig.iceStormDamage || 0;
+    const specialSkillsConfig = {
+        arrowRainCooldownConfig: currentConfig.arrowRainCooldown || 25,
+        arrowRainDamageConfig: currentConfig.arrowRainDamage || 40,
+        arrowRainRadiusConfig: currentConfig.arrowRainRadius || 90,
+        iceStormCooldownConfig: currentConfig.iceStormCooldown || 30,
+        iceStormDurationConfig: currentConfig.iceStormDuration || 2,
+        iceStormDamageConfig: currentConfig.iceStormDamage || 0
+    };
+    
+    // Aplicar configurações de habilidades especiais
+    Object.entries(specialSkillsConfig).forEach(([key, value]) => {
+        const el = document.getElementById(key);
+        if (el) el.value = value;
+    });
 }
 
 // Função auxiliar para obter valor de elemento com segurança
@@ -459,7 +507,7 @@ function collectConfigFromFields() {
         waveBonusMultiplier: getElementValue('waveBonusMultiplier', 100),
         upgradeBonusMultiplier: getElementValue('upgradeBonusMultiplier', 25),
     
-        // Configurações dos inimigos (CAMPOS FALTANTES ADICIONADOS)
+        // Configurações dos inimigos
         enemyBaseHealth: getElementValue('enemyBaseHealth', 50),
         enemyHealthIncrease: getElementValue('enemyHealthIncrease', 15),
         enemySpeed: getElementValue('enemySpeed', 0.5),
@@ -592,11 +640,8 @@ function collectConfigFromFields() {
 // Criar grid do caminho
 function createPathGrid() {
     const pathGridElement = document.getElementById('pathGrid');
-    if (!pathGridElement) return;
-    
-    // Verificar se o grid já foi criado
-    if (pathGridElement.children.length > 0) {
-        return; // Já existe, não criar novamente
+    if (!pathGridElement || pathGridElement.children.length > 0) {
+        return; // Já existe ou elemento não encontrado
     }
     
     pathGridElement.innerHTML = '';
@@ -624,11 +669,8 @@ function createPathGrid() {
 // Criar seção de templates de caminho
 function createPathTemplates() {
     const pathSection = document.querySelector('.path-config');
-    if (!pathSection) return;
-    
-    // Verificar se os templates já existem
-    if (pathSection.querySelector('.path-templates')) {
-        return; // Já existem, não criar novamente
+    if (!pathSection || pathSection.querySelector('.path-templates')) {
+        return; // Já existem ou seção não encontrada
     }
     
     const templatesDiv = document.createElement('div');
@@ -679,11 +721,8 @@ function createPathTemplates() {
 // Configurar editor de caminho
 function setupPathEditor() {
     const pathSection = document.querySelector('.path-config');
-    if (!pathSection) return;
-    
-    // Verificar se os controles já existem
-    if (pathSection.querySelector('.path-editor-controls')) {
-        return; // Já existem, não criar novamente
+    if (!pathSection || pathSection.querySelector('.path-editor-controls')) {
+        return; // Já existem ou seção não encontrada
     }
     
     // Adicionar controles do editor
@@ -760,18 +799,16 @@ function handleCellMouseUp() {
 
 // Aplicar template de caminho
 function applyPathTemplate(templateName) {
-    // Verificar se o template existe
-    if (!PATH_TEMPLATES[templateName]) {
+    const template = PATH_TEMPLATES[templateName];
+    if (!template) {
         showNotification(`Template "${templateName}" não encontrado!`, 'error');
         return;
     }
     
-    const template = PATH_TEMPLATES[templateName];
     if (confirm(`Aplicar template "${template.name}"?\n\n${template.description}`)) {
         try {
             applyPathToGrid(template.path);
             showNotification(`Template "${template.name}" aplicado com sucesso!`, 'success');
-    
         } catch (error) {
             console.error('Erro ao aplicar template:', error);
             showNotification(`Erro ao aplicar template: ${error.message}`, 'error');
@@ -788,13 +825,13 @@ function togglePathCell(x, y) {
 
 // Atualizar exibição do caminho
 function updatePathDisplay() {
-    // Verificar se pathGrid existe e foi inicializado
     if (!pathGrid || !Array.isArray(pathGrid) || pathGrid.length === 0) {
         return;
     }
     
     const cells = document.querySelectorAll('.path-cell');
     
+    // Atualizar células do grid
     cells.forEach(cell => {
         const x = parseInt(cell.dataset.x);
         const y = parseInt(cell.dataset.y);
@@ -816,7 +853,7 @@ function updatePathDisplay() {
         if (endCell) endCell.classList.add('end');
     }
     
-    // Validar caminho apenas se os elementos existirem
+    // Validar caminho
     if (document.getElementById('pathValidation')) {
         validatePath();
     }
@@ -826,50 +863,40 @@ function updatePathDisplay() {
 function updatePathStats() {
     const path = getPathFromGrid();
     const cellCount = document.getElementById('pathCellCount');
-    if (cellCount) {
-        cellCount.textContent = path.length;
-    }
+    if (cellCount) cellCount.textContent = path.length;
 }
 
 // Validar caminho
 function validatePath() {
-    // Verificar se pathGrid existe e foi inicializado
     if (!pathGrid || !Array.isArray(pathGrid) || pathGrid.length === 0) {
         return false;
     }
     
     const path = getPathFromGrid();
     const validationElement = document.getElementById('pathValidation');
+    
     if (!validationElement) {
         return path.length > 0;
     }
+    
     if (path.length === 0) {
         validationElement.textContent = '❌ Caminho vazio';
         validationElement.className = 'path-validation invalid';
         return false;
     }
-    // Encontrar início e fim
+    
     const start = path[0];
     const end = path[path.length - 1];
-    // Criar grid de visitados
     const visited = Array(GRID_HEIGHT).fill().map(() => Array(GRID_WIDTH).fill(false));
-    // Função auxiliar para encontrar vizinhos válidos
-    function getNeighbors(x, y) {
-        const dirs = [
-            [0, 1], [1, 0], [0, -1], [-1, 0]
-        ];
-        return dirs.map(([dx, dy]) => [x + dx, y + dy])
-            .filter(([nx, ny]) =>
-                nx >= 0 && nx < GRID_WIDTH && ny >= 0 && ny < GRID_HEIGHT && pathGrid[ny] && pathGrid[ny][nx]
-            );
-    }
+    
     // BFS para percorrer o caminho
     let queue = [[start.x, start.y]];
     visited[start.y][start.x] = true;
     let count = 1;
+    
     while (queue.length > 0) {
         const [x, y] = queue.shift();
-        for (const [nx, ny] of getNeighbors(x, y)) {
+        for (const [nx, ny] of getNeighbors(x, y, visited)) {
             if (!visited[ny][nx]) {
                 visited[ny][nx] = true;
                 queue.push([nx, ny]);
@@ -877,6 +904,7 @@ function validatePath() {
             }
         }
     }
+    
     // Verificar se todas as células do caminho foram visitadas e se o fim foi alcançado
     if (count === path.length && visited[end.y][end.x]) {
         validationElement.textContent = '✅ Válido';
@@ -891,7 +919,6 @@ function validatePath() {
 
 // Obter caminho do grid na ordem real do percurso
 function getPathFromGrid() {
-    // Verificar se pathGrid existe e foi inicializado
     if (!pathGrid || !Array.isArray(pathGrid) || pathGrid.length === 0) {
         return [];
     }
@@ -911,31 +938,28 @@ function getPathFromGrid() {
         }
         if (start) break;
     }
+    
     if (!start) return [];
+    
     // Percorrer o caminho a partir do início
     const visited = Array(GRID_HEIGHT).fill().map(() => Array(GRID_WIDTH).fill(false));
     const path = [];
-    function getNeighbors(x, y) {
-        const dirs = [
-            [0, 1], [1, 0], [0, -1], [-1, 0]
-        ];
-        return dirs.map(([dx, dy]) => [x + dx, y + dy])
-            .filter(([nx, ny]) =>
-                nx >= 0 && nx < GRID_WIDTH && ny >= 0 && ny < GRID_HEIGHT && pathGrid[ny] && pathGrid[ny][nx] && !visited[ny][nx]
-            );
-    }
+    
     let current = start;
     path.push(current);
     visited[current.y][current.x] = true;
+    
     while (true) {
-        const neighbors = getNeighbors(current.x, current.y);
+        const neighbors = getNeighbors(current.x, current.y, visited);
         if (neighbors.length === 0) break;
+        
         // Pega o primeiro vizinho não visitado
         const [nx, ny] = neighbors[0];
         current = { x: nx, y: ny };
         path.push(current);
         visited[ny][nx] = true;
     }
+    
     return path;
 }
 
@@ -1023,105 +1047,79 @@ function setupEventListeners() {
     const pathGridElement = document.getElementById('pathGrid');
     if (pathGridElement) pathGridElement.addEventListener('dragstart', (e) => e.preventDefault());
 
-    // Salvar configurações das torres
-    const teslaChainRadiusInput = document.getElementById('teslaChainRadius');
-    if (teslaChainRadiusInput) {
-        teslaChainRadiusInput.onchange = () => {
-            let val = parseFloat(teslaChainRadiusInput.value);
-            if (val < 0.5) val = 0.5;
-            if (val > 3) val = 3;
-            teslaChainRadiusInput.value = val;
-            // Salvar no localStorage
-            let config = JSON.parse(localStorage.getItem('arqueiroConfig') || '{}');
-            config.towers = config.towers || {};
-            config.towers.tesla = config.towers.tesla || {};
-            config.towers.tesla.chainRadius = val;
-            localStorage.setItem('arqueiroConfig', JSON.stringify(config));
-        };
-    }
 
-    // Salvar configurações dos upgrades do Arqueiro
-    ['archerUpgradeDamage','archerUpgradeRange','archerUpgradeSpeed'].forEach(id => {
-        const input = document.getElementById(id);
+
+    // Função auxiliar para salvar configurações de upgrade das torres
+    function setupTowerUpgradeListener(towerType, upgradeType, inputId) {
+        const input = document.getElementById(inputId);
         if (input) {
             input.onchange = () => {
-                let val = parseFloat(input.value);
-                let config = JSON.parse(localStorage.getItem('arqueiroConfig') || '{}');
+                const val = parseFloat(input.value);
+                const config = JSON.parse(localStorage.getItem('arqueiroConfig') || '{}');
                 config.towers = config.towers || {};
-                config.towers.archer = config.towers.archer || {};
-                if(id==='archerUpgradeDamage') config.towers.archer.upgradeDamage = val;
-                if(id==='archerUpgradeRange') config.towers.archer.upgradeRange = val;
-                if(id==='archerUpgradeSpeed') config.towers.archer.upgradeSpeed = val;
+                config.towers[towerType] = config.towers[towerType] || {};
+                config.towers[towerType][upgradeType] = val;
                 localStorage.setItem('arqueiroConfig', JSON.stringify(config));
             };
         }
+    }
+
+    // Configurar listeners para upgrades do Arqueiro
+    const archerUpgrades = [
+        { type: 'upgradeDamage', id: 'archerUpgradeDamage' },
+        { type: 'upgradeRange', id: 'archerUpgradeRange' },
+        { type: 'upgradeSpeed', id: 'archerUpgradeSpeed' }
+    ];
+    archerUpgrades.forEach(upgrade => {
+        setupTowerUpgradeListener('archer', upgrade.type, upgrade.id);
     });
 
-    // Salvar configurações dos upgrades das torres
-    ['cannon','magic','tesla'].forEach(tower => {
-        ['UpgradeDamage','UpgradeRange','UpgradeSpeed'].forEach(suf => {
-            const id = tower + suf;
-            const input = document.getElementById(id);
-            if (input) {
-                input.onchange = () => {
-                    let val = parseFloat(input.value);
-                    let config = JSON.parse(localStorage.getItem('arqueiroConfig') || '{}');
-                    config.towers = config.towers || {};
-                    config.towers[tower] = config.towers[tower] || {};
-                    if(suf==='UpgradeDamage') config.towers[tower].upgradeDamage = val;
-                    if(suf==='UpgradeRange') config.towers[tower].upgradeRange = val;
-                    if(suf==='UpgradeSpeed') config.towers[tower].upgradeSpeed = val;
-                    localStorage.setItem('arqueiroConfig', JSON.stringify(config));
-                };
-            }
+    // Configurar listeners para upgrades das outras torres
+    const towerTypes = ['cannon', 'magic', 'tesla'];
+    const upgradeTypes = ['upgradeDamage', 'upgradeRange', 'upgradeSpeed'];
+    
+    towerTypes.forEach(tower => {
+        upgradeTypes.forEach(upgradeType => {
+            const inputId = tower + upgradeType.charAt(0).toUpperCase() + upgradeType.slice(1);
+            setupTowerUpgradeListener(tower, upgradeType, inputId);
         });
     });
 
-    // Salvar configurações dos parâmetros especiais das torres
-    const cannonAreaRadiusInput = document.getElementById('cannonAreaRadius');
-    if (cannonAreaRadiusInput) {
-        cannonAreaRadiusInput.onchange = () => {
-            let val = parseInt(cannonAreaRadiusInput.value);
-            let config = JSON.parse(localStorage.getItem('arqueiroConfig') || '{}');
-            config.towers = config.towers || {};
-            config.towers.cannon = config.towers.cannon || {};
-            config.towers.cannon.areaRadius = val;
-            localStorage.setItem('arqueiroConfig', JSON.stringify(config));
-        };
+    // Função auxiliar para salvar parâmetros especiais das torres
+    function setupSpecialParamListener(towerType, paramName, inputId, isFloat = false) {
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.onchange = () => {
+                let val = isFloat ? parseFloat(input.value) : parseInt(input.value);
+                
+                // Validação específica para teslaChainRadius
+                if (paramName === 'chainRadius') {
+                    if (val < 0.5) val = 0.5;
+                    if (val > 3) val = 3;
+                    input.value = val;
+                }
+                
+                const config = JSON.parse(localStorage.getItem('arqueiroConfig') || '{}');
+                config.towers = config.towers || {};
+                config.towers[towerType] = config.towers[towerType] || {};
+                config.towers[towerType][paramName] = val;
+                localStorage.setItem('arqueiroConfig', JSON.stringify(config));
+            };
+        }
     }
-    const cannonAreaDamageMultiplierInput = document.getElementById('cannonAreaDamageMultiplier');
-    if (cannonAreaDamageMultiplierInput) {
-        cannonAreaDamageMultiplierInput.onchange = () => {
-            let val = parseInt(cannonAreaDamageMultiplierInput.value);
-            let config = JSON.parse(localStorage.getItem('arqueiroConfig') || '{}');
-            config.towers = config.towers || {};
-            config.towers.cannon = config.towers.cannon || {};
-            config.towers.cannon.areaDamageMultiplier = val;
-            localStorage.setItem('arqueiroConfig', JSON.stringify(config));
-        };
-    }
-    const magicSlowEffectInput = document.getElementById('magicSlowEffect');
-    if (magicSlowEffectInput) {
-        magicSlowEffectInput.onchange = () => {
-            let val = parseInt(magicSlowEffectInput.value);
-            let config = JSON.parse(localStorage.getItem('arqueiroConfig') || '{}');
-            config.towers = config.towers || {};
-            config.towers.magic = config.towers.magic || {};
-            config.towers.magic.slowEffect = val;
-            localStorage.setItem('arqueiroConfig', JSON.stringify(config));
-        };
-    }
-    const teslaChainMaxInput = document.getElementById('teslaChainMax');
-    if (teslaChainMaxInput) {
-        teslaChainMaxInput.onchange = () => {
-            let val = parseInt(teslaChainMaxInput.value);
-            let config = JSON.parse(localStorage.getItem('arqueiroConfig') || '{}');
-            config.towers = config.towers || {};
-            config.towers.tesla = config.towers.tesla || {};
-            config.towers.tesla.chainMax = val;
-            localStorage.setItem('arqueiroConfig', JSON.stringify(config));
-        };
-    }
+
+    // Configurar listeners para parâmetros especiais
+    const specialParams = [
+        { tower: 'cannon', param: 'areaRadius', id: 'cannonAreaRadius' },
+        { tower: 'cannon', param: 'areaDamageMultiplier', id: 'cannonAreaDamageMultiplier' },
+        { tower: 'magic', param: 'slowEffect', id: 'magicSlowEffect' },
+        { tower: 'tesla', param: 'chainMax', id: 'teslaChainMax' },
+        { tower: 'tesla', param: 'chainRadius', id: 'teslaChainRadius', isFloat: true }
+    ];
+    
+    specialParams.forEach(({ tower, param, id, isFloat }) => {
+        setupSpecialParamListener(tower, param, id, isFloat);
+    });
 }
 
 // Salvar configurações
@@ -1129,19 +1127,15 @@ function saveConfig() {
     try {
         const config = collectConfigFromFields();
         
-        // Validar caminho antes de salvar
         if (!validatePath()) {
             showNotification('Caminho inválido! Corrija antes de salvar.', 'error');
             return;
         }
         
-        // Salvar configurações do jogo
+        // Salvar configurações
         saveGameConfig(config);
-        
-        // Salvar configurações das torres
         saveTowerConfig(config.towers);
         
-        // Salvar configurações dos inimigos
         const enemyConfig = {
             enemyBaseHealth: config.enemyBaseHealth,
             enemyHealthIncrease: config.enemyHealthIncrease,
@@ -1153,14 +1147,11 @@ function saveConfig() {
         };
         saveEnemyConfig(enemyConfig);
         
-        // Notificar sobre mudança de configuração
         notifyConfigChanged();
-        
         showNotification('Configurações salvas com sucesso!', 'success');
         
-        // Se estamos no mesmo domínio, tentar aplicar mudanças imediatamente
+        // Aplicar mudanças imediatamente se possível
         if (window.opener && window.opener.reloadConfigs) {
-    
             window.opener.reloadConfigs();
             window.opener.forceCanvasResize && window.opener.forceCanvasResize();
         }
@@ -1185,14 +1176,12 @@ function resetConfig() {
 function exportConfig() {
     const config = collectConfigFromFields();
     
-    // Validar caminho antes de exportar
     if (!validatePath()) {
         showNotification('Caminho inválido! Corrija antes de exportar.', 'error');
         return;
     }
     
     const configJson = JSON.stringify(config, null, 2);
-    
     const blob = new Blob([configJson], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     
@@ -1229,7 +1218,6 @@ function importConfig() {
     try {
         const config = JSON.parse(importText);
         
-        // Validar configuração
         if (!config.towers || !config.enemyPath) {
             throw new Error('Configuração inválida');
         }
@@ -1265,25 +1253,21 @@ function setDefaultPath() {
 
 // Mostrar notificação
 function showNotification(message, type = 'info') {
-    // Criar elemento de notificação
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
     notification.textContent = message;
     
-    // Verificar se há outras notificações e ajustar posição
+    // Ajustar posição se há outras notificações
     const existingNotifications = document.querySelectorAll('.notification');
     if (existingNotifications.length > 0) {
-        const offset = existingNotifications.length * 80; // 80px de espaçamento
+        const offset = existingNotifications.length * 80;
         notification.style.top = `${20 + offset}px`;
     }
     
-    // Adicionar ao DOM
     document.body.appendChild(notification);
     
     // Animar entrada
-    setTimeout(() => {
-        notification.classList.add('show');
-    }, 100);
+    setTimeout(() => notification.classList.add('show'), 100);
     
     // Remover após 4 segundos
     setTimeout(() => {
@@ -1291,7 +1275,6 @@ function showNotification(message, type = 'info') {
         setTimeout(() => {
             if (document.body.contains(notification)) {
                 document.body.removeChild(notification);
-                // Reposicionar notificações restantes
                 repositionNotifications();
             }
         }, 400);
@@ -1317,14 +1300,11 @@ function applyPreset(presetName) {
     if (!preset) return;
     
     // Aplicar configurações do preset
-    Object.keys(preset.config).forEach(key => {
+    Object.entries(preset.config).forEach(([key, value]) => {
         const input = document.getElementById(key);
-        if (input) {
-            input.value = preset.config[key];
-        }
+        if (input) input.value = value;
     });
     
-    // Marcar preset como ativo
     setPresetActive(presetName);
     currentPreset = presetName;
     
@@ -1333,15 +1313,11 @@ function applyPreset(presetName) {
 
 function setPresetActive(presetName) {
     // Remover classe active de todos os botões
-    document.querySelectorAll('.preset-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
+    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
     
     // Adicionar classe active no botão selecionado
     const activeBtn = document.getElementById(`preset${presetName.charAt(0).toUpperCase() + presetName.slice(1)}`);
-    if (activeBtn) {
-        activeBtn.classList.add('active');
-    }
+    if (activeBtn) activeBtn.classList.add('active');
     
     currentPreset = presetName;
 }
@@ -1349,15 +1325,10 @@ function setPresetActive(presetName) {
 function detectCurrentPreset() {
     // Verificar se os valores atuais correspondem a algum preset
     for (const [presetName, preset] of Object.entries(PRESETS)) {
-        let matches = true;
-        
-        for (const [key, value] of Object.entries(preset.config)) {
+        const matches = Object.entries(preset.config).every(([key, value]) => {
             const input = document.getElementById(key);
-            if (input && parseFloat(input.value) !== value) {
-                matches = false;
-                break;
-            }
-        }
+            return input && parseFloat(input.value) === value;
+        });
         
         if (matches) {
             setPresetActive(presetName);
@@ -1369,36 +1340,4 @@ function detectCurrentPreset() {
     setPresetActive('custom');
 }
 
-// Função para validar se um caminho é contínuo
-function validateTemplatePath(path) {
-    if (path.length < 2) {
-        return { valid: false, error: 'Caminho muito curto' };
-    }
-    
-    // Verificar se todos os pontos são adjacentes
-    for (let i = 1; i < path.length; i++) {
-        const current = path[i];
-        const previous = path[i - 1];
-        
-        const dx = Math.abs(current.x - previous.x);
-        const dy = Math.abs(current.y - previous.y);
-        
-        // Pontos devem ser adjacentes (máximo 1 célula de distância em uma direção)
-        if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
-            continue; // Válido
-        } else {
-            return { 
-                valid: false, 
-                error: `Caminho desconectado entre pontos ${i-1} e ${i}: (${previous.x},${previous.y}) -> (${current.x},${current.y})` 
-            };
-        }
-    }
-    
-    return { valid: true };
-}
-
-// Comentário removido - inicialização já feita acima
-
-// Funções auxiliares de segurança foram implementadas para lidar com elementos ausentes
-
-// As animações agora estão definidas no config-style.css 
+ 
