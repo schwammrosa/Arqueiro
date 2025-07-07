@@ -481,7 +481,7 @@ const renderSystem = new RenderSystem(ctx, GAME_CONFIG, enemyPath);
 renderSystem.gameState = gameState;
 
 // Log para debug
-console.log('🎮 RenderSystem criado, status dos monstros:', renderSystem.monstersInitialized);
+// RenderSystem criado, status dos monstros: ${renderSystem.monstersInitialized}
 
 // Inicializar sistema de interface do usuário
 const uiSystem = new UISystem(gameState);
@@ -987,8 +987,8 @@ canvas.addEventListener('click', (e) => {
                 gameState, 
                 ctx, 
                 Projectile, 
-                uiSystem.updateUI, 
-                uiSystem.showNotification, 
+                () => uiSystem.updateUI(), 
+                (message, type) => uiSystem.showNotification(message, type), 
                 TeslaChainProjectile, 
                 CannonProjectile,
                 renderSystem.imageManager

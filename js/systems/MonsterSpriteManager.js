@@ -346,7 +346,7 @@ export class MonsterSpriteManager {
         );
         
         const successCount = results.filter(r => r).length;
-        console.log(`Monstros carregados: ${successCount}/${monsters.length}`);
+        // Monstros carregados: ${successCount}/${monsters.length}
         
         return successCount === monsters.length;
     }
@@ -380,7 +380,7 @@ export class MonsterSpriteManager {
 
     // Recarregar sprites de um tipo específico
     async reloadMonsterSprites(monsterType) {
-        console.log(`Recarregando sprites para ${monsterType}...`);
+        // Recarregando sprites para ${monsterType}...
         
         const config = this.monsterConfigs[monsterType];
         if (config) {
@@ -396,7 +396,7 @@ export class MonsterSpriteManager {
 
     // Verificar e reparar sprites corrompidos
     async repairSprites() {
-        console.log('Verificando e reparando sprites...');
+        // Verificando e reparando sprites...
         const monsters = this.getAvailableMonsters();
         let repairedCount = 0;
         
@@ -414,7 +414,7 @@ export class MonsterSpriteManager {
             }
             
             if (needsRepair) {
-                console.log(`Reparando sprites para ${monsterType}...`);
+                // Reparando sprites para ${monsterType}...
                 const success = await this.reloadMonsterSprites(monsterType);
                 if (success) {
                     repairedCount++;
@@ -422,7 +422,7 @@ export class MonsterSpriteManager {
             }
         }
         
-        console.log(`Reparação concluída: ${repairedCount} tipos de monstros reparados`);
+        // Reparação concluída: ${repairedCount} tipos de monstros reparados
         return repairedCount;
     }
 } 

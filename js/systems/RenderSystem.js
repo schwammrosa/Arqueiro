@@ -32,7 +32,7 @@ export class RenderSystem {
         this.imagesInitialized = false;
         this.monstersInitialized = false;
         
-        console.log('🏗️ RenderSystem inicializado');
+        // RenderSystem inicializado
         
         // Inicializar imagens padrão e monstros
         this.initializeImages();
@@ -47,7 +47,7 @@ export class RenderSystem {
     // Inicializar imagens do jogo
     async initializeImages() {
         try {
-            console.log('🖼️ Iniciando carregamento de imagens das torres...');
+            // Iniciando carregamento de imagens das torres...
             // Carregar imagens das torres PRIMEIRO
             const towerImages = {
                 archer: 'assets/imagen/Torres/arqueiro.png',
@@ -56,18 +56,18 @@ export class RenderSystem {
                 tesla: 'assets/imagen/Torres/tesla.png'
             };
             
-            console.log('📁 Caminhos das imagens das torres:', towerImages);
+            // Caminhos das imagens das torres carregados
             const success = await this.imageManager.loadImages(towerImages);
-            console.log('✅ Carregamento das imagens das torres:', success ? 'SUCESSO' : 'FALHA');
+            // Carregamento das imagens das torres: ${success ? 'SUCESSO' : 'FALHA'}
             
             // Marcar como inicializado IMEDIATAMENTE após carregar as torres
             this.imagesInitialized = true;
-            console.log('🎯 Imagens das torres inicializadas!');
+            // Imagens das torres inicializadas!
             
             // Verificar se cada imagem foi carregada
             Object.keys(towerImages).forEach(type => {
                 const image = this.imageManager.getImage(type);
-                console.log(`🔍 Imagem ${type}:`, image ? 'CARREGADA' : 'NÃO CARREGADA');
+                // Imagem ${type}: ${image ? 'CARREGADA' : 'NÃO CARREGADA'}
             });
             
             // Aguardar um pouco para garantir que as imagens estejam prontas
@@ -76,7 +76,7 @@ export class RenderSystem {
             // Depois carregar as outras imagens
             await this.imageManager.initializeDefault(this.GAME_CONFIG.gridSize);
             
-            console.log('🎯 Todas as imagens inicializadas com sucesso!');
+            // Todas as imagens inicializadas com sucesso!
         } catch (error) {
             console.error('❌ Erro ao inicializar imagens:', error);
             this.imagesInitialized = false;
@@ -86,7 +86,7 @@ export class RenderSystem {
     // Inicializar sprites de monstros
     async initializeMonsters() {
         try {
-            console.log('🎮 Iniciando carregamento de sprites de monstros...');
+            // Iniciando carregamento de sprites de monstros...
             
             // Aguardar um pouco para garantir que o ImageManager esteja pronto
             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -95,19 +95,19 @@ export class RenderSystem {
             this.monstersInitialized = success;
             
             if (success) {
-                console.log('✅ Sistema de sprites de monstros inicializado com sucesso!');
+                // Sistema de sprites de monstros inicializado com sucesso!
                 
                 // Verificar estatísticas
                 const stats = this.monsterSpriteManager.getStats();
-                console.log('📊 Estatísticas dos sprites:', stats);
+                // Estatísticas dos sprites carregadas
             } else {
                 console.warn('⚠️ Falha ao inicializar sprites de monstros - usando fallback');
                 
                 // Tentar reparar sprites corrompidos
-                console.log('🔧 Tentando reparar sprites...');
+                // Tentando reparar sprites...
                 const repairedCount = await this.monsterSpriteManager.repairSprites();
                 if (repairedCount > 0) {
-                    console.log(`✅ ${repairedCount} tipos de monstros reparados`);
+                    // ${repairedCount} tipos de monstros reparados
                     this.monstersInitialized = true;
                 }
             }

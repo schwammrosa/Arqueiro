@@ -124,27 +124,7 @@ const PATH_TEMPLATES = {
     }
 };
 
-// Função para testar todos os templates
-function testAllTemplates() {
-    Object.keys(PATH_TEMPLATES).forEach(templateName => {
-        const template = PATH_TEMPLATES[templateName];
-        
-        // Verificar pontos válidos
-        let validPoints = 0;
-        let invalidPoints = 0;
-        
-        template.path.forEach(point => {
-            if (point.x >= 0 && point.x < GRID_WIDTH && point.y >= 0 && point.y < GRID_HEIGHT) {
-                validPoints++;
-            } else {
-                invalidPoints++;
-            }
-        });
-        
-        // Validar conectividade do caminho
-        validateTemplatePath(template.path);
-    });
-}
+// Função para validar templates de caminho (removida por não ser utilizada)
 
 // Estado atual das configurações
 let currentConfig = { ...DEFAULT_GAME_CONFIG };
@@ -254,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Testar templates (apenas em modo debug)
     if (window.location.search.includes('debug=true')) {
-        testAllTemplates();
+        // testAllTemplates(); // Removido - função não utilizada
     }
     // Salvamento automático dos pontos de upgrade globais
     const skillPointsInput = document.getElementById('globalSkillPointsInput');
