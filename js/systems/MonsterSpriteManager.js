@@ -6,11 +6,7 @@ export class MonsterSpriteManager {
         this.imageManager = imageManager;
         this.monsterSprites = new Map();
         this.animationFrames = new Map();
-        this.currentFrame = 0;
-        this.frameTimer = 0;
         this.frameDuration = 200; // 200ms por frame (5 FPS)
-        
-        // Usar configuração externa
         this.monsterConfigs = MONSTER_SPRITE_CONFIG;
     }
 
@@ -33,7 +29,6 @@ export class MonsterSpriteManager {
             spritePromises.push(
                 this.imageManager.loadImage(key, path)
                     .then(img => {
-                        // Preparar frames de animação
                         this.prepareAnimationFrames(monsterType, direction, img, config);
                         return img;
                     })
@@ -50,10 +45,9 @@ export class MonsterSpriteManager {
             
             if (successCount === spriteKeys.length) {
                 this.monsterSprites.set(monsterType, spriteKeys);
-                console.log(`✅ Sprites carregados para ${monsterType}: ${successCount}/${spriteKeys.length}`);
                 return true;
             } else {
-                console.warn(`⚠️ Apenas ${successCount}/${spriteKeys.length} sprites carregados para ${monsterType}`);
+                console.warn(`Apenas ${successCount}/${spriteKeys.length} sprites carregados para ${monsterType}`);
                 return false;
             }
         } catch (error) {
@@ -69,17 +63,14 @@ export class MonsterSpriteManager {
         const frameHeight = config.frameHeight;
         const totalFrames = config.animationFrames;
 
-        // Se é apenas 1 frame, usar a imagem diretamente
         if (totalFrames === 1) {
             frames.push(spriteImage);
         } else {
-            // Criar canvas para extrair cada frame
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             canvas.width = frameWidth;
             canvas.height = frameHeight;
 
-            // Extrair cada frame horizontalmente
             for (let i = 0; i < totalFrames; i++) {
                 ctx.clearRect(0, 0, frameWidth, frameHeight);
                 ctx.drawImage(
@@ -88,7 +79,6 @@ export class MonsterSpriteManager {
                     0, 0, frameWidth, frameHeight
                 );
                 
-                // Criar nova imagem do frame
                 const frameCanvas = document.createElement('canvas');
                 frameCanvas.width = frameWidth;
                 frameCanvas.height = frameHeight;
@@ -116,35 +106,39 @@ export class MonsterSpriteManager {
                 return staticSprite;
             }
             
-            // Se não encontrou sprite estático, tentar outras direções
-            const config = this.monsterConfigs[spriteType];
-            if (config) {
-                for (const altDirection of Object.keys(config.sprites)) {
-                    const altKey = `${spriteType}_${altDirection}`;
-                    const altFrames = this.animationFrames.get(altKey);
-                    if (altFrames && altFrames.length > 0) {
-                        return altFrames[0]; // Retornar primeiro frame da direção alternativa
-                    }
-                    
-                    const altStaticSprite = this.imageManager.getImage(altKey);
-                    if (altStaticSprite) {
-                        return altStaticSprite;
-                    }
-                }
-            }
-            
-            // Se ainda não encontrou nada, retornar null para usar fallback geométrico
-            return null;
+            // Tentar outras direções como fallback
+            return this.getFallbackSprite(spriteType);
         }
 
-        // Se é apenas 1 frame, retornar diretamente (evita piscamento)
+        // Se é apenas 1 frame, retornar diretamente
         if (frames.length === 1) {
             return frames[0];
         }
 
-        // Calcular frame atual baseado no tempo (apenas para múltiplos frames)
+        // Calcular frame atual baseado no tempo
         const frameIndex = Math.floor((gameTime % (this.frameDuration * frames.length)) / this.frameDuration);
         return frames[frameIndex % frames.length];
+    }
+
+    // Obter sprite de fallback de outras direções
+    getFallbackSprite(spriteType) {
+        const config = this.monsterConfigs[spriteType];
+        if (!config) return null;
+        
+        for (const altDirection of Object.keys(config.sprites)) {
+            const altKey = `${spriteType}_${altDirection}`;
+            const altFrames = this.animationFrames.get(altKey);
+            if (altFrames && altFrames.length > 0) {
+                return altFrames[0];
+            }
+            
+            const altStaticSprite = this.imageManager.getImage(altKey);
+            if (altStaticSprite) {
+                return altStaticSprite;
+            }
+        }
+        
+        return null;
     }
 
     // Obter direção baseada no movimento
@@ -156,109 +150,69 @@ export class MonsterSpriteManager {
         }
     }
 
-    // Desenhar monstro com sprite animado
-    drawMonster(ctx, monster, gameTime) {
-        const spriteType = ENEMY_TYPE_TO_SPRITE[monster.type] || 'normal';
-        const config = this.monsterConfigs[spriteType];
-        if (!config) {
-            console.warn('⚠️ Config não encontrada para:', monster.type, 'usando fallback');
-            // Fallback: desenhar círculo simples
-            ctx.fillStyle = '#ff0000';
-            ctx.beginPath();
-            ctx.arc(monster.x, monster.y, 15, 0, Math.PI * 2);
-            ctx.fill();
-            return;
-        }
+    // Desenhar fallback geométrico
+    drawFallback(ctx, monster) {
+        ctx.fillStyle = '#ff0000';
+        ctx.beginPath();
+        ctx.arc(monster.x, monster.y, 15, 0, Math.PI * 2);
+        ctx.fill();
+    }
 
-        // Calcular direção baseada no movimento
-        const direction = monster.direction || 'down';
-        
-        // Obter sprite atual
-        const sprite = this.getCurrentSprite(monster.type, direction, gameTime);
-        if (!sprite) {
-            // Log detalhado para debug
-            const debugInfo = this.getSpriteDebugInfo(monster.type, direction);
-            console.warn('⚠️ Sprite não encontrado para:', debugInfo);
-            
-            // Fallback: desenhar círculo simples
-            ctx.fillStyle = '#ff0000';
-            ctx.beginPath();
-            ctx.arc(monster.x, monster.y, 15, 0, Math.PI * 2);
-            ctx.fill();
-            return;
-        }
+    // Desenhar barra de vida
+    drawHealthBar(ctx, monster, config, drawY) {
+        if (!monster.maxHealth || monster.health === undefined) return;
 
-        // Desenhar sprite centralizado na posição do monstro
-        const drawX = monster.x - config.size.width / 2;
-        const drawY = monster.y - config.size.height / 2;
-        
-        try {
-            ctx.drawImage(sprite, drawX, drawY, config.size.width, config.size.height);
-        } catch (error) {
-            console.error('❌ Erro ao desenhar sprite:', error, {
-                sprite: sprite,
-                drawX: drawX,
-                drawY: drawY,
-                width: config.size.width,
-                height: config.size.height,
-                debugInfo: this.getSpriteDebugInfo(monster.type, direction)
-            });
-            
-            // Fallback: desenhar círculo simples
-            ctx.fillStyle = '#ff0000';
-            ctx.beginPath();
-            ctx.arc(monster.x, monster.y, 15, 0, Math.PI * 2);
-            ctx.fill();
-            return;
-        }
+        const barWidth = config.size.width;
+        const barHeight = 5;
+        const barX = monster.x - barWidth / 2;
+        const barY = drawY - 10;
 
-        // --- Barra de vida ---
-        if (monster.maxHealth && monster.health !== undefined) {
-            const barWidth = config.size.width;
-            const barHeight = 5;
-            const barX = monster.x - barWidth / 2;
-            const barY = drawY - 10;
+        // Fundo da barra
+        ctx.fillStyle = '#222';
+        ctx.fillRect(barX, barY, barWidth, barHeight);
 
-            // Fundo da barra
-            ctx.fillStyle = '#222';
-            ctx.fillRect(barX, barY, barWidth, barHeight);
+        // Vida atual
+        const healthPercent = Math.max(0, monster.health / monster.maxHealth);
+        ctx.fillStyle = '#4caf50';
+        ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
 
-            // Vida atual
-            const healthPercent = Math.max(0, monster.health / monster.maxHealth);
-            ctx.fillStyle = '#4caf50';
-            ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
+        // Borda
+        ctx.strokeStyle = '#000';
+        ctx.strokeRect(barX, barY, barWidth, barHeight);
+    }
 
-            // Borda
-            ctx.strokeStyle = '#000';
-            ctx.strokeRect(barX, barY, barWidth, barHeight);
+    // Desenhar barra de slow/congelamento
+    drawSlowBar(ctx, monster, config, drawY) {
+        if (!monster.slowUntil || Date.now() >= monster.slowUntil) return;
 
-            // --- Barra de status de slow/congelamento ---
-            if (monster.slowUntil && Date.now() < monster.slowUntil) {
-                const slowBarY = barY - 8;
-                const slowBarWidth = barWidth;
-                const slowBarHeight = 3;
-                // Calcular início do efeito
-                const slowStart = monster.slowStartTime || (monster.slowUntil - (monster.freezeBonus || 1) * 1000);
-                const totalSlowDuration = monster.slowUntil - slowStart;
-                const elapsed = Math.max(0, Math.min(totalSlowDuration, Date.now() - slowStart));
-                const remainingProgress = 1 - (elapsed / totalSlowDuration);
+        const barWidth = config.size.width;
+        const barHeight = 3;
+        const barX = monster.x - barWidth / 2;
+        const slowBarY = drawY - 18;
 
-                // Fundo da barra de slow
-                ctx.fillStyle = 'rgba(54, 185, 204, 0.3)';
-                ctx.fillRect(barX, slowBarY, slowBarWidth, slowBarHeight);
+        // Calcular progresso
+        const slowStart = monster.slowStartTime || (monster.slowUntil - (monster.freezeBonus || 1) * 1000);
+        const totalSlowDuration = monster.slowUntil - slowStart;
+        const elapsed = Math.max(0, Math.min(totalSlowDuration, Date.now() - slowStart));
+        const remainingProgress = 1 - (elapsed / totalSlowDuration);
 
-                // Progresso da barra de slow
-                ctx.fillStyle = '#36b9cc';
-                ctx.fillRect(barX, slowBarY, slowBarWidth * remainingProgress, slowBarHeight);
+        // Fundo da barra
+        ctx.fillStyle = 'rgba(54, 185, 204, 0.3)';
+        ctx.fillRect(barX, slowBarY, barWidth, barHeight);
 
-                // Borda da barra de slow
-                ctx.strokeStyle = '#36b9cc';
-                ctx.lineWidth = 1;
-                ctx.strokeRect(barX, slowBarY, slowBarWidth, slowBarHeight);
-            }
-        }
+        // Progresso da barra
+        ctx.fillStyle = '#36b9cc';
+        ctx.fillRect(barX, slowBarY, barWidth * remainingProgress, barHeight);
 
-        // --- Efeito visual de slow/congelamento (brilho azulado) ---
+        // Borda
+        ctx.strokeStyle = '#36b9cc';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(barX, slowBarY, barWidth, barHeight);
+    }
+
+    // Desenhar efeitos visuais
+    drawEffects(ctx, monster, config) {
+        // Efeito de slow
         if (monster.slowUntil && Date.now() < monster.slowUntil) {
             ctx.save();
             ctx.globalAlpha = 0.5;
@@ -271,7 +225,7 @@ export class MonsterSpriteManager {
             ctx.restore();
         }
 
-        // --- Efeito de congelamento ---
+        // Efeito de congelamento
         if (monster.isFrozen) {
             ctx.save();
             ctx.globalAlpha = 0.4;
@@ -283,14 +237,48 @@ export class MonsterSpriteManager {
         }
     }
 
+    // Desenhar monstro com sprite animado
+    drawMonster(ctx, monster, gameTime) {
+        const spriteType = ENEMY_TYPE_TO_SPRITE[monster.type] || 'normal';
+        const config = this.monsterConfigs[spriteType];
+        
+        if (!config) {
+            this.drawFallback(ctx, monster);
+            return;
+        }
+
+        const direction = monster.direction || 'down';
+        const sprite = this.getCurrentSprite(monster.type, direction, gameTime);
+        
+        if (!sprite) {
+            this.drawFallback(ctx, monster);
+            return;
+        }
+
+        // Desenhar sprite centralizado
+        const drawX = monster.x - config.size.width / 2;
+        const drawY = monster.y - config.size.height / 2;
+        
+        try {
+            ctx.drawImage(sprite, drawX, drawY, config.size.width, config.size.height);
+        } catch (error) {
+            console.error('Erro ao desenhar sprite:', error);
+            this.drawFallback(ctx, monster);
+            return;
+        }
+
+        // Desenhar elementos visuais
+        this.drawHealthBar(ctx, monster, config, drawY);
+        this.drawSlowBar(ctx, monster, config, drawY);
+        this.drawEffects(ctx, monster, config);
+    }
+
     // Verificar se um tipo de monstro está carregado
     isMonsterLoaded(monsterType) {
-        // Verificar se o tipo de monstro está na lista de monstros carregados
         if (this.monsterSprites.has(monsterType)) {
             return true;
         }
         
-        // Verificar se pelo menos uma direção do sprite está carregada
         const config = this.monsterConfigs[monsterType];
         if (config) {
             for (const direction of Object.keys(config.sprites)) {
@@ -349,7 +337,7 @@ export class MonsterSpriteManager {
         const monsters = this.getAvailableMonsters();
         
         if (monsters.length === 0) {
-            console.warn('⚠️ Nenhum monstro configurado!');
+            console.warn('Nenhum monstro configurado!');
             return false;
         }
         
@@ -358,7 +346,7 @@ export class MonsterSpriteManager {
         );
         
         const successCount = results.filter(r => r).length;
-        console.log(`🎮 Monstros carregados: ${successCount}/${monsters.length}`);
+        console.log(`Monstros carregados: ${successCount}/${monsters.length}`);
         
         return successCount === monsters.length;
     }
@@ -377,7 +365,6 @@ export class MonsterSpriteManager {
             memoryUsage: 0
         };
 
-        // Calcular frames totais
         for (const frames of this.animationFrames.values()) {
             stats.totalFrames += frames.length;
         }
@@ -393,9 +380,8 @@ export class MonsterSpriteManager {
 
     // Recarregar sprites de um tipo específico
     async reloadMonsterSprites(monsterType) {
-        console.log(`🔄 Recarregando sprites para ${monsterType}...`);
+        console.log(`Recarregando sprites para ${monsterType}...`);
         
-        // Limpar sprites existentes deste tipo
         const config = this.monsterConfigs[monsterType];
         if (config) {
             for (const direction of Object.keys(config.sprites)) {
@@ -405,13 +391,12 @@ export class MonsterSpriteManager {
         }
         this.monsterSprites.delete(monsterType);
         
-        // Recarregar
         return await this.loadMonsterSprites(monsterType);
     }
 
     // Verificar e reparar sprites corrompidos
     async repairSprites() {
-        console.log('🔧 Verificando e reparando sprites...');
+        console.log('Verificando e reparando sprites...');
         const monsters = this.getAvailableMonsters();
         let repairedCount = 0;
         
@@ -429,7 +414,7 @@ export class MonsterSpriteManager {
             }
             
             if (needsRepair) {
-                console.log(`🔧 Reparando sprites para ${monsterType}...`);
+                console.log(`Reparando sprites para ${monsterType}...`);
                 const success = await this.reloadMonsterSprites(monsterType);
                 if (success) {
                     repairedCount++;
@@ -437,7 +422,7 @@ export class MonsterSpriteManager {
             }
         }
         
-        console.log(`✅ Reparação concluída: ${repairedCount} tipos de monstros reparados`);
+        console.log(`Reparação concluída: ${repairedCount} tipos de monstros reparados`);
         return repairedCount;
     }
 } 
