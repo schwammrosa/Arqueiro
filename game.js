@@ -518,54 +518,100 @@ function showTowerInfo(tower) {
     gameState.towers.forEach(t => t.isSelected = false);
     tower.isSelected = true;
     
-    // Atualizar informações da torre
-    document.getElementById('towerInfoTitle').textContent = tower.name;
-    document.getElementById('towerLevel').textContent = tower.level;
-    document.getElementById('towerDamage').textContent = tower.damage;
-    document.getElementById('towerRange').textContent = tower.range;
+    // Atualizar informações da torre (com verificações de segurança)
+    const towerInfoTitle = document.getElementById('towerInfoTitle');
+    const towerLevel = document.getElementById('towerLevel');
+    const towerDamage = document.getElementById('towerDamage');
+    const towerRange = document.getElementById('towerRange');
+    const towerFireRate = document.getElementById('towerFireRate');
+    const towerIconDisplay = document.getElementById('towerIconDisplay');
+    
+    if (towerInfoTitle) towerInfoTitle.textContent = tower.name;
+    if (towerLevel) towerLevel.textContent = tower.level;
+    if (towerDamage) towerDamage.textContent = tower.damage;
+    if (towerRange) towerRange.textContent = tower.range;
     
     // Converter taxa de tiro para segundos
-    const fireRateSeconds = (tower.fireRate / 60).toFixed(1);
-    document.getElementById('towerFireRate').textContent = `${fireRateSeconds}s`;
+    const fireRateSeconds = (tower.fireRate / 1000).toFixed(1);
+    if (towerFireRate) towerFireRate.textContent = `${fireRateSeconds}s`;
     
     // Mostrar ícone da torre
     const towerIcon = TOWER_TYPES[tower.type]?.icon || '🏰';
-    document.getElementById('towerIconDisplay').textContent = towerIcon;
+    if (towerIconDisplay) towerIconDisplay.textContent = towerIcon;
     
     // Calcular custos
     const upgradeCost = tower.getUpgradeCost();
     const sellValue = Math.floor(tower.totalCost * ((localStorage.getItem('arqueiroConfig') ? JSON.parse(localStorage.getItem('arqueiroConfig')).sellPercentage : 50) / 100));
-    document.getElementById('upgradeCost').textContent = upgradeCost;
-    document.getElementById('sellValue').textContent = sellValue;
     
-    // Configurar botões
+    // Atualizar valores de custo (verificar se os elementos existem primeiro)
+    const upgradeCostElement = document.getElementById('upgradeCost');
+    const sellValueElement = document.getElementById('sellValue');
+    
+    if (upgradeCostElement) {
+        upgradeCostElement.textContent = upgradeCost;
+    }
+    if (sellValueElement) {
+        sellValueElement.textContent = sellValue;
+    }
+    
+    // Configurar botões (com verificações de segurança)
     const upgradeBtn = document.getElementById('upgradeTower');
     const sellBtn = document.getElementById('sellTower');
-    upgradeBtn.disabled = gameState.gold < upgradeCost;
-    sellBtn.disabled = false;
+    
+    if (upgradeBtn && sellBtn) {
+        // Verificar se a torre está no nível máximo
+        const isMaxLevel = tower.level >= tower.getMaxLevel();
+        upgradeBtn.disabled = gameState.gold < upgradeCost || isMaxLevel;
+        
+        // Atualizar texto do botão se estiver no nível máximo
+        if (isMaxLevel) {
+            upgradeBtn.innerHTML = `
+                <span class="btn-icon">⬆️</span>
+                <span class="btn-text">Nível Máximo</span>
+                <span class="btn-cost">--</span>
+            `;
+        } else {
+            upgradeBtn.innerHTML = `
+                <span class="btn-icon">⬆️</span>
+                <span class="btn-text">Evoluir</span>
+                <span class="btn-cost" id="upgradeCost">${upgradeCost}</span>
+            `;
+        }
+        
+        sellBtn.disabled = false;
+    }
     
     // Armazenar referência da torre e mostrar modal
     gameState.selectedTowerForInfo = tower;
     const modal = document.getElementById('towerInfoPanel');
-    modal.style.display = 'flex';
-    
-    // Adicionar evento para fechar ao clicar fora (removendo listeners anteriores)
-    const handleOutsideClick = function(e) {
-        if (e.target === modal) {
-            hideTowerInfo();
-            modal.removeEventListener('click', handleOutsideClick);
-        }
-    };
-    modal.addEventListener('click', handleOutsideClick);
+    if (modal) {
+        modal.style.display = 'flex';
+        
+        // Adicionar evento para fechar ao clicar fora (removendo listeners anteriores)
+        const handleOutsideClick = function(e) {
+            if (e.target === modal) {
+                hideTowerInfo();
+                modal.removeEventListener('click', handleOutsideClick);
+            }
+        };
+        modal.addEventListener('click', handleOutsideClick);
+    }
 }
 
 // Fechar painel de informações da torre
 function closeTowerInfo() {
-    document.getElementById('towerInfoPanel').style.display = 'none';
+    const modal = document.getElementById('towerInfoPanel');
+    if (modal) {
+        modal.style.display = 'none';
+    }
     
     // Desselecionar todas as torres
-    gameState.towers.forEach(t => t.isSelected = false);
-    gameState.selectedTowerForInfo = null;
+    if (gameState && gameState.towers) {
+        gameState.towers.forEach(t => t.isSelected = false);
+    }
+    if (gameState) {
+        gameState.selectedTowerForInfo = null;
+    }
 }
 
 // Alias para closeTowerInfo para melhor semântica
@@ -574,31 +620,61 @@ function hideTowerInfo() {
 }
 
 function updateUI() {
-    document.getElementById('health').textContent = gameState.health;
-    document.getElementById('gold').textContent = gameState.gold;
-    document.getElementById('wave').textContent = gameState.wave;
-    document.getElementById('score').textContent = gameState.score;
-    // Exibir monstros total/eliminados
-    document.getElementById('monsters').textContent = `${gameState.monstersThisWave}/${gameState.monstersDefeated}`;
-    const minutes = Math.floor(gameState.gameTime / 60);
-    const seconds = Math.floor(gameState.gameTime % 60);
-    document.getElementById('gameTime').textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    if (gameState.waveInProgress) {
-        document.getElementById('nextWaveTimer').textContent = 'Em andamento';
-    } else if (gameState.nextWaveTimer > 0) {
-        const seconds = Math.ceil(gameState.nextWaveTimer);
-        document.getElementById('nextWaveTimer').textContent = `${seconds}s`;
-    } else if (gameState.wave > 0) {
-        document.getElementById('nextWaveTimer').textContent = 'Pronta';
-    } else {
-        document.getElementById('nextWaveTimer').textContent = '--';
-    }
+    // Verificar se gameState existe
+    if (!gameState) return;
+    
+    // Obter elementos com verificações de segurança
+    const healthElement = document.getElementById('health');
+    const goldElement = document.getElementById('gold');
+    const waveElement = document.getElementById('wave');
+    const scoreElement = document.getElementById('score');
+    const monstersElement = document.getElementById('monsters');
+    const gameTimeElement = document.getElementById('gameTime');
+    const nextWaveTimerElement = document.getElementById('nextWaveTimer');
     const startBtn = document.getElementById('start-wave');
-    if (gameState.waveInProgress || gameState.nextWaveTimer <= 0 || gameState.enemies.length > 0) {
-        startBtn.disabled = true;
-    } else {
-        startBtn.disabled = false;
+    
+    // Atualizar elementos se existirem
+    if (healthElement) healthElement.textContent = gameState.health;
+    if (goldElement) goldElement.textContent = gameState.gold;
+    if (waveElement) waveElement.textContent = gameState.wave;
+    if (scoreElement) scoreElement.textContent = gameState.score;
+    
+    // Exibir monstros total/eliminados
+    if (monstersElement) {
+        monstersElement.textContent = `${gameState.monstersThisWave || 0}/${gameState.monstersDefeated || 0}`;
     }
+    
+    // Atualizar tempo do jogo
+    if (gameTimeElement) {
+        const minutes = Math.floor(gameState.gameTime / 60);
+        const seconds = Math.floor(gameState.gameTime % 60);
+        gameTimeElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    
+    // Atualizar timer da próxima onda
+    if (nextWaveTimerElement) {
+        if (gameState.waveInProgress) {
+            nextWaveTimerElement.textContent = 'Em andamento';
+        } else if (gameState.nextWaveTimer > 0) {
+            const seconds = Math.ceil(gameState.nextWaveTimer);
+            nextWaveTimerElement.textContent = `${seconds}s`;
+        } else if (gameState.wave > 0) {
+            nextWaveTimerElement.textContent = 'Pronta';
+        } else {
+            nextWaveTimerElement.textContent = '--';
+        }
+    }
+    
+    // Atualizar botão de iniciar onda
+    if (startBtn) {
+        if (gameState.waveInProgress || gameState.nextWaveTimer <= 0 || gameState.enemies.length > 0) {
+            startBtn.disabled = true;
+        } else {
+            startBtn.disabled = false;
+        }
+    }
+    
+    // Atualizar botões de torre
     document.querySelectorAll('.tower-btn').forEach(btn => {
         const cost = parseInt(btn.dataset.cost);
         if (gameState.gold < cost) {

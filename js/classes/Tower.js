@@ -271,6 +271,11 @@ export class Tower {
     }
     
     getUpgradeCost() {
+        // Verificar se a torre já está no nível máximo
+        if (this.level >= this.getMaxLevel()) {
+            return Infinity; // Custo infinito = não pode evoluir
+        }
+        
         const savedConfig = localStorage.getItem('arqueiroConfig');
         const upgradePercentage = savedConfig ? JSON.parse(savedConfig).upgradePercentage || 50 : 50;
         
@@ -285,9 +290,21 @@ export class Tower {
         return upgradeCost;
     }
     
+    getMaxLevel() {
+        // Usar o nível máximo configurado para o tipo de torre, ou configuração global, ou padrão 5
+        const towerConfig = this.towerTypes[this.type];
+        return towerConfig?.maxLevel || this.gameConfig?.towerMaxLevel || 5;
+    }
+    
 
     
     upgrade() {
+        // Verificar se a torre já está no nível máximo
+        if (this.level >= this.getMaxLevel()) {
+            this.showNotification(`Torre já está no nível máximo (${this.getMaxLevel()})!`, 'warning');
+            return false;
+        }
+        
         const upgradeCost = this.getUpgradeCost();
         if (this.gameState.gold >= upgradeCost) {
             this.gameState.gold -= upgradeCost;

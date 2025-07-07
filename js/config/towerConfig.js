@@ -8,7 +8,8 @@ export const DEFAULT_TOWER_TYPES = {
         fireRate: 1000,
         color: '#4e73df',
         icon: '🏹',
-        image: 'assets/imagen/Torres/arqueiro.png'
+        image: 'assets/imagen/Torres/arqueiro.png',
+        maxLevel: 5
     },
     cannon: {
         name: 'Canhão',
@@ -18,7 +19,8 @@ export const DEFAULT_TOWER_TYPES = {
         fireRate: 1500,
         color: '#e74a3b',
         icon: '🚀',
-        image: 'assets/imagen/Torres/canhao.png'
+        image: 'assets/imagen/Torres/canhao.png',
+        maxLevel: 5
     },
     magic: {
         name: 'Mágica',
@@ -30,7 +32,8 @@ export const DEFAULT_TOWER_TYPES = {
         icon: '🔮',
         slowEffect: 40, // 40% da velocidade original (60% de redução)
         freezeDuration: 1, // 1 segundo de duração
-        image: 'assets/imagen/Torres/magica.png'
+        image: 'assets/imagen/Torres/magica.png',
+        maxLevel: 5
     },
     tesla: {
         name: 'Tesla',
@@ -42,7 +45,8 @@ export const DEFAULT_TOWER_TYPES = {
         icon: '⚡',
         chainMax: 5,        // Máximo de alvos encadeados
         chainRadius: 1.2,   // Multiplicador do alcance para encadeamento
-        image: 'assets/imagen/Torres/tesla.png'
+        image: 'assets/imagen/Torres/tesla.png',
+        maxLevel: 5
     },
     special: {
         name: 'Especial',
@@ -52,7 +56,8 @@ export const DEFAULT_TOWER_TYPES = {
         range: 200,
         fireRate: 500,
         cost: 300,
-        effect: 'Atira em todos os inimigos a cada 0.5s'
+        effect: 'Atira em todos os inimigos a cada 0.5s',
+        maxLevel: 5
     }
 };
 

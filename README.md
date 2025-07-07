@@ -1,411 +1,361 @@
-# 🏹 Legado da Fortaleza
+# 🏰 Legado da Fortaleza
 
-Um jogo Tower Defense completo e moderno desenvolvido em JavaScript vanilla com HTML5 Canvas. O projeto conta com sistema de torres múltiplas, árvore de habilidades, configurações customizáveis e modo infinito.
+Um jogo de Tower Defense moderno e completo desenvolvido em JavaScript puro, com sistema de árvore de habilidades, múltiplos tipos de torres e inimigos, e interface responsiva.
 
-## 🎮 Sobre o Jogo
+## 📋 Índice
 
-**Legado da Fortaleza** é um jogo de defesa de torres onde você deve proteger sua base de ondas infinitas de inimigos. Construa torres estratégicamente, evolua suas habilidades e sobreviva o máximo de ondas possível!
+- [Visão Geral](#visão-geral)
+- [Características](#características)
+- [Tecnologias](#tecnologias)
+- [Instalação](#instalação)
+- [Como Jogar](#como-jogar)
+- [Sistema de Torres](#sistema-de-torres)
+- [Sistema de Inimigos](#sistema-de-inimigos)
+- [Árvore de Habilidades](#árvore-de-habilidades)
+- [Estrutura do Projeto](#estrutura-do-projeto)
+- [Configurações](#configurações)
+- [Contribuição](#contribuição)
+- [Licença](#licença)
 
-### 🌟 Características Principais
+## 🎮 Visão Geral
 
-- **Modo Infinito**: Ondas infinitas com dificuldade crescente
-- **5 Tipos de Torres**: Cada uma com características únicas
-- **4 Tipos de Inimigos**: Diferentes estratégias de combate
-- **Árvore de Habilidades**: Sistema de progressão permanente
-- **Habilidades Especiais**: Chuva de Flechas e Tempestade de Gelo
-- **Sistema de Configuração**: Customização completa do jogo
-- **Responsivo**: Funciona perfeitamente em desktop, tablet e mobile
-- **Salvamento Automático**: Progresso salvo localmente
+**Legado da Fortaleza** é um jogo de Tower Defense que combina estratégia clássica com elementos modernos de RPG. Os jogadores devem defender sua fortaleza contra ondas crescentes de inimigos, construindo e evoluindo torres estratégicas, desbloqueando habilidades especiais e gerenciando recursos.
 
-## 🚀 Como Jogar
+### 🎯 Objetivo
+Sobreviver ao máximo de ondas possível, construindo a defesa mais eficiente e desbloqueando upgrades que fortalecem suas torres e habilidades.
 
-### Instalação e Execução
+## ✨ Características
 
-1. **Clone o repositório**:
-```bash
-git clone https://github.com/seu-usuario/legado-da-fortaleza.git
-cd legado-da-fortaleza
-```
+### 🏗️ Sistema de Torres
+- **4 tipos de torres**: Arqueiro, Canhão, Mágica e Tesla
+- **Sistema de evolução**: Cada torre pode ser evoluída até 5 níveis
+- **Habilidades únicas**: Cada torre possui efeitos especiais
+- **Torre Especial**: Desbloqueável através da árvore de habilidades
 
-2. **Execute o servidor local**:
-```bash
-# Usando Python
-python -m http.server 8000
+### 👹 Sistema de Inimigos
+- **4 tipos de inimigos**: Normal, Rápido, Tanque e Elite
+- **Progressão dinâmica**: Inimigos ficam mais fortes a cada onda
+- **Sistema de pontuação**: Diferentes tipos dão diferentes pontos
+- **Sprites animados**: Cada tipo possui animações únicas
 
-# Usando Node.js
-npm run dev
-```
+### 🌟 Árvore de Habilidades
+- **3 ramos principais**: Vida, Dano e Especial
+- **Sistema de pontos**: Ganhe pontos ao completar ondas
+- **Upgrades globais**: Melhorias que afetam todas as torres
+- **Habilidades especiais**: Chuva de Flechas e Tempestade de Gelo
 
-3. **Abra no navegador**:
-```
-http://localhost:8000
-```
+### 🎨 Interface Moderna
+- **Design responsivo**: Funciona em desktop, tablet e mobile
+- **Tema escuro**: Interface moderna com cores vibrantes
+- **Animações suaves**: Transições e efeitos visuais
+- **Tooltips informativos**: Informações detalhadas sobre elementos
+
+### ⚙️ Sistema de Configurações
+- **Configurações personalizáveis**: Ajuste dificuldade e parâmetros
+- **Sistema de salvamento**: Progresso salvo automaticamente
+- **Modo continuar**: Retome de onde parou
+- **Exportar/Importar**: Compartilhe configurações
+
+## 🛠️ Tecnologias
+
+- **Frontend**: HTML5, CSS3, JavaScript ES6+
+- **Canvas**: Renderização 2D para o jogo
+- **LocalStorage**: Persistência de dados
+- **CSS Grid/Flexbox**: Layout responsivo
+- **SVG**: Conexões da árvore de habilidades
+
+## 🚀 Instalação
+
+### Pré-requisitos
+- Navegador moderno (Chrome, Firefox, Safari, Edge)
+- Python 3.x (para servidor local) ou qualquer servidor HTTP
+
+### Passos para instalação
+
+1. **Clone o repositório**
+   ```bash
+   git clone https://github.com/seu-usuario/legado-da-fortaleza.git
+   cd legado-da-fortaleza
+   ```
+
+2. **Inicie o servidor local**
+   ```bash
+   # Usando Python
+   python -m http.server 8000
+   
+   # Ou usando npm (se disponível)
+   npm start
+   ```
+
+3. **Acesse o jogo**
+   ```
+   http://localhost:8000
+   ```
+
+## 🎯 Como Jogar
 
 ### Controles Básicos
+- **Clique esquerdo**: Selecionar torre para construir
+- **Clique direito**: Cancelar seleção
+- **Clique na torre**: Ver informações e evoluir/vender
+- **Botões de controle**: Pausar, velocidade, próxima onda
 
-- **Colocar Torres**: Clique em uma célula vazia do grid
-- **Selecionar Torre**: Clique na célula e escolha o tipo
-- **Evoluir Torre**: Clique na torre e pressione "Evoluir"
-- **Vender Torre**: Clique na torre e pressione "Vender"
-- **Habilidades Especiais**: Use os botões laterais
-- **Controle de Velocidade**: Botão de velocidade (1x, 2x, 3x)
+### Estratégia
+1. **Construa torres** nos pontos estratégicos do mapa
+2. **Evolua torres** para aumentar dano e alcance
+3. **Use habilidades especiais** em momentos críticos
+4. **Invista na árvore de habilidades** para melhorias globais
+5. **Gerencie recursos** (vida e ouro) eficientemente
 
-## 🏰 Sistema de Torres
+## 🏗️ Sistema de Torres
 
-### Torre Arqueiro 🏹
+### Arqueiro 🏹
 - **Custo**: 50 ouro
-- **Alcance**: 120 pixels
 - **Dano**: 15
-- **Taxa de Tiro**: 1000ms
-- **Especialidade**: Dano consistente e bom alcance
+- **Alcance**: 120px
+- **Velocidade**: 1.0s
+- **Especial**: Ataque único de alta precisão
 
-### Torre Canhão 🚀
+### Canhão 🚀
 - **Custo**: 75 ouro
-- **Alcance**: 100 pixels
-- **Dano**: 25 (área)
-- **Taxa de Tiro**: 1500ms
-- **Especialidade**: Dano em área, ideal para grupos
+- **Dano**: 25
+- **Alcance**: 100px
+- **Velocidade**: 1.5s
+- **Especial**: Dano em área (explosão)
 
-### Torre Mágica 🔮
+### Mágica 🔮
 - **Custo**: 95 ouro
-- **Alcance**: 140 pixels
-- **Dano**: 20 + congelamento
-- **Taxa de Tiro**: 1000ms
-- **Especialidade**: Reduz velocidade dos inimigos
+- **Dano**: 20
+- **Alcance**: 140px
+- **Velocidade**: 1.0s
+- **Especial**: Reduz velocidade dos inimigos em 60%
 
-### Torre Tesla ⚡
+### Tesla ⚡
 - **Custo**: 95 ouro
-- **Alcance**: 120 pixels
-- **Dano**: 20 (encadeamento)
-- **Taxa de Tiro**: 1000ms
-- **Especialidade**: Ataca múltiplos inimigos em cadeia
+- **Dano**: 20
+- **Alcance**: 120px
+- **Velocidade**: 1.0s
+- **Especial**: Ataque em cadeia (até 5 inimigos)
 
 ### Torre Especial 🌟
 - **Custo**: 300 ouro
-- **Alcance**: 200 pixels
-- **Dano**: 40 (todos os inimigos)
-- **Taxa de Tiro**: 500ms
-- **Especialidade**: Ataca todos os inimigos na tela
+- **Dano**: 40
+- **Alcance**: 200px
+- **Velocidade**: 0.5s
+- **Especial**: Ataca todos os inimigos simultaneamente
 
-## 👹 Tipos de Inimigos
+## 👹 Sistema de Inimigos
 
-### Inimigo Normal 🔴
-- **Vida**: Base (multiplicador: 1x)
-- **Velocidade**: Base (multiplicador: 1x)
-- **Recompensa**: Base (multiplicador: 1x)
+### Normal
+- **Vida**: Base
+- **Velocidade**: 1.0x
+- **Recompensa**: 8 ouro
 - **Chance**: 70%
 
-### Inimigo Rápido 🟡
-- **Vida**: Reduzida (multiplicador: 0.7x)
-- **Velocidade**: Alta (multiplicador: 1.8x)
-- **Recompensa**: Aumentada (multiplicador: 1.2x)
+### Rápido
+- **Vida**: 0.7x
+- **Velocidade**: 1.8x
+- **Recompensa**: 10 ouro
 - **Chance**: 20%
 
-### Inimigo Tanque ⚫
-- **Vida**: Muito Alta (multiplicador: 2.5x)
-- **Velocidade**: Reduzida (multiplicador: 0.6x)
-- **Recompensa**: Alta (multiplicador: 1.8x)
+### Tanque
+- **Vida**: 2.5x
+- **Velocidade**: 0.6x
+- **Recompensa**: 14 ouro
 - **Chance**: 8%
 
-### Inimigo Elite 🔴
-- **Vida**: Extrema (multiplicador: 5x)
-- **Velocidade**: Moderada (multiplicador: 0.8x)
-- **Recompensa**: Máxima (multiplicador: 3x)
+### Elite
+- **Vida**: 5.0x
+- **Velocidade**: 0.8x
+- **Recompensa**: 24 ouro
 - **Chance**: 2%
 
-## 🌳 Árvore de Habilidades
+## 🌟 Árvore de Habilidades
 
-### Ramo Vida ❤️
-- **Vida Inicial +**: +1 vida por nível (máx: 5)
-- **Cura Passiva**: Regenera 1 vida a cada 20s (máx: 3)
-- **Defesa**: Reduz dano recebido em 10% por nível (máx: 3)
+### Ramo da Vida ❤️
+- **Vida Inicial +**: Aumenta vida inicial
+- **Cura Passiva**: Regenera vida automaticamente
+- **Defesa**: Reduz dano recebido
 
-### Ramo Dano ⚔️
-- **Dano Global +**: +5% dano para todas as torres (máx: 5)
-- **Dano Específico**: +10% dano por tipo de torre (máx: 3)
-- **Melhorias Especiais**: Velocidade, área, congelamento, encadeamento
+### Ramo do Dano ⚔️
+- **Dano Global +**: Aumenta dano de todas as torres
+- **Especializações**: Melhorias específicas por tipo de torre
+- **Velocidade**: Aumenta velocidade de ataque
 
 ### Ramo Especial ✨
-- **Chuva de Flechas**: Aprimora a habilidade especial
-- **Tempestade de Gelo**: Desbloqueia nova habilidade
-- **Ouro Extra**: +10% ouro por onda
-- **Torre Especial**: Desbloqueia nova torre
+- **Chuva de Flechas +**: Aprimora habilidade especial
+- **Tempestade de Gelo**: Nova habilidade de congelamento
+- **Ouro Extra**: Bônus de ouro por onda
+- **Torre Especial**: Desbloqueia torre exclusiva
 
-## 💫 Habilidades Especiais
+## 📁 Estrutura do Projeto
 
-### Chuva de Flechas 🏹
-- **Cooldown**: 30 segundos
-- **Efeito**: Causa dano em área selecionada
-- **Melhorias**: Pode ser aprimorada na árvore de habilidades
-
-### Tempestade de Gelo ❄️
-- **Cooldown**: 45 segundos
-- **Efeito**: Congela todos os inimigos na tela
-- **Desbloqueio**: Disponível via árvore de habilidades
-
-## ⚙️ Sistema de Configuração
-
-O jogo possui um sistema completo de configuração acessível via interface:
-
-### Configurações Gerais
-- Vida inicial (padrão: 20)
-- Ouro inicial (padrão: 75)
-- Tamanho do grid (padrão: 40px)
-- Delay entre ondas (padrão: 5s)
-
-### Configurações de Torres
-- Custo, dano, alcance e taxa de tiro
-- Multiplicadores de evolução
-- Efeitos especiais personalizáveis
-
-### Configurações de Inimigos
-- Vida base e progressão
-- Velocidade e multiplicadores
-- Recompensas e chances de spawn
-
-### Configurações Visuais
-- Tamanho do canvas
-- Velocidade de projéteis
-- Efeitos visuais
-
-## 📱 Responsividade
-
-O jogo foi otimizado para diferentes dispositivos:
-
-- **Desktop**: Experiência completa com todas as informações
-- **Tablet**: Interface adaptada com controles otimizados
-- **Mobile**: Layout compacto com informações essenciais
-
-### Otimizações Mobile
-- Botões com tamanhos adequados para toque
-- Painel de informações reduzido
-- Cálculo dinâmico de altura disponível
-- Reajuste automático no resize da tela
-
-## 🔧 Arquitetura Técnica
-
-### Estrutura do Projeto
 ```
-Legado da Fortaleza/
-├── index.html              # Página principal
-├── game.js                 # Lógica principal do jogo
-├── config.js              # Sistema de configuração
-├── config.html            # Interface de configuração
-├── style.css              # Estilos principais
-├── skill-tree.css         # Estilos da árvore de habilidades
-├── config-style.css       # Estilos da configuração
+legado-da-fortaleza/
 ├── assets/
-│   └── imagen/
-│       └── favicon.ico    # Ícone do jogo
-└── js/
-    ├── classes/           # Classes do jogo
-    │   ├── Tower.js       # Classe das torres
-    │   ├── Enemy.js       # Classe dos inimigos
-    │   ├── Projectile.js  # Classe dos projéteis
-    │   └── DamageNumber.js # Números de dano
-    ├── config/            # Configurações
-    │   ├── gameConfig.js  # Configurações gerais
-    │   ├── towerConfig.js # Configurações das torres
-    │   └── enemyConfig.js # Configurações dos inimigos
-    └── systems/           # Sistemas do jogo
-        ├── GameSystem.js  # Sistema principal
-        ├── RenderSystem.js # Sistema de renderização
-        ├── UISystem.js    # Sistema de interface
-        └── SkillTreeSystem.js # Sistema da árvore
+│   ├── imagen/
+│   │   ├── cena/           # Elementos do cenário
+│   │   │   ├── cena1.png
+│   │   │   ├── cena2.png
+│   │   │   └── cena3.png
+│   │   │
+│   │   │   └── favicon.ico
+│   │   └── monstros/
+│   │       ├── Elite/          # Sprites de inimigos elite
+│   │       │   └── elite.png
+│   │       ├── Normal/         # Sprites de inimigos normais
+│   │       │   └── normal.png
+│   │       ├── Rapido/         # Sprites de inimigos rápidos
+│   │       │   └── rapido.png
+│   │       └── Tanque/         # Sprites de inimigos tanque
+│   │           └── tanque.png
+│   ├── js/
+│   │   ├── classes/            # Classes principais do jogo
+│   │   │   ├── Enemy.js        # Classe dos inimigos
+│   │   │   │   └── Enemy.js
+│   │   │   ├── Tower.js        # Classe das torres
+│   │   │   │   └── Tower.js
+│   │   │   ├── Projectile.js   # Classe dos projéteis
+│   │   │   │   └── Projectile.js
+│   │   │   └── DamageNumber.js # Classe dos números de dano
+│   │   │       └── DamageNumber.js
+│   │   ├── config/             # Configurações do jogo
+│   │   │   ├── gameConfig.js   # Configurações gerais
+│   │   │   │   └── gameConfig.js
+│   │   │   ├── towerConfig.js  # Configurações das torres
+│   │   │   │   └── towerConfig.js
+│   │   │   ├── enemyConfig.js  # Configurações dos inimigos
+│   │   │   │   └── enemyConfig.js
+│   │   │   └── index.js        # Exportações
+│   │   │       └── index.js
+│   │   └── systems/            # Sistemas do jogo
+│   │       ├── GameSystem.js   # Sistema principal do jogo
+│   │       │   └── GameSystem.js
+│   │       ├── RenderSystem.js # Sistema de renderização
+│   │       │   └── RenderSystem.js
+│   │       ├── UISystem.js     # Sistema de interface
+│   │       │   └── UISystem.js
+│   │       ├── ImageManager.js # Gerenciador de imagens
+│   │       │   └── ImageManager.js
+│   │       └── SkillTreeSystem.js # Sistema da árvore de habilidades
+│   │           └── SkillTreeSystem.js
+│   ├── index.html              # Página principal
+│   │   └── index.html
+│   ├── game.js                 # Arquivo principal do jogo
+│   │   └── game.js
+│   ├── config.html             # Página de configurações
+│   │   └── config.html
+│   ├── config.js               # Script das configurações
+│   │   └── config.js
+│   ├── style.css               # Estilos principais
+│   │   └── style.css
+│   ├── skill-tree.css          # Estilos da árvore de habilidades
+│   │   └── skill-tree.css
+│   ├── config-style.css        # Estilos das configurações
+│   │   └── config-style.css
+│   ├── package.json            # Configurações do projeto
+│   │   └── package.json
+│   └── vercel.json             # Configuração para deploy
+│       └── vercel.json
 ```
 
-### Tecnologias Utilizadas
-- **HTML5 Canvas**: Renderização do jogo
-- **JavaScript ES6+**: Lógica principal
-- **CSS3**: Styling e responsividade
-- **localStorage**: Persistência de dados
-- **JSON**: Configurações e salvamento
+## ⚙️ Configurações
 
-### Principais Sistemas
+### Configurações do Jogo
+- **Vida inicial**: 20
+- **Ouro inicial**: 75
+- **Tamanho do grid**: 40px
+- **Delay entre ondas**: 3 segundos
+- **Multiplicadores**: Vida, velocidade e recompensa dos inimigos
 
-#### Sistema de Jogo
-- Loop principal com requestAnimationFrame
-- Gerenciamento de estado global
-- Sistema de ondas infinitas
-- Detecção de colisões
+### Configurações das Torres
+- **Custos**: Personalizáveis por tipo
+- **Estatísticas**: Dano, alcance, velocidade de ataque
+- **Efeitos especiais**: Configuráveis por torre
 
-#### Sistema de Renderização
-- Renderização otimizada no Canvas
-- Efeitos visuais (números de dano, explosões)
-- Interface responsiva
-- Animações fluidas
+### Configurações dos Inimigos
+- **Tipos**: 4 tipos com diferentes características
+- **Chances de spawn**: Configuráveis por tipo
+- **Progressão**: Multiplicadores por onda
 
-#### Sistema de Interface
-- Painel de informações dinâmico
-- Controles intuitivos
-- Tooltips informativos
-- Feedback visual
+## 🎨 Personalização
 
-## 🎯 Mecânicas de Jogo
+### Adicionando Novas Torres
+1. Adicione configuração em `js/config/towerConfig.js`
+2. Crie sprite em `assets/imagen/Torres/`
+3. Implemente lógica na classe `Tower.js`
 
-### Progressão
-- **Ondas**: Dificuldade crescente exponencial
-- **Ouro**: Obtido eliminando inimigos
-- **Pontos**: Sistema de pontuação global
-- **Habilidades**: Pontos ganhos por performance
+### Adicionando Novos Inimigos
+1. Adicione configuração em `js/config/enemyConfig.js`
+2. Crie sprites em `assets/monstros/`
+3. Implemente lógica na classe `Enemy.js`
 
-### Balanceamento
-- **Vida dos Inimigos**: Multiplicador 1.25x por onda
-- **Velocidade**: Multiplicador 1.15x por onda
-- **Quantidade**: +3 inimigos a cada onda
-- **Recompensas**: Balanceadas por dificuldade
+### Modificando a Árvore de Habilidades
+1. Edite `SKILL_TREE` em `game.js`
+2. Adicione ícones em `SKILL_ICONS`
+3. Implemente efeitos em `applySkillTreeEffects`
 
-### Estratégias
-- **Posicionamento**: Torres no caminho dos inimigos
-- **Combinação**: Diferentes tipos para diferentes situações
-- **Evolução**: Melhorar torres existentes vs. construir novas
-- **Habilidades**: Timing correto para máximo impacto
+## 🐛 Solução de Problemas
 
-## 🔄 Sistema de Salvamento
+### Problemas Comuns
+- **Jogo não carrega**: Verifique se está usando um servidor HTTP
+- **Sprites não aparecem**: Verifique caminhos das imagens
+- **Configurações não salvam**: Verifique se localStorage está habilitado
+- **Performance lenta**: Reduza velocidade do jogo ou feche outras abas
 
-### Dados Salvos
-- **Progresso**: Onda atual e estatísticas
-- **Configurações**: Preferências personalizadas
-- **Árvore de Habilidades**: Pontos e melhorias
-- **Recordes**: Melhor performance
+### Debug
+- Abra o console do navegador (F12) para ver erros
+- Use `localStorage.clear()` para resetar dados
+- Verifique arquivos de teste em `test_*.html`
 
-### Formato de Dados
-```javascript
-{
-  "gameState": {
-    "wave": 15,
-    "gold": 500,
-    "health": 18,
-    "score": 12000
-  },
-  "skillTree": {
-    "vida": 3,
-    "dano": 2,
-    "esp": 1
-  },
-  "config": {
-    "initialHealth": 20,
-    "initialGold": 75
-  }
-}
-```
-
-## 🚀 Deploy
-
-### Vercel
-O projeto está configurado para deploy automático na Vercel:
-
-```json
-{
-  "version": 2,
-  "rewrites": [
-    {
-      "source": "/",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/config",
-      "destination": "/config.html"
-    }
-  ]
-}
-```
-
-### Hospedagem Local
-Para servir localmente:
-```bash
-# Python
-python -m http.server 8000
-
-# Node.js
-npx http-server -p 8000
-
-# PHP
-php -S localhost:8000
-```
-
-## 🎨 Customização
-
-### Modificar Torres
-Edite `js/config/towerConfig.js`:
-```javascript
-archer: {
-  name: 'Arqueiro',
-  cost: 50,
-  range: 120,
-  damage: 15,
-  fireRate: 1000,
-  color: '#4e73df',
-  icon: '🏹'
-}
-```
-
-### Modificar Inimigos
-Edite `js/config/enemyConfig.js`:
-```javascript
-normal: {
-  name: 'Normal',
-  healthMultiplier: 1,
-  speedMultiplier: 1,
-  rewardMultiplier: 1,
-  spawnChance: 70,
-  color: '#dc3545'
-}
-```
-
-### Modificar Habilidades
-Edite a constante `SKILL_TREE` em `game.js`:
-```javascript
-{ 
-  id: 'vida', 
-  name: 'Vida Inicial +', 
-  desc: '+1 de vida inicial por nível', 
-  max: 5, 
-  cost: 1, 
-  parent: null 
-}
-```
-
-## 🤝 Contribuindo
+## 🤝 Contribuição
 
 1. **Fork** o projeto
-2. **Crie** uma branch para sua feature
-3. **Commit** suas mudanças
-4. **Push** para a branch
-5. **Abra** um Pull Request
+2. Crie uma **branch** para sua feature (`git checkout -b feature/AmazingFeature`)
+3. **Commit** suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. **Push** para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um **Pull Request**
 
-### Diretrizes
-- Mantenha o código limpo e comentado
-- Teste todas as funcionalidades
-- Documente mudanças significativas
-- Respeite a estrutura existente
+### Diretrizes de Contribuição
+- Mantenha o código limpo e bem documentado
+- Teste suas mudanças em diferentes navegadores
+- Siga o padrão de nomenclatura existente
+- Adicione comentários para funcionalidades complexas
 
-## 📝 Licença
+## 📝 Changelog
 
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+### Versão 1.0.0 (Dezembro 2024)
+- ✅ Sistema completo de Tower Defense
+- ✅ 4 tipos de torres com evolução
+- ✅ 4 tipos de inimigos com sprites animados
+- ✅ Árvore de habilidades com 3 ramos
+- ✅ Interface responsiva para mobile
+- ✅ Sistema de configurações personalizáveis
+- ✅ Modo continuar com salvamento automático
+- ✅ Habilidades especiais (Chuva de Flechas, Tempestade de Gelo)
+- ✅ Sistema de pontuação e progressão
+- ✅ Otimizações de performance
 
-## 🎮 Créditos
+## 📄 Licença
 
-- **Desenvolvido por**: Legado da Fortaleza Team
-- **Inspirado em**: Clássicos do gênero Tower Defense
-- **Finalidade**: Projeto open-source para estudo e diversão
+Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
-## 🐛 Bugs Conhecidos
+## 👥 Autores
 
-- Nenhum bug crítico conhecido atualmente
-- Reportar issues na aba "Issues" do GitHub
+- **Legado da Fortaleza Team** - *Desenvolvimento inicial*
 
-## 📈 Futuras Melhorias
+## 🙏 Agradecimentos
 
-- [ ] Mais tipos de torres
-- [ ] Boss battles
-- [ ] Multiplayer
-- [ ] Conquistas
-- [ ] Leaderboards online
-- [ ] Temas visuais
-- [ ] Efeitos sonoros
-- [ ] Tutorial interativo
+- Comunidade de Tower Defense
+- Contribuidores de sprites e assets
+- Testadores e feedback da comunidade
+
+## 📞 Suporte
+
+- **Issues**: [GitHub Issues](https://github.com/seu-usuario/legado-da-fortaleza/issues)
+- **Discord**: [Servidor da Comunidade](link-do-discord)
+- **Email**: suporte@legadodafortaleza.com
 
 ---
 
-**Divirta-se jogando Legado da Fortaleza!** 🏹✨ 
+⭐ **Se este projeto te ajudou, considere dar uma estrela no repositório!** 

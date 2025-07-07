@@ -12,6 +12,7 @@ export const DEFAULT_GAME_CONFIG = {
     waveBonusMultiplier: 40,    // Reduzido de 50 para 40 (temos bônus exponencial)
     upgradeBonusMultiplier: 20, // Reduzido de 25 para 20 (mais equilibrado)
     waveDelaySeconds: 5,
+    towerMaxLevel: 5,           // Nível máximo padrão para todas as torres
     
     // Configurações de ondas
     goldMultiplier: 1,
