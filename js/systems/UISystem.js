@@ -2,35 +2,76 @@
 export class UISystem {
     constructor(gameState) {
         this.gameState = gameState;
+        this.cachedElements = {};
+    }
+
+    // Cache de elementos DOM para melhor performance
+    getElement(id) {
+        if (!this.cachedElements[id]) {
+            this.cachedElements[id] = document.getElementById(id);
+        }
+        return this.cachedElements[id];
     }
 
     updateUI() {
-        document.getElementById('health').textContent = this.gameState.health;
-        document.getElementById('gold').textContent = this.gameState.gold;
-        document.getElementById('wave').textContent = this.gameState.wave;
-        document.getElementById('score').textContent = this.gameState.score;
-        // Exibir monstros total/eliminados
-        document.getElementById('monsters').textContent = `${this.gameState.monstersThisWave}/${this.gameState.monstersDefeated}`;
+        this.updateGameStats();
+        this.updateWaveTimer();
+        this.updateStartButton();
+        this.updateTowerButtons();
+    }
+
+    updateGameStats() {
+        const elements = {
+            health: this.gameState.health,
+            gold: this.gameState.gold,
+            wave: this.gameState.wave,
+            score: this.gameState.score,
+            monsters: `${this.gameState.monstersThisWave}/${this.gameState.monstersDefeated}`,
+            gameTime: this.formatGameTime()
+        };
+
+        Object.entries(elements).forEach(([id, value]) => {
+            const element = this.getElement(id);
+            if (element) {
+                element.textContent = value;
+            }
+        });
+    }
+
+    formatGameTime() {
         const minutes = Math.floor(this.gameState.gameTime / 60);
         const seconds = Math.floor(this.gameState.gameTime % 60);
-        document.getElementById('gameTime').textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    updateWaveTimer() {
+        const timerElement = this.getElement('nextWaveTimer');
+        if (!timerElement) return;
+
         if (this.gameState.waveInProgress) {
-            document.getElementById('nextWaveTimer').textContent = '--';
+            timerElement.textContent = '--';
         } else if (this.gameState.nextWaveTimer > 0) {
             const seconds = Math.ceil(this.gameState.nextWaveTimer);
-            document.getElementById('nextWaveTimer').textContent = `${seconds}s`;
+            timerElement.textContent = `${seconds}s`;
         } else if (this.gameState.wave > 0) {
-            document.getElementById('nextWaveTimer').textContent = 'Pronta';
+            timerElement.textContent = 'Pronta';
         } else {
-            document.getElementById('nextWaveTimer').textContent = '--';
+            timerElement.textContent = '--';
         }
-        const startBtn = document.getElementById('start-wave');
-        if (this.gameState.waveInProgress || this.gameState.nextWaveTimer <= 0 || this.gameState.enemies.length > 0) {
-            startBtn.disabled = true;
-        } else {
-            startBtn.disabled = false;
-        }
-        // Atualizar estados dos botões de torre baseado no ouro
+    }
+
+    updateStartButton() {
+        const startBtn = this.getElement('start-wave');
+        if (!startBtn) return;
+
+        const shouldDisable = this.gameState.waveInProgress || 
+                            this.gameState.nextWaveTimer <= 0 || 
+                            this.gameState.enemies.length > 0;
+        
+        startBtn.disabled = shouldDisable;
+    }
+
+    updateTowerButtons() {
         document.querySelectorAll('.tower-btn').forEach(btn => {
             const cost = parseInt(btn.dataset.cost);
             if (this.gameState.gold < cost) {
@@ -41,17 +82,10 @@ export class UISystem {
         });
     }
 
+    // Método mantido para compatibilidade - funcionalidade desativada
     showNotification(message, type = 'info', duration = 3000) {
         // Notificações desativadas
-        // console.log(`[NOTIFICAÇÃO DESATIVADA] (${type}): ${message}`);
         return;
-    }
-
-    repositionNotifications() {
-        const notifications = document.querySelectorAll('.notification');
-        notifications.forEach((notification, index) => {
-            notification.style.top = `${20 + (index * 80)}px`;
-        });
     }
 
     setGameState(newState) {
@@ -59,7 +93,7 @@ export class UISystem {
     }
     
     updateSpeedDisplay(speed) {
-        const speedElement = document.getElementById('gameSpeed');
+        const speedElement = this.getElement('gameSpeed');
         if (speedElement) {
             speedElement.textContent = `${speed}x`;
         }
