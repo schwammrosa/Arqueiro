@@ -351,6 +351,8 @@
     
 
     
+
+    
     /* Botão toggle flutuante para esconder/mostrar controles */
     .toggle-controls-btn {
         position: fixed !important;
@@ -1321,6 +1323,15 @@
                 }
             });
         }
+    });
+
+    // Bloquear menu de contexto (clique direito e toque longo)
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+    });
+    // Bloquear seleção de texto por evento
+    document.addEventListener('selectstart', function(e) {
+        e.preventDefault();
     });
 
     </script>
