@@ -19,9 +19,9 @@ export class Enemy {
         this.size = stats.size;
         this.color = stats.color;
         this.scoreMultiplier = stats.scoreMultiplier || 1;
-        this.isRemoved = false; // Flag para evitar remoção duplicada
+        this.isRemoved = false;
         
-        // Direção inicial (será calculada durante o movimento)
+        // Direção inicial
         this.direction = 'down';
         
         // Dependências injetadas
@@ -36,7 +36,6 @@ export class Enemy {
         this.spriteType = this.mapEnemyTypeToSprite();
     }
 
-    // Mapear tipos de inimigos para sprites de monstros
     mapEnemyTypeToSprite() {
         return ENEMY_TYPE_TO_SPRITE[this.type] || 'normal';
     }
@@ -44,7 +43,11 @@ export class Enemy {
     update(deltaTime) {
         if (this.gameState.isPaused) return;
 
-        // Remover lentidão se o tempo acabou
+        this.updateSlowEffect();
+        this.updateMovement(deltaTime);
+    }
+
+    updateSlowEffect() {
         if (this.slowUntil && Date.now() > this.slowUntil) {
             if (this.originalSpeed) {
                 this.speed = this.originalSpeed;
@@ -52,108 +55,147 @@ export class Enemy {
             }
             this.slowUntil = null;
         }
+    }
 
-        // Mover pelo caminho
-        if (this.pathIndex < this.enemyPath.length - 1) {
-            const targetX = this.enemyPath[this.pathIndex + 1].x * this.GAME_CONFIG.gridSize + this.GAME_CONFIG.gridSize / 2;
-            const targetY = this.enemyPath[this.pathIndex + 1].y * this.GAME_CONFIG.gridSize + this.GAME_CONFIG.gridSize / 2;
-
-            const dx = targetX - this.x;
-            const dy = targetY - this.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-
-            // Calcular direção para sprites
-            if (this.monsterSpriteManager) {
-                this.direction = this.monsterSpriteManager.getDirectionFromMovement(dx, dy);
-            }
-
-            if (distance < 5) {
-                this.pathIndex++;
-            } else {
-                // Ajustar velocidade para funcionar melhor com deltaTime
-                // Limitar deltaTime localmente também para maior segurança
-                const safeDeltaTime = Math.min(deltaTime, 100);
-                const moveSpeed = this.speed * (safeDeltaTime / 16.67); // Normalizar para 60fps
-                
-                // Calcular movimento
-                const moveX = (dx / distance) * moveSpeed;
-                const moveY = (dy / distance) * moveSpeed;
-                
-                // Verificar se o movimento não vai passar do alvo (evitar overshoot)
-                const remainingDistance = Math.sqrt(dx * dx + dy * dy);
-                const movementDistance = Math.sqrt(moveX * moveX + moveY * moveY);
-                
-                if (movementDistance >= remainingDistance) {
-                    // Se o movimento vai passar do alvo, ir direto para o alvo
-                    this.x = targetX;
-                    this.y = targetY;
-                    this.pathIndex++; // Avançar para o próximo ponto
-                } else {
-                    // Movimento normal
-                    this.x += moveX;
-                    this.y += moveY;
-                }
-            }
-        } else {
-            // Inimigo chegou ao final
-            let dmg = 1;
-            if (this.GAME_CONFIG && this.GAME_CONFIG.defenseBonus) {
-                dmg = Math.max(1, Math.round(dmg * (1 - this.GAME_CONFIG.defenseBonus)));
-            }
-            this.gameState.health -= dmg;
-            this.remove();
+    updateMovement(deltaTime) {
+        if (this.pathIndex >= this.enemyPath.length - 1) {
+            this.reachEnd();
+            return;
         }
+
+        const target = this.getNextTarget();
+        const distance = this.calculateDistance(target.x, target.y);
+
+        // Calcular direção para sprites
+        if (this.monsterSpriteManager) {
+            const dx = target.x - this.x;
+            const dy = target.y - this.y;
+            this.direction = this.monsterSpriteManager.getDirectionFromMovement(dx, dy);
+        }
+
+        if (distance < 5) {
+            this.pathIndex++;
+        } else {
+            this.moveTowardsTarget(target, deltaTime);
+        }
+    }
+
+    getNextTarget() {
+        const nextPathPoint = this.enemyPath[this.pathIndex + 1];
+        return {
+            x: nextPathPoint.x * this.GAME_CONFIG.gridSize + this.GAME_CONFIG.gridSize / 2,
+            y: nextPathPoint.y * this.GAME_CONFIG.gridSize + this.GAME_CONFIG.gridSize / 2
+        };
+    }
+
+    calculateDistance(targetX, targetY) {
+        const dx = targetX - this.x;
+        const dy = targetY - this.y;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    moveTowardsTarget(target, deltaTime) {
+        const distance = this.calculateDistance(target.x, target.y);
+        const safeDeltaTime = Math.min(deltaTime, 100);
+        const moveSpeed = this.speed * (safeDeltaTime / 16.67);
+        
+        const moveX = ((target.x - this.x) / distance) * moveSpeed;
+        const moveY = ((target.y - this.y) / distance) * moveSpeed;
+        
+        const movementDistance = Math.sqrt(moveX * moveX + moveY * moveY);
+        
+        if (movementDistance >= distance) {
+            // Ir direto para o alvo se vai passar
+            this.x = target.x;
+            this.y = target.y;
+            this.pathIndex++;
+        } else {
+            this.x += moveX;
+            this.y += moveY;
+        }
+    }
+
+    reachEnd() {
+        let damage = 1;
+        if (this.GAME_CONFIG?.defenseBonus) {
+            damage = Math.max(1, Math.round(damage * (1 - this.GAME_CONFIG.defenseBonus)));
+        }
+        this.gameState.health -= damage;
+        this.remove();
     }
 
     takeDamage(damage) {
         this.health -= damage;
-        
-        // Criar número de dano com cor baseada no dano
-        let damageColor = '#ff0000'; // Vermelho padrão
-        if (damage >= 30) damageColor = '#ff6600'; // Laranja para dano alto
-        if (damage >= 50) damageColor = '#ffcc00'; // Amarelo para dano muito alto
-        
-        const damageNumber = new this.DamageNumber(this.x, this.y - 20, damage, damageColor);
-        this.gameState.damageNumbers.push(damageNumber);
+        this.createDamageNumber(damage);
         
         if (this.health <= 0) {
-            this.gameState.gold += Math.floor(this.reward * this.GAME_CONFIG.goldMultiplier);
-            
-            // Carregar configuração de pontos por inimigo
-            const savedConfig = localStorage.getItem('arqueiroConfig');
-            const pointsPerKill = savedConfig ? JSON.parse(savedConfig).pointsPerKill || 10 : 10;
-            
-            // Calcular pontos usando o multiplicador do tipo de inimigo
-            const baseScore = this.reward * pointsPerKill;
-            const finalScore = Math.floor(baseScore * this.scoreMultiplier);
-            this.gameState.score += finalScore;
-            
-            // Rastrear conquistas
-            if (!this.gameState.achievements) {
-                this.gameState.achievements = {
-                    firstEliteKilled: false,
-                    perfectWaves: 0,
-                    consecutivePerfectWaves: 0,
-                    towersBuilt: 0,
-                    elitesKilled: 0
-                };
+            this.handleDeath();
+        }
+    }
+
+    createDamageNumber(damage) {
+        const damageColor = this.getDamageColor(damage);
+        const damageNumber = new this.DamageNumber(this.x, this.y - 20, damage, damageColor);
+        this.gameState.damageNumbers.push(damageNumber);
+    }
+
+    getDamageColor(damage) {
+        if (damage >= 50) return '#ffcc00'; // Amarelo para dano muito alto
+        if (damage >= 30) return '#ff6600'; // Laranja para dano alto
+        return '#ff0000'; // Vermelho padrão
+    }
+
+    handleDeath() {
+        this.addRewards();
+        this.updateAchievements();
+        this.showDeathNotification();
+        this.remove();
+    }
+
+    addRewards() {
+        const goldReward = Math.floor(this.reward * this.GAME_CONFIG.goldMultiplier);
+        this.gameState.gold += goldReward;
+        
+        const savedConfig = localStorage.getItem('arqueiroConfig');
+        const pointsPerKill = savedConfig ? JSON.parse(savedConfig).pointsPerKill || 10 : 10;
+        const baseScore = this.reward * pointsPerKill;
+        const finalScore = Math.floor(baseScore * this.scoreMultiplier);
+        this.gameState.score += finalScore;
+    }
+
+    updateAchievements() {
+        if (!this.gameState.achievements) {
+            this.gameState.achievements = {
+                firstEliteKilled: false,
+                perfectWaves: 0,
+                consecutivePerfectWaves: 0,
+                towersBuilt: 0,
+                elitesKilled: 0
+            };
+        }
+        
+        if (this.type === 'elite') {
+            this.gameState.achievements.elitesKilled++;
+            if (!this.gameState.achievements.firstEliteKilled) {
+                this.gameState.achievements.firstEliteKilled = true;
+                this.showNotification('Primeiro Elite derrotado! Conquista desbloqueada!', 'success');
             }
-            
-            // Notificação especial para diferentes tipos
-            if (this.type === 'elite') {
-                this.gameState.achievements.elitesKilled++;
-                if (!this.gameState.achievements.firstEliteKilled) {
-                    this.gameState.achievements.firstEliteKilled = true;
-                    this.showNotification(`Primeiro Elite derrotado! Conquista desbloqueada!`, 'success');
-                }
-                this.showNotification(`Elite derrotado! +${this.reward * this.GAME_CONFIG.goldMultiplier} ouro! +${finalScore} pontos!`, 'success');
-            } else if (this.type === 'tank') {
-                this.showNotification(`Tanque derrotado! +${finalScore} pontos!`, 'info');
-            } else if (finalScore > baseScore) {
-                this.showNotification(`+${finalScore} pontos!`, 'info');
-            }
-            
-            this.remove();
+        }
+    }
+
+    showDeathNotification() {
+        const goldReward = Math.floor(this.reward * this.GAME_CONFIG.goldMultiplier);
+        const savedConfig = localStorage.getItem('arqueiroConfig');
+        const pointsPerKill = savedConfig ? JSON.parse(savedConfig).pointsPerKill || 10 : 10;
+        const baseScore = this.reward * pointsPerKill;
+        const finalScore = Math.floor(baseScore * this.scoreMultiplier);
+
+        if (this.type === 'elite') {
+            this.showNotification(`Elite derrotado! +${goldReward} ouro! +${finalScore} pontos!`, 'success');
+        } else if (this.type === 'tank') {
+            this.showNotification(`Tanque derrotado! +${finalScore} pontos!`, 'info');
+        } else if (finalScore > baseScore) {
+            this.showNotification(`+${finalScore} pontos!`, 'info');
         }
     }
 
@@ -170,70 +212,77 @@ export class Enemy {
     draw(ctx) {
         if (this.isRemoved) return;
 
-        // Tentar usar sprite se disponível
-        if (this.monsterSpriteManager && this.monsterSpriteManager.isMonsterLoaded(this.spriteType)) {
-            try {
-                // Usar sprite animado
-                this.monsterSpriteManager.drawMonster(ctx, {
-                    type: this.spriteType,
-                    x: this.x,
-                    y: this.y,
-                    direction: this.direction,
-                    health: this.health,
-                    maxHealth: this.maxHealth,
-                    slowUntil: this.slowUntil,
-                    slowStartTime: this.slowStartTime,
-                    freezeBonus: this.freezeBonus,
-                    isFrozen: this.isFrozen
-                }, this.gameState.gameTime);
-            } catch (error) {
-                console.error('❌ Erro ao desenhar sprite do monstro:', error, {
-                    type: this.type,
-                    spriteType: this.spriteType,
-                    direction: this.direction
-                });
-                // Fallback para desenho simples
-                this.drawFallback(ctx);
-            }
+        if (this.shouldUseSprite()) {
+            this.drawSprite(ctx);
         } else {
-            // Fallback para desenho simples
             this.drawFallback(ctx);
         }
     }
 
-    // Método de fallback para desenho simples
+    shouldUseSprite() {
+        return this.monsterSpriteManager && this.monsterSpriteManager.isMonsterLoaded(this.spriteType);
+    }
+
+    drawSprite(ctx) {
+        try {
+            this.monsterSpriteManager.drawMonster(ctx, {
+                type: this.spriteType,
+                x: this.x,
+                y: this.y,
+                direction: this.direction,
+                health: this.health,
+                maxHealth: this.maxHealth,
+                slowUntil: this.slowUntil,
+                slowStartTime: this.slowStartTime,
+                freezeBonus: this.freezeBonus,
+                isFrozen: this.isFrozen
+            }, this.gameState.gameTime);
+        } catch (error) {
+            this.drawFallback(ctx);
+        }
+    }
+
     drawFallback(ctx) {
         ctx.save();
+        this.drawEnemyBody(ctx);
+        ctx.restore();
         
-        // Efeito visual de slow - inimigos lentos ficam azulados
-        let fillColor = this.color;
-        let strokeColor = '#000000';
-        
-        if (this.slowUntil && Date.now() < this.slowUntil) {
-            // Aplicar efeito azulado para inimigos lentos
-            fillColor = this.color;
-            strokeColor = '#36b9cc';
-            ctx.lineWidth = 3;
-            
-            // Adicionar brilho azul
-            ctx.shadowColor = '#36b9cc';
-            ctx.shadowBlur = 8;
-        } else {
-            ctx.lineWidth = 2;
-        }
+        this.drawHealthBar(ctx);
+        this.drawSlowBar(ctx);
+        this.drawTypeIcon(ctx);
+    }
+
+    drawEnemyBody(ctx) {
+        const { fillColor, strokeColor, lineWidth, shadowColor, shadowBlur } = this.getEnemyStyle();
         
         ctx.fillStyle = fillColor;
         ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = lineWidth;
         
-        // Desenhar círculo do inimigo
+        if (shadowColor) {
+            ctx.shadowColor = shadowColor;
+            ctx.shadowBlur = shadowBlur;
+        }
+        
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
+    }
+
+    getEnemyStyle() {
+        const isSlowed = this.slowUntil && Date.now() < this.slowUntil;
         
-        ctx.restore();
-        
-        // Desenhar barra de vida
+        return {
+            fillColor: this.color,
+            strokeColor: isSlowed ? '#36b9cc' : '#000000',
+            lineWidth: isSlowed ? 3 : 2,
+            shadowColor: isSlowed ? '#36b9cc' : null,
+            shadowBlur: isSlowed ? 8 : 0
+        };
+    }
+
+    drawHealthBar(ctx) {
         const barWidth = this.size * 2;
         const barHeight = 4;
         const barX = this.x - barWidth / 2;
@@ -252,44 +301,57 @@ export class Enemy {
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 1;
         ctx.strokeRect(barX, barY, barWidth, barHeight);
+    }
+
+    drawSlowBar(ctx) {
+        if (!this.slowUntil || Date.now() >= this.slowUntil) return;
+
+        const barWidth = this.size * 2;
+        const barHeight = 3;
+        const barX = this.x - barWidth / 2;
+        const barY = this.y - this.size - 18;
         
-        // Barra de status do slow (se ativo)
-        if (this.slowUntil && Date.now() < this.slowUntil) {
-            const slowBarY = barY - 8;
-            const slowBarWidth = barWidth;
-            const slowBarHeight = 3;
-            
-            // Calcular progresso do slow
-            const slowStart = this.slowStartTime || (this.slowUntil - (this.freezeBonus || 1) * 1000);
-            const totalSlowDuration = this.slowUntil - slowStart;
-            const elapsed = Math.max(0, Math.min(totalSlowDuration, Date.now() - slowStart));
-            const remainingProgress = 1 - (elapsed / totalSlowDuration);
-            
-            // Fundo da barra de slow
-            ctx.fillStyle = 'rgba(54, 185, 204, 0.3)';
-            ctx.fillRect(barX, slowBarY, slowBarWidth, slowBarHeight);
-            
-            // Progresso da barra de slow
-            ctx.fillStyle = '#36b9cc';
-            ctx.fillRect(barX, slowBarY, slowBarWidth * remainingProgress, slowBarHeight);
-            
-            // Borda da barra de slow
-            ctx.strokeStyle = '#36b9cc';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(barX, slowBarY, slowBarWidth, slowBarHeight);
-        }
+        const remainingProgress = this.calculateSlowProgress();
         
-        // Desenhar ícone baseado no tipo
+        // Fundo da barra de slow
+        ctx.fillStyle = 'rgba(54, 185, 204, 0.3)';
+        ctx.fillRect(barX, barY, barWidth, barHeight);
+        
+        // Progresso da barra de slow
+        ctx.fillStyle = '#36b9cc';
+        ctx.fillRect(barX, barY, barWidth * remainingProgress, barHeight);
+        
+        // Borda da barra de slow
+        ctx.strokeStyle = '#36b9cc';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(barX, barY, barWidth, barHeight);
+    }
+
+    calculateSlowProgress() {
+        const slowStart = this.slowStartTime || (this.slowUntil - (this.freezeBonus || 1) * 1000);
+        const totalSlowDuration = this.slowUntil - slowStart;
+        const elapsed = Math.max(0, Math.min(totalSlowDuration, Date.now() - slowStart));
+        return 1 - (elapsed / totalSlowDuration);
+    }
+
+    drawTypeIcon(ctx) {
+        const icon = this.getTypeIcon();
+        
         ctx.font = '16px Arial';
         ctx.fillStyle = '#ffffff';
         ctx.textAlign = 'center';
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 2;
         
-        let icon = '⚡';
-        if (this.type === 'tank') icon = '🛡️';
-        if (this.type === 'elite') icon = '👑';
         ctx.strokeText(icon, this.x, this.y + 5);
         ctx.fillText(icon, this.x, this.y + 5);
+    }
+
+    getTypeIcon() {
+        switch (this.type) {
+            case 'tank': return '🛡️';
+            case 'elite': return '👑';
+            default: return '⚡';
+        }
     }
 } 
