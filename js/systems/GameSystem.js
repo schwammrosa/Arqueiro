@@ -10,6 +10,7 @@ export class GameSystem {
         this.DamageNumber = DamageNumber;
         this.uiSystem = uiSystem;
         this.renderSystem = renderSystem;
+        this.imageManager = renderSystem.imageManager;
         this.lastTime = 0;
         this.isRunning = false;
         this.lastPassiveHeal = 0;
@@ -604,6 +605,11 @@ export class GameSystem {
             tower.activeProjectiles = [];
             tower.lastShot = 0;
             
+            // Adicionar referência do imageManager se não existir
+            if (!tower.imageManager && this.imageManager) {
+                tower.imageManager = this.imageManager;
+            }
+            
             // Reaplicar bônus e configurações
             if (tower.applyBonuses) {
                 tower.applyBonuses();
@@ -824,26 +830,12 @@ export class GameSystem {
         if (arrowBtn) {
             const arrowUnlocked = this.isSpecialSkillUnlocked('arrowRain');
             arrowBtn.style.display = arrowUnlocked ? 'flex' : 'none';
-            
-            if (arrowUnlocked) {
-
-            } else {
-
-            }
         }
         
         if (iceBtn) {
             const iceUnlocked = this.isSpecialSkillUnlocked('iceStorm');
             iceBtn.style.display = iceUnlocked ? 'flex' : 'none';
-            
-            if (iceUnlocked) {
-
-            } else {
-
-            }
         }
-        
-
     }
     
     // Usar habilidade especial
@@ -908,4 +900,4 @@ export class GameSystem {
             console.error('❌ Erro ao verificar sprites:', error);
         }
     }
-} 
+}

@@ -2,7 +2,7 @@ let TESLA_ID_COUNTER = 1;
 
 // Classe Torre
 export class Tower {
-    constructor(x, y, type, towerTypes, gameConfig, gameState, ctx, Projectile, updateUI, showNotification, TeslaChainProjectile, CannonProjectile) {
+    constructor(x, y, type, towerTypes, gameConfig, gameState, ctx, Projectile, updateUI, showNotification, TeslaChainProjectile, CannonProjectile, imageManager) {
         this.x = x;
         this.y = y;
         this.type = type;
@@ -15,6 +15,7 @@ export class Tower {
         this.CannonProjectile = CannonProjectile;
         this.updateUI = updateUI;
         this.showNotification = showNotification;
+        this.imageManager = imageManager;
         this.level = 1;
         this.isSelected = false;
         this.isHovered = false; // Nova propriedade para hover
@@ -372,21 +373,39 @@ export class Tower {
     }
 
     draw() {
-        this.ctx.fillStyle = this.color;
-        this.ctx.fillRect(
-            this.x - this.gameConfig.gridSize / 2,
-            this.y - this.gameConfig.gridSize / 2,
-            this.gameConfig.gridSize,
-            this.gameConfig.gridSize
-        );
-        this.ctx.font = '20px Arial';
-        this.ctx.fillStyle = 'white';
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText(
-            this.icon,
-            this.x,
-            this.y + 5
-        );
+        // Tentar desenhar a imagem da torre, se estiver carregada
+        const imageKey = this.type;
+        let image = null;
+        if (this.imageManager && this.imageManager.getImage) {
+            image = this.imageManager.getImage(imageKey);
+        }
+        
+        if (image) {
+            this.ctx.drawImage(
+                image,
+                this.x - this.gameConfig.gridSize / 2,
+                this.y - this.gameConfig.gridSize / 2,
+                this.gameConfig.gridSize,
+                this.gameConfig.gridSize
+            );
+        } else {
+            // Fallback: quadrado colorido e ícone
+            this.ctx.fillStyle = this.color;
+            this.ctx.fillRect(
+                this.x - this.gameConfig.gridSize / 2,
+                this.y - this.gameConfig.gridSize / 2,
+                this.gameConfig.gridSize,
+                this.gameConfig.gridSize
+            );
+            this.ctx.font = '20px Arial';
+            this.ctx.fillStyle = 'white';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText(
+                this.icon,
+                this.x,
+                this.y + 5
+            );
+        }
         if (this.level > 1) {
             this.ctx.font = '12px Arial';
             this.ctx.fillStyle = '#ffd700';
@@ -405,34 +424,25 @@ export class Tower {
             this.ctx.arc(this.x, this.y, this.range, 0, Math.PI * 2);
             this.ctx.stroke();
             this.ctx.setLineDash([]);
-            
             // Mostrar área de efeito para canhão
             if (this.type === 'cannon') {
                 let areaRadius = this.gameConfig.gridSize * 1.2;
                 if (this.towerTypes.cannon) {
                     areaRadius = this.towerTypes.cannon.areaRadius || areaRadius;
                 }
-                
-                // Aplicar bônus de área da árvore de habilidades
                 if (this.areaBonus) {
                     areaRadius *= this.areaBonus;
                 }
-                
-                // Área de efeito com transparência
                 this.ctx.fillStyle = 'rgba(255, 100, 0, 0.2)';
                 this.ctx.beginPath();
                 this.ctx.arc(this.x, this.y, areaRadius, 0, Math.PI * 2);
                 this.ctx.fill();
-                
-                // Borda da área de efeito
                 this.ctx.strokeStyle = '#ff6600';
                 this.ctx.lineWidth = 3;
                 this.ctx.setLineDash([]);
                 this.ctx.beginPath();
                 this.ctx.arc(this.x, this.y, areaRadius, 0, Math.PI * 2);
                 this.ctx.stroke();
-                
-                // Texto indicando área de efeito
                 this.ctx.font = '14px Arial';
                 this.ctx.fillStyle = '#ff6600';
                 this.ctx.textAlign = 'center';

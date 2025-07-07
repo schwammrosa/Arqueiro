@@ -250,9 +250,13 @@ function getInitialGameState() {
         isPaused: false,
         isGameOver: false,
         selectedTower: null,
+        selectedTowerType: null,
+        mouseX: undefined,
+        mouseY: undefined,
         towers: [],
         enemies: [],
         projectiles: [],
+        visualEffects: [],
         waveInProgress: false,
         allEnemiesSpawned: false,
         waveTimer: 0,
@@ -910,7 +914,8 @@ canvas.addEventListener('click', (e) => {
                 uiSystem.updateUI, 
                 uiSystem.showNotification, 
                 TeslaChainProjectile, 
-                CannonProjectile
+                CannonProjectile,
+                renderSystem.imageManager
             );
             
             // Adicionar ao gameState (gameSystem.gameState é a mesma referência)
@@ -1219,12 +1224,15 @@ canvas.addEventListener('mousemove', (e) => {
     const mouseX = (e.clientX - rect.left) * scaleX;
     const mouseY = (e.clientY - rect.top) * scaleY;
     
-    // Atualizar posição do mouse para preview da torre
+    // SEMPRE atualizar posição do mouse para preview da torre
+    gameState.mouseX = mouseX;
+    gameState.mouseY = mouseY;
+    
+    // Definir selectedTowerType se há torre selecionada
     if (gameState.selectedTower) {
-        gameState.mouseX = mouseX;
-        gameState.mouseY = mouseY;
         gameState.selectedTowerType = gameState.selectedTower;
     }
+    
     // Procurar torre sob o mouse
     const tower = renderSystem.getTowerAtPosition(mouseX, mouseY, gameState);
     
@@ -1490,9 +1498,12 @@ function iniciarModoContinuar() {
             isGameOver: false,
             selectedTower: null,
             selectedTowerType: null, // Adicionar campo faltante
+            mouseX: undefined,
+            mouseY: undefined,
             towers: [],
             enemies: [],
             projectiles: [],
+            visualEffects: [], // Adicionar visualEffects
             waveInProgress: false,
             allEnemiesSpawned: false,
             waveTimer: 0,

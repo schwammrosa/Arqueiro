@@ -7,7 +7,8 @@ export const DEFAULT_TOWER_TYPES = {
         damage: 15,
         fireRate: 1000,
         color: '#4e73df',
-        icon: '🏹'
+        icon: '🏹',
+        image: 'assets/imagen/Torres/arqueiro.png'
     },
     cannon: {
         name: 'Canhão',
@@ -16,7 +17,8 @@ export const DEFAULT_TOWER_TYPES = {
         damage: 25,
         fireRate: 1500,
         color: '#e74a3b',
-        icon: '🚀'
+        icon: '🚀',
+        image: 'assets/imagen/Torres/canhao.png'
     },
     magic: {
         name: 'Mágica',
@@ -27,7 +29,8 @@ export const DEFAULT_TOWER_TYPES = {
         color: '#36b9cc',
         icon: '🔮',
         slowEffect: 40, // 40% da velocidade original (60% de redução)
-        freezeDuration: 1 // 1 segundo de duração
+        freezeDuration: 1, // 1 segundo de duração
+        image: 'assets/imagen/Torres/magica.png'
     },
     tesla: {
         name: 'Tesla',
@@ -38,7 +41,8 @@ export const DEFAULT_TOWER_TYPES = {
         color: '#7d5fff',
         icon: '⚡',
         chainMax: 5,        // Máximo de alvos encadeados
-        chainRadius: 1.2    // Multiplicador do alcance para encadeamento
+        chainRadius: 1.2,   // Multiplicador do alcance para encadeamento
+        image: 'assets/imagen/Torres/tesla.png'
     },
     special: {
         name: 'Especial',

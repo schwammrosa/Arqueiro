@@ -12,6 +12,8 @@ export class RenderSystem {
         this.imagesInitialized = false;
         this.monstersInitialized = false;
         
+        console.log('🏗️ RenderSystem inicializado');
+        
         // Inicializar imagens padrão e monstros
         this.initializeImages();
         this.initializeMonsters();
@@ -25,10 +27,38 @@ export class RenderSystem {
     // Inicializar imagens do jogo
     async initializeImages() {
         try {
-            await this.imageManager.initializeDefault(this.GAME_CONFIG.gridSize);
+            console.log('🖼️ Iniciando carregamento de imagens das torres...');
+            // Carregar imagens das torres PRIMEIRO
+            const towerImages = {
+                archer: 'assets/imagen/Torres/arqueiro.png',
+                cannon: 'assets/imagen/Torres/canhao.png',
+                magic: 'assets/imagen/Torres/magica.png',
+                tesla: 'assets/imagen/Torres/tesla.png'
+            };
+            
+            console.log('📁 Caminhos das imagens das torres:', towerImages);
+            const success = await this.imageManager.loadImages(towerImages);
+            console.log('✅ Carregamento das imagens das torres:', success ? 'SUCESSO' : 'FALHA');
+            
+            // Marcar como inicializado IMEDIATAMENTE após carregar as torres
             this.imagesInitialized = true;
+            console.log('🎯 Imagens das torres inicializadas!');
+            
+            // Verificar se cada imagem foi carregada
+            Object.keys(towerImages).forEach(type => {
+                const image = this.imageManager.getImage(type);
+                console.log(`🔍 Imagem ${type}:`, image ? 'CARREGADA' : 'NÃO CARREGADA');
+            });
+            
+            // Aguardar um pouco para garantir que as imagens estejam prontas
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Depois carregar as outras imagens
+            await this.imageManager.initializeDefault(this.GAME_CONFIG.gridSize);
+            
+            console.log('🎯 Todas as imagens inicializadas com sucesso!');
         } catch (error) {
-            console.error('Erro ao inicializar imagens:', error);
+            console.error('❌ Erro ao inicializar imagens:', error);
             this.imagesInitialized = false;
         }
     }
@@ -214,8 +244,51 @@ export class RenderSystem {
     
     // Desenhar preview da torre selecionada
     drawTowerPreview(mouseX, mouseY, towerType) {
-        // Esta função precisa ser implementada com acesso às configurações de torres
-        // Por enquanto, deixar vazia para evitar erros
+        const image = this.imageManager.getImage(towerType);
+        
+        if (image) {
+            this.ctx.globalAlpha = 0.7;
+            this.ctx.drawImage(
+                image,
+                mouseX - this.GAME_CONFIG.gridSize / 2,
+                mouseY - this.GAME_CONFIG.gridSize / 2,
+                this.GAME_CONFIG.gridSize,
+                this.GAME_CONFIG.gridSize
+            );
+            this.ctx.globalAlpha = 1.0;
+        } else {
+            // Fallback: quadrado colorido
+            // Usar configurações padrão das torres
+            const towerConfigs = {
+                archer: { color: '#4e73df', icon: '🏹' },
+                cannon: { color: '#e74a3b', icon: '🚀' },
+                magic: { color: '#36b9cc', icon: '🔮' },
+                tesla: { color: '#7d5fff', icon: '⚡' }
+            };
+            
+            const config = towerConfigs[towerType] || { color: '#888', icon: '❓' };
+            
+            this.ctx.fillStyle = config.color;
+            this.ctx.globalAlpha = 0.5;
+            this.ctx.fillRect(
+                mouseX - this.GAME_CONFIG.gridSize / 2,
+                mouseY - this.GAME_CONFIG.gridSize / 2,
+                this.GAME_CONFIG.gridSize,
+                this.GAME_CONFIG.gridSize
+            );
+            
+            // Adicionar ícone no centro
+            this.ctx.font = '16px Arial';
+            this.ctx.fillStyle = 'white';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText(
+                config.icon,
+                mouseX,
+                mouseY + 4
+            );
+            
+            this.ctx.globalAlpha = 1.0;
+        }
     }
     
     // Desenhar monstros com sprites animados
@@ -250,6 +323,7 @@ export class RenderSystem {
         
         // Desenhar preview da torre selecionada
         if (gameState.selectedTower && gameState.selectedTowerType && gameState.mouseX !== undefined && gameState.mouseY !== undefined) {
+            // Sempre tentar desenhar o preview, mesmo se as imagens não estiverem totalmente inicializadas
             this.drawTowerPreview(gameState.mouseX, gameState.mouseY, gameState.selectedTowerType);
         }
         
