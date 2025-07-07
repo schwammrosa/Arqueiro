@@ -4,7 +4,6 @@ export const DEFAULT_GAME_CONFIG = {
     initialHealth: 20,
     initialGold: 75,
     gridSize: 40,
-    waveDelay: 3000,
     upgradeBaseCost: 75,
     upgradePercentage: 50, // Porcentagem do valor da torre para upgrade
     sellPercentage: 50,
@@ -37,80 +36,116 @@ export const DEFAULT_GAME_CONFIG = {
     ]
 };
 
+// Constantes do sistema
+const STORAGE_KEY = 'arqueiroConfig';
+const CONFIG_CHANGED_EVENT = 'configChanged';
+
 // Sistema de eventos para notificar mudanças
 const configEventTarget = new EventTarget();
 
 // Evento personalizado para mudanças de configuração
-export const CONFIG_CHANGED_EVENT = 'configChanged';
+export { CONFIG_CHANGED_EVENT };
 
-// Função para disparar evento de mudança
+/**
+ * Dispara evento de mudança de configuração
+ */
 export function notifyConfigChanged() {
     configEventTarget.dispatchEvent(new CustomEvent(CONFIG_CHANGED_EVENT, {
         detail: { config: loadGameConfig() }
     }));
 }
 
-// Função para escutar mudanças de configuração
+/**
+ * Escuta mudanças de configuração
+ * @param {Function} callback - Função chamada quando a configuração muda
+ */
 export function onConfigChanged(callback) {
     configEventTarget.addEventListener(CONFIG_CHANGED_EVENT, (event) => {
         callback(event.detail.config);
     });
 }
 
-// Carregar configurações salvas
+/**
+ * Carrega configurações salvas do localStorage
+ * @returns {Object} Configuração carregada ou padrão
+ */
 export function loadGameConfig() {
-    const savedConfig = localStorage.getItem('arqueiroConfig');
+    const savedConfig = localStorage.getItem(STORAGE_KEY);
     if (savedConfig) {
         try {
             const config = JSON.parse(savedConfig);
             return { ...DEFAULT_GAME_CONFIG, ...config };
-        } catch (e) {
-            // Erro ao carregar configurações
+        } catch (error) {
+            console.warn('Erro ao carregar configurações salvas:', error);
         }
     }
     return DEFAULT_GAME_CONFIG;
 }
 
-// Salvar configurações
+/**
+ * Salva configurações no localStorage
+ * @param {Object} config - Configuração a ser salva
+ * @returns {boolean} True se salvou com sucesso
+ */
 export function saveGameConfig(config) {
     try {
-        localStorage.setItem('arqueiroConfig', JSON.stringify(config));
-        // Notificar sobre a mudança
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
         notifyConfigChanged();
         return true;
-    } catch (e) {
-        // Erro ao salvar configurações
+    } catch (error) {
+        console.error('Erro ao salvar configurações:', error);
         return false;
     }
 }
 
-// Resetar configurações para padrão
+/**
+ * Reseta configurações para os valores padrão
+ * @returns {Object} Configuração padrão
+ */
 export function resetGameConfig() {
-    localStorage.removeItem('arqueiroConfig');
+    localStorage.removeItem(STORAGE_KEY);
     return DEFAULT_GAME_CONFIG;
 }
 
-// Exportar configuração atual
+/**
+ * Exporta configuração atual para arquivo JSON
+ */
 export function exportGameConfig() {
     const config = loadGameConfig();
     const dataStr = JSON.stringify(config, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(dataBlob);
+    const url = URL.createObjectURL(dataBlob);
+    
+    link.href = url;
     link.download = 'arqueiro-config.json';
     link.click();
+    
+    // Limpar URL criada para evitar vazamento de memória
+    setTimeout(() => URL.revokeObjectURL(url), 100);
 }
 
-// Importar configuração
+/**
+ * Importa configuração de arquivo JSON
+ * @param {string} jsonData - Dados JSON da configuração
+ * @returns {Object} Resultado da importação {success: boolean, config?: Object, error?: string}
+ */
 export function importGameConfig(jsonData) {
     try {
         const config = JSON.parse(jsonData);
+        
+        // Validação básica da estrutura
+        if (typeof config !== 'object' || config === null) {
+            return { success: false, error: 'Formato de configuração inválido' };
+        }
+        
         if (saveGameConfig(config)) {
             return { success: true, config };
         }
-        return { success: false, error: 'Erro ao salvar configuração' };
-    } catch (e) {
+        return { success: false, error: 'Erro ao salvar configuração importada' };
+    } catch (error) {
+        console.error('Erro ao importar configuração:', error);
         return { success: false, error: 'Formato de arquivo inválido' };
     }
 } 
