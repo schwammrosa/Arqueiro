@@ -1004,33 +1004,23 @@ let arrowRainPreview = null; // {x, y} ou null
 
 function activateArrowRainMode() {
     if (!gameSystem.useSpecialSkill('arrowRain')) return;
-    setArrowRainSelecting(true);
-    const btn = document.getElementById('btnArrowRain');
-    btn.classList.add('selected');
-    document.body.style.cursor = 'crosshair';
-    uiSystem.showNotification('Clique no mapa para usar a Chuva de Flechas!', 'info');
-}
-
-function handleArrowRainClick(x, y) {
-    // Dano em área
-    let hits = 0;
     // Aplicar bônus da árvore de habilidades
     const bonus = (GAME_CONFIG.arrowRainBonus || 0);
     const totalDamage = ARROW_RAIN_BASE_DAMAGE * (1 + 0.25 * bonus); // +25% por nível
+    let hits = 0;
     [...gameState.enemies].forEach(enemy => {
-        const dx = enemy.x - x;
-        const dy = enemy.y - y;
-        if (Math.sqrt(dx*dx + dy*dy) <= ARROW_RAIN_RADIUS + (enemy.size || 0)) {
-            enemy.takeDamage(totalDamage);
-            hits++;
-        }
+        enemy.takeDamage(totalDamage);
+        hits++;
     });
-    // Efeito visual simples (pode ser melhorado depois)
-    showArrowRainEffect(x, y);
-    setArrowRainSelecting(false);
-    setArrowRainPreview(null);
-    document.body.style.cursor = 'default';
     uiSystem.showNotification(`Chuva de Flechas: ${hits} inimigos atingidos!`, 'success');
+    // Efeito visual simples em todos os monstros
+    [...gameState.enemies].forEach(enemy => {
+        showArrowRainEffect(enemy.x, enemy.y);
+    });
+    // Garantir que o botão volte ao normal
+    const btn = document.getElementById('btnArrowRain');
+    if (btn) btn.classList.remove('selected');
+    document.body.style.cursor = 'default';
 }
 
 function showArrowRainEffect(x, y) {

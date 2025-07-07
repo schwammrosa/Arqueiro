@@ -2779,3 +2779,13 @@ button:focus, .btn:focus, .control-btn:focus, .tower-btn:focus {
   outline: none !important;
   box-shadow: none !important;
 }
+
+@media (max-width: 480px) {
+  /* Exibir o texto da velocidade no botão de speed mesmo no mobile */
+  #speedButton .btn-text {
+    display: inline !important;
+    font-size: 13px !important;
+    margin-left: 4px;
+    font-weight: bold;
+  }
+}

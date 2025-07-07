@@ -760,7 +760,7 @@ export class GameSystem {
                 const skill = this.specialSkills.arrowRain;
                 const locked = !this.isSpecialSkillUnlocked('arrowRain');
                 const cooldownText = !locked && !skill.ready ? 
-                    `<span style='color:#d84315;font-weight:bold;'>${Math.ceil(remainingTime)}s</span>` : '';
+                    `<span style='color:#38bdf8;font-weight:bold;'>${Math.ceil(remainingTime)}s</span>` : '';
                 
                 btn.disabled = locked || !skill.ready;
                 btn.classList.toggle('locked', locked);
