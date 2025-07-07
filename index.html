@@ -163,11 +163,6 @@
         </div>
     </div>
     
-    <!-- Botão flutuante para esconder/mostrar controles -->
-    <button id="toggleControls" class="toggle-controls-btn" title="Esconder/Mostrar controles">
-        <span class="toggle-icon">🔽</span>
-    </button>
-    
     <script src="game.js" type="module"></script>
     <script src="config.js" type="module"></script>
 
@@ -1302,36 +1297,6 @@
                 window.setupSpecialSkillEventListeners();
             }
         }, 500);
-    });
-
-    // Funcionalidade do botão toggle de controles
-    document.addEventListener('DOMContentLoaded', function() {
-        const toggleBtn = document.getElementById('toggleControls');
-        const topPanel = document.querySelector('.top-panel');
-        let controlsHidden = false;
-
-        if (toggleBtn && topPanel) {
-            toggleBtn.addEventListener('click', function() {
-                controlsHidden = !controlsHidden;
-                
-                if (controlsHidden) {
-                    topPanel.classList.add('controls-hidden');
-                    toggleBtn.title = 'Mostrar controles';
-                } else {
-                    topPanel.classList.remove('controls-hidden');
-                    toggleBtn.title = 'Esconder controles';
-                }
-            });
-        }
-    });
-
-    // Bloquear menu de contexto (clique direito e toque longo)
-    document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-    });
-    // Bloquear seleção de texto por evento
-    document.addEventListener('selectstart', function(e) {
-        e.preventDefault();
     });
 
     </script>
