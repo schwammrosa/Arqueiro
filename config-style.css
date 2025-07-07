@@ -1,3 +1,6 @@
+/* ========================================
+   RESET E BASE
+   ======================================== */
 * {
     margin: 0;
     padding: 0;
@@ -12,6 +15,15 @@ body {
     line-height: 1.6;
 }
 
+hr {
+    border: none;
+    border-top: 2px solid #e3e6ef;
+    margin: 36px 0 32px 0;
+}
+
+/* ========================================
+   LAYOUT PRINCIPAL
+   ======================================== */
 .config-container {
     max-width: 1200px;
     margin: 0 auto;
@@ -62,6 +74,17 @@ body {
     gap: 8px;
 }
 
+.config-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+    margin: 40px 0 0 0;
+}
+
+/* ========================================
+   GRID E ITENS DE CONFIGURAÇÃO
+   ======================================== */
 .config-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -115,12 +138,9 @@ body {
     font-size: 0.95em;
 }
 
-hr {
-    border: none;
-    border-top: 2px solid #e3e6ef;
-    margin: 36px 0 32px 0;
-}
-
+/* ========================================
+   CONFIGURAÇÕES DE TORRES
+   ======================================== */
 .tower-config {
     background: #f4f7fd;
     border-radius: 12px;
@@ -129,13 +149,23 @@ hr {
     margin-bottom: 18px;
 }
 
+.tower-config:last-child {
+    margin-bottom: 0;
+}
+
 .tower-config h3 {
     color: #23263a;
     font-size: 1.1em;
     margin-bottom: 10px;
     margin-top: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
+/* ========================================
+   CONFIGURAÇÕES DE INIMIGOS
+   ======================================== */
 .enemy-types-group {
     margin-top: 24px;
     padding: 18px 10px 10px 10px;
@@ -152,7 +182,7 @@ hr {
     letter-spacing: 1px;
 }
 
-.path-config {
+.enemy-type-config {
     background: #f4f7fd;
     border-radius: 12px;
     box-shadow: 0 1px 6px #0001;
@@ -160,35 +190,89 @@ hr {
     margin-bottom: 18px;
 }
 
-.config-actions {
+.enemy-type-config h3 {
+    color: #23263a;
+    font-size: 1.1em;
+    margin-bottom: 10px;
+    margin-top: 0;
     display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    justify-content: center;
-    margin: 40px 0 0 0;
+    align-items: center;
+    gap: 8px;
 }
 
-@media (max-width: 700px) {
-    .config-content {
-        padding: 12px 2vw 12px 2vw;
-    }
-    .config-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
-    .config-section h2 {
-        font-size: 1.1em;
-        padding: 6px 8px;
-    }
-    .tower-config, .path-config {
-        padding: 10px 6px 6px 6px;
-    }
-    .config-actions {
-        gap: 8px;
-    }
+.enemy-type-config .config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px 24px;
+    margin-bottom: 8px;
 }
 
-/* Sistema de Presets */
+.enemy-type-config .config-item {
+    background: #f8f9fb;
+    border-radius: 10px;
+    padding: 14px 16px 10px 16px;
+    box-shadow: 0 1px 4px #0001;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.enemy-type-config .config-item label {
+    font-weight: bold;
+    color: #3f51b5;
+    margin-bottom: 2px;
+}
+
+.enemy-type-config .config-item input {
+    width: 100%;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #cfd8dc;
+    font-size: 1em;
+    margin-bottom: 2px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.enemy-type-config .config-item input:focus {
+    outline: none;
+    border-color: #3f51b5;
+    box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.2);
+}
+
+.enemy-type-config .config-item input:invalid {
+    border-color: #f44336;
+    box-shadow: 0 0 0 2px rgba(244, 67, 54, 0.2);
+}
+
+.enemy-type-config .config-item input:valid {
+    border-color: #4caf50;
+}
+
+.enemy-type-config .config-item .description {
+    color: #888;
+    font-size: 0.95em;
+}
+
+/* Destaque visual sutil para cada tipo através de bordas coloridas */
+.enemy-type-config:nth-child(1) {
+    border-left: 4px solid #dc3545;
+}
+
+.enemy-type-config:nth-child(2) {
+    border-left: 4px solid #ffc107;
+}
+
+.enemy-type-config:nth-child(3) {
+    border-left: 4px solid #6c757d;
+}
+
+.enemy-type-config:nth-child(4) {
+    border-left: 4px solid #dc3545;
+}
+
+/* ========================================
+   SISTEMA DE PRESETS
+   ======================================== */
 .preset-controls {
     background: #f8f9fa;
     border-radius: 12px;
@@ -251,18 +335,17 @@ hr {
     color: #1b5e20;
 }
 
-/* Configurações das Torres */
-.tower-config:last-child {
-    margin-bottom: 0;
+/* ========================================
+   CONFIGURAÇÕES DE CAMINHO
+   ======================================== */
+.path-config {
+    background: #f4f7fd;
+    border-radius: 12px;
+    box-shadow: 0 1px 6px #0001;
+    padding: 18px 18px 10px 18px;
+    margin-bottom: 18px;
 }
 
-.tower-config h3 {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-/* Configurações do Caminho */
 .path-config p {
     margin-bottom: 20px;
     color: #6c757d;
@@ -401,7 +484,7 @@ hr {
     border: 1px solid #f5c6cb;
 }
 
-/* Grid melhorado */
+/* Grid do caminho */
 .path-grid {
     display: inline-grid;
     grid-template-columns: repeat(20, 20px);
@@ -472,34 +555,22 @@ hr {
     animation: pulse 1s infinite;
 }
 
+.path-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* ========================================
+   ANIMAÇÕES
+   ======================================== */
 @keyframes pulse {
     0% { opacity: 1; }
     50% { opacity: 0.7; }
     100% { opacity: 1; }
 }
 
-/* Notificações */
-.notification {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%) translateY(-100%);
-    padding: 15px 20px;
-    border-radius: 8px;
-    color: white;
-    font-weight: 600;
-    z-index: 10000;
-    max-width: 400px;
-    text-align: center;
-    transition: transform 0.4s ease;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
-.notification.show {
-    transform: translateX(-50%) translateY(0);
-}
-
-/* Animações para notificações centralizadas */
 @keyframes slideInDown {
     from {
         transform: translateX(-50%) translateY(-100%);
@@ -522,6 +593,29 @@ hr {
     }
 }
 
+/* ========================================
+   NOTIFICAÇÕES
+   ======================================== */
+.notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100%);
+    padding: 15px 20px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    z-index: 10000;
+    max-width: 400px;
+    text-align: center;
+    transition: transform 0.4s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.notification.show {
+    transform: translateX(-50%) translateY(0);
+}
+
 .notification-success {
     background: linear-gradient(135deg, #28a745, #1e7e34);
 }
@@ -539,7 +633,9 @@ hr {
     color: #212529;
 }
 
-/* Botões */
+/* ========================================
+   BOTÕES
+   ======================================== */
 .btn {
     padding: 12px 24px;
     border: none;
@@ -561,10 +657,7 @@ a.btn {
     text-decoration: none !important;
 }
 
-a.btn:hover {
-    text-decoration: none !important;
-}
-
+a.btn:hover,
 a.btn:focus {
     text-decoration: none !important;
 }
@@ -623,7 +716,9 @@ a.btn:focus {
     box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
 }
 
-/* Modal */
+/* ========================================
+   MODAL
+   ======================================== */
 .modal {
     position: fixed;
     top: 0;
@@ -674,15 +769,42 @@ a.btn:focus {
     justify-content: flex-end;
 }
 
-/* Controles do caminho */
-.path-controls {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    flex-wrap: wrap;
+/* ========================================
+   CÓDIGO MORTO - REMOVIDO
+   ======================================== */
+/* Remover estilos antigos da barra lateral de torres */
+.tower-selection, .tower-options {
+    display: none !important;
 }
 
-/* Responsividade */
+/* ========================================
+   RESPONSIVIDADE
+   ======================================== */
+@media (max-width: 1100px) {
+    .skill-tree-panel {
+        width: 98vw;
+        max-width: 98vw;
+        min-width: 0;
+        flex: 1 1 98vw;
+    }
+}
+
+@media (max-width: 900px) {
+    #skill-tree-multi-panel {
+        flex-direction: column !important;
+        align-items: center;
+        max-width: 100%;
+        gap: 16px;
+        padding: 0 10px;
+    }
+    
+    .skill-tree-panel {
+        min-width: 0;
+        max-width: 98vw;
+        padding: 12px 2vw 18px 2vw;
+    }
+}
+
 @media (max-width: 768px) {
     .config-container {
         padding: 10px;
@@ -776,6 +898,30 @@ a.btn:focus {
     }
 }
 
+@media (max-width: 700px) {
+    .config-content {
+        padding: 12px 2vw 12px 2vw;
+    }
+    
+    .config-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .config-section h2 {
+        font-size: 1.1em;
+        padding: 6px 8px;
+    }
+    
+    .tower-config, .path-config {
+        padding: 10px 6px 6px 6px;
+    }
+    
+    .config-actions {
+        gap: 8px;
+    }
+}
+
 @media (max-width: 480px) {
     .config-header h1 {
         font-size: 1.5em;
@@ -812,268 +958,4 @@ a.btn:focus {
     .enemy-type-config h3 {
         font-size: 1em;
     }
-}
-
-/* Estilos para tipos de inimigos - consistente com o resto da página */
-.enemy-type-config {
-    background: #f4f7fd;
-    border-radius: 12px;
-    box-shadow: 0 1px 6px #0001;
-    padding: 18px 18px 10px 18px;
-    margin-bottom: 18px;
-}
-
-.enemy-type-config h3 {
-    color: #23263a;
-    font-size: 1.1em;
-    margin-bottom: 10px;
-    margin-top: 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.enemy-type-config .config-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 18px 24px;
-    margin-bottom: 8px;
-}
-
-.enemy-type-config .config-item {
-    background: #f8f9fb;
-    border-radius: 10px;
-    padding: 14px 16px 10px 16px;
-    box-shadow: 0 1px 4px #0001;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.enemy-type-config .config-item label {
-    font-weight: bold;
-    color: #3f51b5;
-    margin-bottom: 2px;
-}
-
-.enemy-type-config .config-item input {
-    width: 100%;
-    padding: 6px 8px;
-    border-radius: 6px;
-    border: 1px solid #cfd8dc;
-    font-size: 1em;
-    margin-bottom: 2px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.enemy-type-config .config-item input:focus {
-    outline: none;
-    border-color: #3f51b5;
-    box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.2);
-}
-
-.enemy-type-config .config-item input:invalid {
-    border-color: #f44336;
-    box-shadow: 0 0 0 2px rgba(244, 67, 54, 0.2);
-}
-
-.enemy-type-config .config-item input:valid {
-    border-color: #4caf50;
-}
-
-.enemy-type-config .config-item .description {
-    color: #888;
-    font-size: 0.95em;
-}
-
-/* Destaque visual sutil para cada tipo através de bordas coloridas */
-.enemy-type-config:nth-child(1) {
-    border-left: 4px solid #dc3545;
-}
-
-.enemy-type-config:nth-child(2) {
-    border-left: 4px solid #ffc107;
-}
-
-.enemy-type-config:nth-child(3) {
-    border-left: 4px solid #6c757d;
-}
-
-.enemy-type-config:nth-child(4) {
-    border-left: 4px solid #dc3545;
-}
-
-/* Remover estilos antigos da barra lateral de torres, se existirem */
-.tower-selection, .tower-options {
-    display: none !important;
-}
-
-.skill-tree-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 260px);
-    grid-auto-rows: 120px;
-    gap: 32px 64px;
-    justify-items: center;
-    align-items: center;
-    width: 100%;
-    min-width: 780px;
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 32px 0 16px 0;
-    position: relative;
-}
-
-/* Linhas verticais removidas */
-
-.skill-node {
-    grid-row: var(--row);
-    grid-column: var(--col);
-    z-index: 2;
-}
-
-/* Ajuste para centralizar o painel e espaçar as colunas */
-#skill-tree-panel {
-    background: #181c24;
-    border-radius: 18px;
-    box-shadow: 0 4px 32px #000a;
-    padding: 0 32px 32px 32px;
-    margin: 0 auto;
-    max-width: 900px;
-    min-width: 340px;
-    min-height: 400px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-#skill-tree-multi-panel {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 24px;
-    margin: 0 auto;
-    width: 100%;
-    max-width: 1100px;
-    padding: 0 20px;
-    box-sizing: border-box;
-}
-
-.skill-tree-panel {
-    background: #181c24;
-    border: 2px solid #1e2633;
-    border-radius: 18px;
-    box-shadow: 0 4px 32px #000a;
-    padding: 20px 16px 28px 16px;
-    width: 100%;
-    max-width: 320px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    flex: 1 1 300px;
-}
-
-.skill-tree-title {
-    color: #4fdfff;
-    font-size: 1.3rem;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 18px;
-    letter-spacing: 1px;
-    text-shadow: 0 2px 8px #000a;
-}
-
-.skill-tree-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-auto-rows: 110px;
-    gap: 24px 0;
-    justify-items: center;
-    align-items: center;
-    width: 100%;
-    min-width: 180px;
-    max-width: 220px;
-    margin: 0 auto;
-    padding: 0 0 8px 0;
-    position: relative;
-}
-
-@media (max-width: 900px) {
-    #skill-tree-multi-panel {
-        flex-direction: column !important;
-        align-items: center;
-        max-width: 100%;
-        gap: 16px;
-        padding: 0 10px;
-    }
-    .skill-tree-panel {
-        min-width: 0;
-        max-width: 98vw;
-        padding: 12px 2vw 18px 2vw;
-    }
-}
-
-.skill-conn {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 1;
-}
-
-.skill-conn line {
-    stroke: #4fdfff;
-    stroke-width: 3;
-    opacity: 0.7;
-    filter: drop-shadow(0 0 4px #4fdfff88);
-}
-
-@media (max-width: 1100px) {
-    .skill-tree-panel {
-        width: 98vw;
-        max-width: 98vw;
-        min-width: 0;
-        flex: 1 1 98vw;
-    }
-}
-
-.skill-node .skill-label { display: none; }
-
-.skill-tooltip {
-  display: none !important;
-  position: absolute !important;
-  left: 50% !important;
-  top: -10px !important;
-  transform: translate(-50%, -100%) !important;
-  background: #10131a !important;
-  color: #fff !important;
-  border: 2px solid #4fdfff !important;
-  border-radius: 7px !important;
-  box-shadow: 0 2px 12px #000a !important;
-  padding: 7px 10px 6px 10px !important;
-  font-size: 0.98em !important;
-  width: 170px !important;
-  min-width: 0 !important;
-  max-width: 170px !important;
-  z-index: 10 !important;
-  pointer-events: none !important;
-  text-align: center !important;
-  white-space: normal !important;
-  line-height: 1.3 !important;
-}
-.skill-node:hover .skill-tooltip {
-  display: block !important;
-}
-.skill-tooltip::after {
-  content: '';
-  position: absolute !important;
-  left: 50% !important;
-  top: 100% !important;
-  transform: translateX(-50%) !important;
-  border-width: 7px !important;
-  border-style: solid !important;
-  border-color: #4fdfff transparent transparent transparent !important;
 } 
