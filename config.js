@@ -137,7 +137,7 @@ const PRESETS = {
                 sellPercentage: 75,
             enemyBaseHealth: 30,
             enemyHealthIncrease: 8,
-            enemySpeed: 0.3,
+            enemySpeed: 1.5,
             enemyHealthMultiplier: 1.1,
             enemySpeedMultiplier: 1.05,
             enemiesPerWave: 5,
@@ -145,7 +145,7 @@ const PRESETS = {
             goldMultiplier: 1.5
         }
     },
-    medium: {
+    normal: {
         name: 'Médio',
         config: {
             initialHealth: 20,
@@ -156,7 +156,7 @@ const PRESETS = {
                 sellPercentage: 50,
             enemyBaseHealth: 50,
             enemyHealthIncrease: 15,
-            enemySpeed: 0.5,
+            enemySpeed: 1.8,
             enemyHealthMultiplier: 1.25,
             enemySpeedMultiplier: 1.15,
             enemiesPerWave: 8,
@@ -175,7 +175,7 @@ const PRESETS = {
                 sellPercentage: 25,
             enemyBaseHealth: 80,
             enemyHealthIncrease: 25,
-            enemySpeed: 0.8,
+            enemySpeed: 2.2,
             enemyHealthMultiplier: 1.4,
             enemySpeedMultiplier: 1.25,
             enemiesPerWave: 12,
@@ -185,7 +185,7 @@ const PRESETS = {
     }
 };
 
-let currentPreset = 'medium';
+let currentPreset = 'normal';
 
 // Grid do caminho
 let pathGrid = [];
@@ -227,76 +227,78 @@ function updateGlobalSkillPointsConfig() {
     if (span) span.textContent = points;
 }
 
-// Inicialização
-document.addEventListener('DOMContentLoaded', () => {
-    // Carregar configurações
-    loadConfig();
+// Inicializar quando a página carregar
+document.addEventListener('DOMContentLoaded', function() {
+    // Verificar qual dificuldade está selecionada
+    const selectedDifficulty = localStorage.getItem('selectedDifficulty') || 'normal';
     
-    // Configurar editor de caminho
+    // Tentar carregar configurações específicas da dificuldade
+    const configKey = `arqueiroConfig_${selectedDifficulty}`;
+    const savedDifficultyConfig = localStorage.getItem(configKey);
+    
+    if (savedDifficultyConfig) {
+        try {
+            const config = JSON.parse(savedDifficultyConfig);
+            // Salvar na chave geral para loadConfig() funcionar
+            localStorage.setItem('arqueiroConfig', JSON.stringify(config));
+            console.log(`Carregando configurações específicas de ${selectedDifficulty}`);
+        } catch (e) {
+            console.error('Erro ao carregar configurações da dificuldade:', e);
+        }
+    }
+    
+    loadConfig();
+    applyConfigToFields();
     createPathGrid();
     createPathTemplates();
     setupPathEditor();
-    updatePathDisplay();
-    
-    // Configurar eventos e interface
     setupEventListeners();
-    updateGlobalSkillPointsConfig();
-    detectCurrentPreset();
     
-    // Configurar pontos de upgrade globais
-    const skillPointsInput = document.getElementById('globalSkillPointsInput');
-    if (skillPointsInput) {
-        skillPointsInput.value = localStorage.getItem(SKILL_POINTS_KEY) || '0';
-        skillPointsInput.addEventListener('change', () => {
-            let val = parseInt(skillPointsInput.value) || 0;
-            if (val < 0) val = 0;
-            if (val > 999) val = 999;
-            skillPointsInput.value = val;
-            localStorage.setItem(SKILL_POINTS_KEY, val);
-            updateGlobalSkillPointsConfig();
-            document.dispatchEvent(new CustomEvent('skillPointsChanged', { detail: { value: val } }));
-        });
-    }
-    
-    // Configurar reset da árvore de habilidades
-    const resetBtn = document.getElementById('resetSkillTree');
-    if (resetBtn) {
-        resetBtn.onclick = () => {
-            if (confirm('Tem certeza que deseja resetar todos os upgrades globais e pontos?')) {
-                localStorage.setItem(SKILL_POINTS_KEY, '0');
-                localStorage.setItem(SKILL_TREE_KEY, '{}');
-                localStorage.setItem('arqueiroLastRewardedWave', '0');
-                updateGlobalSkillPointsConfig();
-                alert('Árvore de habilidades, pontos e progresso de recompensas resetados!');
+    // Carregar caminho salvo se existir
+    const savedPath = localStorage.getItem('enemyPath');
+    if (savedPath) {
+        try {
+            const path = JSON.parse(savedPath);
+            if (path && path.length > 0) {
+                applyPathToGrid(path);
             }
-        };
+        } catch (e) {
+            console.error('Erro ao carregar caminho salvo:', e);
+            // Aplicar caminho padrão se houver erro
+            applyPathToGrid(DEFAULT_GAME_CONFIG.enemyPath);
+        }
+    } else {
+        // Se não há caminho salvo, usar o padrão
+        applyPathToGrid(DEFAULT_GAME_CONFIG.enemyPath);
     }
     
-    // Configurar habilidades especiais
-    const arrowRainCooldownInput = document.getElementById('arrowRainCooldownConfig');
-    const arrowRainDamageInput = document.getElementById('arrowRainDamageConfig');
-    const arrowRainRadiusInput = document.getElementById('arrowRainRadiusConfig');
-    const iceStormCooldownInput = document.getElementById('iceStormCooldownConfig');
-    const iceStormDurationInput = document.getElementById('iceStormDurationConfig');
-    const iceStormDamageInput = document.getElementById('iceStormDamageConfig');
-    // Configurar valores padrão e carregar valores salvos
-    const specialSkillsConfig = {
-        arrowRainCooldown: { input: arrowRainCooldownInput, key: 'arrowRainCooldown', default: '15' },
-        arrowRainDamage: { input: arrowRainDamageInput, key: 'arrowRainDamage', default: '60' },
-        arrowRainRadius: { input: arrowRainRadiusInput, key: 'arrowRainRadius', default: '90' },
-        iceStormCooldown: { input: iceStormCooldownInput, key: 'iceStormCooldown', default: '30' },
-        iceStormDuration: { input: iceStormDurationInput, key: 'iceStormDuration', default: '4' },
-        iceStormDamage: { input: iceStormDamageInput, key: 'iceStormDamage', default: '100' }
-    };
+    // Definir preset atual baseado na dificuldade selecionada
+    const savedConfig = loadGameConfig();
+    const detectedPreset = selectedDifficulty; // Usar a dificuldade selecionada
     
-    // Aplicar configurações
-    Object.values(specialSkillsConfig).forEach(config => {
-        if (config.input) {
-            config.input.value = localStorage.getItem(config.key) || config.default;
-            config.input.onchange = () => localStorage.setItem(config.key, config.input.value);
-        }
-    });
+    if (detectedPreset && PRESETS[detectedPreset]) {
+        setPresetActive(detectedPreset);
+        currentPreset = detectedPreset;
+        console.log(`Preset ativo: ${detectedPreset}`);
+    } else {
+        setPresetActive('normal');
+        currentPreset = 'normal';
+    }
 });
+
+// Função para detectar qual preset está sendo usado baseado nas configurações
+function detectPresetFromConfig(config) {
+    for (const [presetName, preset] of Object.entries(PRESETS)) {
+        const matches = Object.entries(preset.config).every(([key, value]) => {
+            return Math.abs((config[key] || 0) - value) < 0.01; // tolerância para valores float
+        });
+        
+        if (matches) {
+            return presetName;
+        }
+    }
+    return null; // Não corresponde a nenhum preset
+}
 
 // Carregar configurações salvas
 function loadConfig() {
@@ -353,7 +355,14 @@ function applyConfigToFields() {
         if (towerConfig[towerType]) {
             towerProperties.forEach(prop => {
                 const el = document.getElementById(`${towerType}${prop.charAt(0).toUpperCase() + prop.slice(1)}`);
-                if (el) el.value = towerConfig[towerType][prop];
+                if (el) {
+                    if (prop === 'fireRate') {
+                        // Converter de milissegundos para segundos na interface
+                        el.value = towerConfig[towerType][prop] / 1000;
+                    } else {
+                        el.value = towerConfig[towerType][prop];
+                    }
+                }
             });
             
             // Aplicar configurações de upgrade
@@ -574,7 +583,7 @@ function collectConfigFromFields() {
                 cost: getElementValue('archerCost', 50),
                 range: getElementValue('archerRange', 120),
                 damage: getElementValue('archerDamage', 15),
-                fireRate: getElementValue('archerFireRate', 1000),
+                fireRate: getElementValue('archerFireRate', 1) * 1000, // Converter segundos para milissegundos
                 upgradeDamage: getElementValue('archerUpgradeDamage', 30, true),
                 upgradeRange: getElementValue('archerUpgradeRange', 10, true),
                 upgradeSpeed: getElementValue('archerUpgradeSpeed', -10, true)
@@ -583,42 +592,42 @@ function collectConfigFromFields() {
                 cost: getElementValue('cannonCost', 75),
                 range: getElementValue('cannonRange', 100),
                 damage: getElementValue('cannonDamage', 25),
-                fireRate: getElementValue('cannonFireRate', 1500),
+                fireRate: getElementValue('cannonFireRate', 1.5) * 1000, // Converter segundos para milissegundos
                 upgradeDamage: getElementValue('cannonUpgradeDamage', 35, true),
                 upgradeRange: getElementValue('cannonUpgradeRange', 15, true),
                 upgradeSpeed: getElementValue('cannonUpgradeSpeed', -15, true),
-                areaRadius: getElementValue('cannonAreaRadius', 50),
-                areaDamageMultiplier: getElementValue('cannonAreaDamageMultiplier', 80)
+                areaRadius: getElementValue('cannonAreaRadius', 48, true),
+                areaDamageMultiplier: getElementValue('cannonAreaDamageMultiplier', 100, true)
             },
             magic: {
                 cost: getElementValue('magicCost', 95),
                 range: getElementValue('magicRange', 140),
                 damage: getElementValue('magicDamage', 20),
-                fireRate: getElementValue('magicFireRate', 1000),
-                upgradeDamage: getElementValue('magicUpgradeDamage', 25, true),
-                upgradeRange: getElementValue('magicUpgradeRange', 20, true),
-                upgradeSpeed: getElementValue('magicUpgradeSpeed', -5, true),
-                slowEffect: getElementValue('magicSlowEffect', 70),
-                freezeDuration: getElementValue('magicFreezeDuration', 2.0, true)
+                fireRate: getElementValue('magicFireRate', 1) * 1000, // Converter segundos para milissegundos
+                upgradeDamage: getElementValue('magicUpgradeDamage', 30, true),
+                upgradeRange: getElementValue('magicUpgradeRange', 10, true),
+                upgradeSpeed: getElementValue('magicUpgradeSpeed', -10, true),
+                slowEffect: getElementValue('magicSlowEffect', 40, true),
+                freezeDuration: getElementValue('magicFreezeDuration', 1000)
             },
             tesla: {
                 cost: getElementValue('teslaCost', 95),
-                range: getElementValue('teslaRange', 120),
+                range: getElementValue('teslaRange', 110),
                 damage: getElementValue('teslaDamage', 20),
-                fireRate: getElementValue('teslaFireRate', 1000),
+                fireRate: getElementValue('teslaFireRate', 1) * 1000, // Converter segundos para milissegundos
                 upgradeDamage: getElementValue('teslaUpgradeDamage', 30, true),
-                upgradeRange: getElementValue('teslaUpgradeRange', 12, true),
-                upgradeSpeed: getElementValue('teslaUpgradeSpeed', -8, true),
-                chainMax: getElementValue('teslaChainMax', 3),
-                chainRadius: getElementValue('teslaChainRadius', 80, true)
+                upgradeRange: getElementValue('teslaUpgradeRange', 10, true),
+                upgradeSpeed: getElementValue('teslaUpgradeSpeed', -10, true),
+                chainMax: getElementValue('teslaChainMax', 5),
+                chainRadius: getElementValue('teslaChainRadius', 1.2, true)
             },
             special: {
                 cost: getElementValue('specialCost', 300),
                 range: getElementValue('specialRange', 200),
                 damage: getElementValue('specialDamage', 40),
-                fireRate: getElementValue('specialFireRate', 500),
-                color: document.getElementById('specialColor')?.value || '#ffd700',
-                effect: document.getElementById('specialEffect')?.value || 'global'
+                fireRate: getElementValue('specialFireRate', 0.5) * 1000, // Converter segundos para milissegundos
+                color: getElementValue('specialColor', '#8e44ad'),
+                effect: getElementValue('specialEffect', 'Atira em todos os inimigos a cada 2s')
             }
         },
         
@@ -1012,23 +1021,11 @@ function setupEventListeners() {
     const presetEasyBtn = document.getElementById('presetEasy');
     if (presetEasyBtn) presetEasyBtn.addEventListener('click', () => applyPreset('easy'));
     
-    const presetMediumBtn = document.getElementById('presetMedium');
-    if (presetMediumBtn) presetMediumBtn.addEventListener('click', () => applyPreset('medium'));
+    const presetNormalBtn = document.getElementById('presetNormal');
+    if (presetNormalBtn) presetNormalBtn.addEventListener('click', () => applyPreset('normal'));
     
     const presetHardBtn = document.getElementById('presetHard');
     if (presetHardBtn) presetHardBtn.addEventListener('click', () => applyPreset('hard'));
-    
-    const presetCustomBtn = document.getElementById('presetCustom');
-    if (presetCustomBtn) presetCustomBtn.addEventListener('click', () => applyPreset('custom'));
-    
-    // Detectar mudanças nos campos para marcar como personalizado
-    document.addEventListener('input', (e) => {
-        if (e.target.type === 'number' && e.target.id !== 'globalSkillPointsInput') {
-            if (currentPreset !== 'custom') {
-                setPresetActive('custom');
-            }
-        }
-    });
     
     const confirmImportBtn = document.getElementById('confirmImport');
     if (confirmImportBtn) confirmImportBtn.addEventListener('click', importConfig);
@@ -1046,80 +1043,6 @@ function setupEventListeners() {
     // Prevenir arrastar do grid
     const pathGridElement = document.getElementById('pathGrid');
     if (pathGridElement) pathGridElement.addEventListener('dragstart', (e) => e.preventDefault());
-
-
-
-    // Função auxiliar para salvar configurações de upgrade das torres
-    function setupTowerUpgradeListener(towerType, upgradeType, inputId) {
-        const input = document.getElementById(inputId);
-        if (input) {
-            input.onchange = () => {
-                const val = parseFloat(input.value);
-                const config = JSON.parse(localStorage.getItem('arqueiroConfig') || '{}');
-                config.towers = config.towers || {};
-                config.towers[towerType] = config.towers[towerType] || {};
-                config.towers[towerType][upgradeType] = val;
-                localStorage.setItem('arqueiroConfig', JSON.stringify(config));
-            };
-        }
-    }
-
-    // Configurar listeners para upgrades do Arqueiro
-    const archerUpgrades = [
-        { type: 'upgradeDamage', id: 'archerUpgradeDamage' },
-        { type: 'upgradeRange', id: 'archerUpgradeRange' },
-        { type: 'upgradeSpeed', id: 'archerUpgradeSpeed' }
-    ];
-    archerUpgrades.forEach(upgrade => {
-        setupTowerUpgradeListener('archer', upgrade.type, upgrade.id);
-    });
-
-    // Configurar listeners para upgrades das outras torres
-    const towerTypes = ['cannon', 'magic', 'tesla'];
-    const upgradeTypes = ['upgradeDamage', 'upgradeRange', 'upgradeSpeed'];
-    
-    towerTypes.forEach(tower => {
-        upgradeTypes.forEach(upgradeType => {
-            const inputId = tower + upgradeType.charAt(0).toUpperCase() + upgradeType.slice(1);
-            setupTowerUpgradeListener(tower, upgradeType, inputId);
-        });
-    });
-
-    // Função auxiliar para salvar parâmetros especiais das torres
-    function setupSpecialParamListener(towerType, paramName, inputId, isFloat = false) {
-        const input = document.getElementById(inputId);
-        if (input) {
-            input.onchange = () => {
-                let val = isFloat ? parseFloat(input.value) : parseInt(input.value);
-                
-                // Validação específica para teslaChainRadius
-                if (paramName === 'chainRadius') {
-                    if (val < 0.5) val = 0.5;
-                    if (val > 3) val = 3;
-                    input.value = val;
-                }
-                
-                const config = JSON.parse(localStorage.getItem('arqueiroConfig') || '{}');
-                config.towers = config.towers || {};
-                config.towers[towerType] = config.towers[towerType] || {};
-                config.towers[towerType][paramName] = val;
-                localStorage.setItem('arqueiroConfig', JSON.stringify(config));
-            };
-        }
-    }
-
-    // Configurar listeners para parâmetros especiais
-    const specialParams = [
-        { tower: 'cannon', param: 'areaRadius', id: 'cannonAreaRadius' },
-        { tower: 'cannon', param: 'areaDamageMultiplier', id: 'cannonAreaDamageMultiplier' },
-        { tower: 'magic', param: 'slowEffect', id: 'magicSlowEffect' },
-        { tower: 'tesla', param: 'chainMax', id: 'teslaChainMax' },
-        { tower: 'tesla', param: 'chainRadius', id: 'teslaChainRadius', isFloat: true }
-    ];
-    
-    specialParams.forEach(({ tower, param, id, isFloat }) => {
-        setupSpecialParamListener(tower, param, id, isFloat);
-    });
 }
 
 // Salvar configurações
@@ -1132,23 +1055,50 @@ function saveConfig() {
             return;
         }
         
-        // Salvar configurações
-        saveGameConfig(config);
-        saveTowerConfig(config.towers);
+        // Obter o caminho atual do grid
+        const currentPath = getPathFromGrid();
+        config.enemyPath = currentPath;
         
-        const enemyConfig = {
-            enemyBaseHealth: config.enemyBaseHealth,
-            enemyHealthIncrease: config.enemyHealthIncrease,
-            enemySpeed: config.enemySpeed,
-            enemyReward: config.enemyReward,
-            enemiesPerWave: config.enemiesPerWave,
-            enemiesIncrease: config.enemiesIncrease,
-            enemyTypes: config.enemyTypes
-        };
-        saveEnemyConfig(enemyConfig);
-        
-        notifyConfigChanged();
-        showNotification('Configurações salvas com sucesso!', 'success');
+        // IMPORTANTE: Salvar as configurações específicas para a dificuldade atual
+        if (currentPreset) {
+            const configKey = `arqueiroConfig_${currentPreset}`;
+            localStorage.setItem(configKey, JSON.stringify(config));
+            
+            // Também salvar nas configurações gerais para compatibilidade
+            saveGameConfig(config);
+            saveTowerConfig(config.towers);
+            
+            // Salvar o caminho separadamente (para templates)
+            localStorage.setItem('enemyPath', JSON.stringify(currentPath));
+            
+            const enemyConfig = {
+                enemyBaseHealth: config.enemyBaseHealth,
+                enemyHealthIncrease: config.enemyHealthIncrease,
+                enemySpeed: config.enemySpeed,
+                enemyReward: config.enemyReward,
+                enemiesPerWave: config.enemiesPerWave,
+                enemiesIncrease: config.enemiesIncrease,
+                enemyTypes: config.enemyTypes
+            };
+            saveEnemyConfig(enemyConfig);
+            
+            // Também atualizar o preset atual com as configurações (para manter consistência da UI)
+            if (PRESETS[currentPreset]) {
+                Object.keys(PRESETS[currentPreset].config).forEach(key => {
+                    if (config.hasOwnProperty(key)) {
+                        PRESETS[currentPreset].config[key] = config[key];
+                    }
+                });
+            }
+            
+            notifyConfigChanged();
+            showNotification(`Configurações do modo "${PRESETS[currentPreset]?.name || currentPreset}" salvas com sucesso!`, 'success');
+        } else {
+            // Fallback: salvar configurações gerais
+            saveGameConfig(config);
+            saveTowerConfig(config.towers);
+            showNotification('Configurações salvas com sucesso!', 'success');
+        }
         
         // Aplicar mudanças imediatamente se possível
         if (window.opener && window.opener.reloadConfigs) {
@@ -1291,11 +1241,6 @@ function repositionNotifications() {
 
 // Funções de preset
 function applyPreset(presetName) {
-    if (presetName === 'custom') {
-        setPresetActive('custom');
-        return;
-    }
-    
     const preset = PRESETS[presetName];
     if (!preset) return;
     
@@ -1304,6 +1249,26 @@ function applyPreset(presetName) {
         const input = document.getElementById(key);
         if (input) input.value = value;
     });
+    
+    // Aplicar template de caminho baseado na dificuldade
+    let templateName = 'zigzag'; // padrão
+    switch (presetName) {
+        case 'easy':
+            templateName = 'maze'; // Labirinto para fácil
+            break;
+        case 'normal':
+            templateName = 'zigzag'; // Zigzag para normal
+            break;
+        case 'hard':
+            templateName = 'linear'; // Linha reta para difícil
+            break;
+    }
+    
+    // Aplicar o template de caminho
+    if (PATH_TEMPLATES[templateName]) {
+        applyPathToGrid(PATH_TEMPLATES[templateName].path);
+        showNotification(`Template de caminho "${PATH_TEMPLATES[templateName].name}" aplicado!`, 'info');
+    }
     
     setPresetActive(presetName);
     currentPreset = presetName;
@@ -1320,24 +1285,6 @@ function setPresetActive(presetName) {
     if (activeBtn) activeBtn.classList.add('active');
     
     currentPreset = presetName;
-}
-
-function detectCurrentPreset() {
-    // Verificar se os valores atuais correspondem a algum preset
-    for (const [presetName, preset] of Object.entries(PRESETS)) {
-        const matches = Object.entries(preset.config).every(([key, value]) => {
-            const input = document.getElementById(key);
-            return input && parseFloat(input.value) === value;
-        });
-        
-        if (matches) {
-            setPresetActive(presetName);
-            return;
-        }
-    }
-    
-    // Se não corresponde a nenhum preset, marcar como personalizado
-    setPresetActive('custom');
 }
 
  

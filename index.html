@@ -1014,7 +1014,68 @@
         // Verificar se é para continuar ou novo jogo
         const isContinue = document.getElementById('difficultyModalTitle').textContent === 'Continuar Jogo';
         
-        // Aplicar configurações de dificuldade
+        // Carregar configurações específicas da dificuldade selecionada
+        const configKey = `arqueiroConfig_${difficulty}`;
+        const savedConfig = localStorage.getItem(configKey);
+        let configToUse = {};
+        
+        if (savedConfig) {
+            try {
+                configToUse = JSON.parse(savedConfig);
+                console.log(`Carregando configurações salvas para ${difficulty}:`, configToUse);
+            } catch (e) {
+                console.error('Erro ao carregar configurações salvas:', e);
+                // Fallback para presets padrão se houver erro
+                configToUse = getDefaultPresetConfig(difficulty);
+            }
+        } else {
+            // Se não há configurações salvas para esta dificuldade, usar presets padrão
+            configToUse = getDefaultPresetConfig(difficulty);
+            console.log(`Usando configurações padrão para ${difficulty}:`, configToUse);
+        }
+        
+        // Salvar a dificuldade selecionada
+        localStorage.setItem('selectedDifficulty', difficulty);
+        
+        // Salvar as configurações na chave geral que o jogo lê
+        localStorage.setItem('arqueiroConfig', JSON.stringify(configToUse));
+        
+        // Aplicar template de caminho baseado na dificuldade
+        const pathTemplate = getPathTemplateForDifficulty(difficulty);
+        if (pathTemplate) {
+            localStorage.setItem('enemyPath', JSON.stringify(pathTemplate.path));
+            
+            // Mostrar notificação sobre o template aplicado
+            setTimeout(() => {
+                if (typeof window.uiSystem !== 'undefined' && window.uiSystem.showNotification) {
+                    window.uiSystem.showNotification(`Template aplicado: ${pathTemplate.name}`, 'info');
+                }
+            }, 1000);
+        }
+        
+        // Iniciar o jogo
+        document.body.classList.add('game-running');
+        
+        if (isContinue) {
+            // Continuar jogo com progresso salvo
+            if (typeof window.iniciarModoContinuar !== 'undefined') {
+                window.iniciarModoContinuar();
+            } else {
+                // Fallback: iniciar novo jogo
+                if (typeof window.iniciarNovoJogo !== 'undefined') {
+                    window.iniciarNovoJogo();
+                }
+            }
+        } else {
+            // Novo jogo
+            if (typeof window.iniciarNovoJogo !== 'undefined') {
+                window.iniciarNovoJogo();
+            }
+        }
+    }
+    
+    // Função para obter configurações padrão de um preset
+    function getDefaultPresetConfig(difficulty) {
         const PRESETS = {
             easy: {
                 name: 'Fácil',
@@ -1074,54 +1135,8 @@
                 }
             }
         };
-
-        const preset = PRESETS[difficulty];
-        if (preset) {
-            // Salvar a dificuldade selecionada
-            localStorage.setItem('selectedDifficulty', difficulty);
-            
-            // Salvar configurações
-            const currentConfig = JSON.parse(localStorage.getItem('arqueiroConfig') || '{}');
-            const newConfig = { ...currentConfig, ...preset.config };
-            localStorage.setItem('arqueiroConfig', JSON.stringify(newConfig));
-            
-            // Aplicar template de caminho baseado na dificuldade
-            const pathTemplate = getPathTemplateForDifficulty(difficulty);
-            if (pathTemplate) {
-                localStorage.setItem('enemyPath', JSON.stringify(pathTemplate.path));
-                
-                // Mostrar notificação sobre o template aplicado
-                setTimeout(() => {
-                    if (typeof window.uiSystem !== 'undefined' && window.uiSystem.showNotification) {
-                        window.uiSystem.showNotification(`Template aplicado: ${pathTemplate.name}`, 'info');
-                    }
-                }, 1000);
-            }
-            
-
-        }
         
-        // Iniciar o jogo
-        document.body.classList.add('game-running');
-        
-        if (isContinue) {
-            // Continuar jogo com progresso salvo
-            if (typeof window.iniciarModoContinuar !== 'undefined') {
-                window.iniciarModoContinuar();
-            } else {
-                // Fallback: iniciar novo jogo
-                if (typeof window.iniciarNovoJogo !== 'undefined') {
-                    window.iniciarNovoJogo();
-                }
-            }
-        } else {
-            // Novo jogo
-            if (typeof window.iniciarNovoJogo !== 'undefined') {
-                window.iniciarNovoJogo();
-            }
-        }
-        
-
+        return PRESETS[difficulty] ? PRESETS[difficulty].config : PRESETS.normal.config;
     }
 
     // Menu inicial

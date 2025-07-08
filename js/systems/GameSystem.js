@@ -133,7 +133,7 @@ export class GameSystem {
             this.handlePassiveHealing();
         }
 
-        this.renderGame();
+        this.renderGame(speedAdjustedDeltaTime);
         this.handleWaveCompletion();
         this.checkGameOver();
         
@@ -559,12 +559,10 @@ export class GameSystem {
         }
     }
 
-    renderGame() {
+    renderGame(speedAdjustedDeltaTime) {
         this.renderSystem.ctx.clearRect(0, 0, this.GAME_CONFIG.canvasWidth, this.GAME_CONFIG.canvasHeight);
         this.renderSystem.drawBackground();
         this.renderSystem.drawPath();
-        
-        const speedAdjustedDeltaTime = (performance.now() - this.lastTime) * this.gameSpeed;
         
         this.gameState.towers.forEach(tower => {
             tower.update(speedAdjustedDeltaTime);

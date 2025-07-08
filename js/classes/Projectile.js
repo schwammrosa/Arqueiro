@@ -1,15 +1,17 @@
 // Constantes para configuração de projéteis
 const PROJECTILE_CONFIG = {
-    HIT_DISTANCE: 10,
-    TESLA_HIT_DISTANCE: 15,
-    CANNON_HIT_DISTANCE: 15,
+    HIT_DISTANCE: 20,
+    TESLA_HIT_DISTANCE: 25,
+    CANNON_HIT_DISTANCE: 25,
     FRAME_RATE: 60,
     FRAME_TIME: 16.67,
     MAGIC_COLOR: '#36b9cc',
     TESLA_COLOR: '#00cfff',
     TRAIL_MAX_POINTS: 10,
     EFFECT_DURATION: 300,
-    CHAIN_DELAY: 100
+    CHAIN_DELAY: 100,
+    MAX_LIFETIME: 5000,
+    MAX_DISTANCE: 200
 };
 
 // Classe base para projéteis
@@ -24,10 +26,28 @@ class BaseProjectile {
         this.size = GAME_CONFIG.projectileSize;
         this.isRemoved = false;
         this.gameState = gameState;
+        this.createdAt = Date.now();
+        this.startX = x;
+        this.startY = y;
     }
 
     update(deltaTime) {
         if (this.isRemoved || !this.target) return false;
+
+        // Verificar tempo de vida máximo
+        if (Date.now() - this.createdAt > PROJECTILE_CONFIG.MAX_LIFETIME) {
+            this.remove();
+            return false;
+        }
+
+        // Verificar se passou muito longe do ponto inicial
+        const distanceFromStart = Math.sqrt(
+            Math.pow(this.x - this.startX, 2) + Math.pow(this.y - this.startY, 2)
+        );
+        if (distanceFromStart > PROJECTILE_CONFIG.MAX_DISTANCE) {
+            this.remove();
+            return false;
+        }
 
         const dx = this.target.x - this.x;
         const dy = this.target.y - this.y;

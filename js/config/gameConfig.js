@@ -22,7 +22,7 @@ export const DEFAULT_GAME_CONFIG = {
     // Configurações visuais
     canvasWidth: 800,
     canvasHeight: 600,
-    projectileSpeed: 5,
+    projectileSpeed: 10,
     projectileSize: 4,
     damageNumberLifetime: 60,
     damageNumberSpeed: 1,

@@ -6,7 +6,7 @@ export class MonsterSpriteManager {
         this.imageManager = imageManager;
         this.monsterSprites = new Map();
         this.animationFrames = new Map();
-        this.frameDuration = 200; // 200ms por frame (5 FPS)
+        this.frameDuration = 100; // Diminuído de 200ms para 100ms (10 FPS) para teste
         this.monsterConfigs = MONSTER_SPRITE_CONFIG;
     }
 

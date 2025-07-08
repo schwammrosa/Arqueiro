@@ -1491,11 +1491,12 @@ canvas.addEventListener('mousemove', (e) => {
         }
     }
     if (foundEnemy) {
+        const actualReward = Math.floor(foundEnemy.reward * (GAME_CONFIG.goldMultiplier || 1));
         showInfoTooltip(
             `<b>${foundEnemy.type.charAt(0).toUpperCase() + foundEnemy.type.slice(1)}</b><br>` +
             `Vida: ${Math.max(0, Math.round(foundEnemy.health))} / ${foundEnemy.maxHealth}<br>` +
-            `Velocidade: ${foundEnemy.speed}<br>` +
-            `Recompensa: ${foundEnemy.reward} ouro`
+            `Velocidade: ${foundEnemy.speed.toFixed(1)}<br>` +
+            `Recompensa: ${actualReward} ouro`
         , e.clientX, e.clientY);
         return;
     }
@@ -1612,8 +1613,9 @@ function calcularOuroAteOnda(onda, enemiesPerWave, enemyReward) {
     let total = 0;
     for (let i = 1; i < onda; i++) {
         const enemiesThisWave = enemiesPerWave + (i - 1) * (GAME_CONFIG.enemiesIncrease || 2);
-        const goldThisWave = enemiesThisWave * (GAME_CONFIG.enemyReward || 10);
-        total += goldThisWave;
+        const baseGoldThisWave = enemiesThisWave * (GAME_CONFIG.enemyReward || 10);
+        const actualGoldThisWave = Math.floor(baseGoldThisWave * (GAME_CONFIG.goldMultiplier || 1));
+        total += actualGoldThisWave;
     }
     return total;
 }
